@@ -37,8 +37,6 @@ class User(db.Model):
         self.email = email
         self.first_name = first_name
         self.last_name = last_name
-        self.phone = phone
-        self.city = city
 
     # helper methods
     def hash_password(self, password):

@@ -8,14 +8,14 @@ from app.api.recipes.model import Recipe
 mod = Blueprint('favorites', __name__, url_prefix='/api/favorites')
 
 
-# {"user_id":3, "product_id":2}
+# {"user_id":3, "recipe_id":2}
 @mod.route('/', methods=['POST'])
 def new_favorite():
     user_id = request.json.get('user_id')
-    product_id = request.json.get('product_id')
-    if user_id is None or product_id is None:
+    recipe_id = request.json.get('recipe_id')
+    if user_id is None or recipe_id is None:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
-    favorite = Favorite(user_id=user_id, product_id=product_id)
+    favorite = Favorite(user_id=user_id, recipe_id=recipe_id)
     db.session.add(favorite)
     db.session.commit()
     information = response_builder(favorite, Favorite)
@@ -28,11 +28,11 @@ def get_favorite():
     # for test
     # user_id = 1
     favorites = Favorite.query.filter_by(user_id=user_id)
-    products = []
+    recipes = []
     for favorite in favorites:
-        information = response_builder(Recipe.query.get(favorite.product_id), Recipe)
-        products.append(information)
-    return jsonify({'error_code': 200, 'products': products}), 200
+        information = response_builder(Recipe.query.get(favorite.recipe_id), Recipe)
+        recipes.append(information)
+    return jsonify({'error_code': 200, 'products': recipes}), 200
 
 
 @mod.route('/<int:id>', methods=['DELETE'])
