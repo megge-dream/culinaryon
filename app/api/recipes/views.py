@@ -4,7 +4,8 @@ from app.api import db, auth
 from app.api.categories.model import Category
 from app.api.cuisine_types.model import CuisineType
 from app.api.helpers import *
-from app.api.recipes.model import Recipe, InstructionItem, recipes_categories
+from app.api.photos.model import RecipePhoto
+from app.api.recipes.model import Recipe, InstructionItem
 from app.api.tools.model import Tool
 from app.api.wines.model import Wine
 
@@ -33,39 +34,8 @@ def new_recipe():
                     amount_of_persons=amount_of_persons, chef_id=chef_id, video=video)
     db.session.add(recipe)
     db.session.commit()
-    information = response_builder(recipe, Recipe)
-    information['categories'] = []
-    if categories is not None:
-        for category_id in categories:
-            category = Category.query.get(category_id)
-            recipe.categories.append(category)
-            db.session.commit()
-            category_information = response_builder(category, Category)
-            information["categories"].append(category_information)
-    information['cuisine_types'] = []
-    if cuisine_types is not None:
-        for cuisine_type_id in cuisine_types:
-            cuisine_type = CuisineType.query.get(cuisine_type_id)
-            recipe.cuisine_types.append(cuisine_type)
-            db.session.commit()
-            cuisine_type_information = response_builder(cuisine_type, CuisineType)
-            information["cuisine_types"].append(cuisine_type_information)
-    information['tools'] = []
-    if tools is not None:
-        for tool_id in tools:
-            tool = Tool.query.get(tool_id)
-            recipe.tools.append(tool)
-            db.session.commit()
-            tool_information = response_builder(tool, Tool)
-            information["tools"].append(tool_information)
-    information['wines'] = []
-    if wines is not None:
-        for wine_id in wines:
-            wine = Wine.query.get(wine_id)
-            recipe.wines.append(wine)
-            db.session.commit()
-            wine_information = response_builder(wine, Wine)
-            information["wines"].append(wine_information)
+    insert_recipes_many_to_many(recipe, categories, cuisine_types, tools, wines)
+    information = recipe_response_builder(recipe)
     return jsonify({'error_code': 201, 'result': information}), 201
 
 
@@ -90,9 +60,14 @@ def update_recipe(id):
         recipe.recipe_id = request.json.get('chef_id')
     if request.json.get('video'):
         recipe.recipe_id = request.json.get('video')
+    categories = request.json.get('categories')
+    cuisine_types = request.json.get('cuisine_types')
+    tools = request.json.get('tools')
+    wines = request.json.get('wines')
     db.session.commit()
+    insert_recipes_many_to_many(recipe, categories, cuisine_types, tools, wines)
     recipe = Recipe.query.get(id)
-    information = response_builder(recipe, Recipe)
+    information = recipe_response_builder(recipe)
     return jsonify({'error_code': 200, 'result': information}), 200
 
 
@@ -101,7 +76,7 @@ def get_recipe(id):
     recipe = Recipe.query.get(id)
     if not recipe:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # recipe with `id` isn't exist
-    information = response_builder(recipe, Recipe)
+    information = recipe_response_builder(recipe)
     return jsonify({'error_code': 200, 'result': information}), 200
 
 
@@ -109,7 +84,7 @@ def get_recipe(id):
 def get_all_recipes():
     recipes = []
     for recipe in Recipe.query.all():
-        information = response_builder(recipe, Recipe)
+        information = recipe_response_builder(recipe)
         recipes.append(information)
     return jsonify({'error_code': 200, 'result': recipes}), 200
 
@@ -122,6 +97,15 @@ def delete_recipe(id):
     db.session.delete(recipe)
     db.session.commit()
     return jsonify({'error_code': 200}), 200
+
+
+@mod.route('/chef/<int:id>', methods=['GET'])
+def get_chef_recipes(id):
+    recipes = []
+    for recipe in Recipe.query.filter_by(chef_id=id):
+        information = recipe_response_builder(recipe)
+        recipes.append(information)
+    return jsonify({'error_code': 200, 'result': recipes}), 200
 
 
 # {"recipe_id":1, "step_number":1, "description":"qwertyu"}
@@ -192,3 +176,80 @@ def delete_instruction(id):
     db.session.delete(instruction)
     db.session.commit()
     return jsonify({'error_code': 200}), 200
+
+
+@mod.route('/fullinstruction/<int:id>', methods=['GET'])
+def get_recipe_instructions(id):
+    instructions = []
+    for instruction in InstructionItem.query.filter_by(recipe_id=id):
+        information = response_builder(instruction, InstructionItem, excluded=["recipe_id"])
+        instructions.append(information)
+    return jsonify({'error_code': 200, 'result': instructions}), 200
+
+
+def recipe_response_builder(recipe):
+    categories = []
+    for category in Recipe.query.filter_by(id=recipe.id).first().categories:
+        categories.append(category.id)
+    cuisine_types = []
+    for cuisine_type in Recipe.query.filter_by(id=recipe.id).first().cuisine_types:
+        cuisine_types.append(cuisine_type.id)
+    tools = []
+    for tool in Recipe.query.filter_by(id=recipe.id).first().tools:
+        tools.append(tool.id)
+    wines = []
+    for wine in Recipe.query.filter_by(id=recipe.id).first().wines:
+        wines.append(wine.id)
+    information = response_builder(recipe, Recipe)
+    information['categories'] = []
+    if categories is not None:
+        for category_id in categories:
+            category = Category.query.get(category_id)
+            category_information = response_builder(category, Category)
+            information["categories"].append(category_information)
+    information['cuisine_types'] = []
+    if cuisine_types is not None:
+        for cuisine_type_id in cuisine_types:
+            cuisine_type = CuisineType.query.get(cuisine_type_id)
+            cuisine_type_information = response_builder(cuisine_type, CuisineType)
+            information["cuisine_types"].append(cuisine_type_information)
+    information['tools'] = []
+    if tools is not None:
+        for tool_id in tools:
+            tool = Tool.query.get(tool_id)
+            tool_information = response_builder(tool, Tool)
+            information["tools"].append(tool_information)
+    information['wines'] = []
+    if wines is not None:
+        for wine_id in wines:
+            wine = Wine.query.get(wine_id)
+            wine_information = response_builder(wine, Wine)
+            information["wines"].append(wine_information)
+    information['photos'] = []
+    for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
+        photo_information = response_builder(photo, RecipePhoto)
+        information['photos'].append(photo_information)
+    return information
+
+
+def insert_recipes_many_to_many(recipe, categories, cuisine_types, tools, wines):
+    if categories is not None:
+        for category_id in categories:
+            category = Category.query.get(category_id)
+            recipe.categories.append(category)
+            db.session.commit()
+    if cuisine_types is not None:
+        for cuisine_type_id in cuisine_types:
+            cuisine_type = CuisineType.query.get(cuisine_type_id)
+            recipe.cuisine_types.append(cuisine_type)
+            db.session.commit()
+    if tools is not None:
+        for tool_id in tools:
+            tool = Tool.query.get(tool_id)
+            recipe.tools.append(tool)
+            db.session.commit()
+    if wines is not None:
+        for wine_id in wines:
+            wine = Wine.query.get(wine_id)
+            recipe.wines.append(wine)
+            db.session.commit()

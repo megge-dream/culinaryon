@@ -59,6 +59,10 @@ def get_chef(id):
     if not chef:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # chef with `id` isn't exist
     information = response_builder(chef, Chef)
+    information['photos'] = []
+    for photo in ChefPhoto.query.filter_by(item_id=chef.id):
+        photo_information = response_builder(photo, ChefPhoto)
+        information['photos'].append(photo_information)
     return jsonify({'error_code': 200, 'result': information}), 200
 
 
