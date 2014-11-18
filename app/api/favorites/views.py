@@ -24,15 +24,15 @@ def new_favorite():
 
 @mod.route('/', methods=['GET'])
 def get_favorite():
-    user_id = g.user.id
+    # user_id = g.user.id
     # for test
-    # user_id = 1
+    user_id = 1
     favorites = Favorite.query.filter_by(user_id=user_id)
     recipes = []
     for favorite in favorites:
         information = response_builder(Recipe.query.get(favorite.recipe_id), Recipe)
         recipes.append(information)
-    return jsonify({'error_code': 200, 'products': recipes}), 200
+    return jsonify({'error_code': 200, 'recipes': recipes}), 200
 
 
 @mod.route('/<int:id>', methods=['DELETE'])

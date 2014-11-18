@@ -40,6 +40,10 @@ def get_school(id):
     if not school:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # school with `id` isn't exist
     information = response_builder(school, School)
+    information['photos'] = []
+    for photo in SchoolPhoto.query.filter_by(item_id=school.id):
+        photo_information = response_builder(photo, SchoolPhoto)
+        information['photos'].append(photo_information)
     return jsonify({'error_code': 200, 'result': information}), 200
 
 
@@ -62,7 +66,7 @@ def delete_school(id):
     return jsonify({'error_code': 200}), 200
 
 
-# {"title":"good"}
+# {"school_id":1, "step_number":1, "description":"erererr"}
 @mod.route('/item/', methods=['POST'])
 def new_school_item():
     school_id = request.json.get('school_id')
@@ -123,3 +127,12 @@ def delete_school_item(id):
     db.session.delete(school_item)
     db.session.commit()
     return jsonify({'error_code': 200}), 200
+
+
+@mod.route('/fullitem/<int:id>', methods=['GET'])
+def get_one_school_items(id):
+    school_items = []
+    for school_item in SchoolItem.query.filter_by(school_id=id):
+        information = response_builder(school_item, SchoolItem)
+        school_items.append(information)
+    return jsonify({'error_code': 200, 'result': school_items}), 200

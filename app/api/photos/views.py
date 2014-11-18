@@ -58,6 +58,15 @@ def delete_photo(id, entity):
     db.session.commit()
     return jsonify({'error_code': 200}), 200
 
+
+def get_full_photos(id, entity):
+    photos = []
+    for photo in entity.query.filter_by(item_id=id):
+        information = response_builder(photo, entity)
+        photos.append(information)
+    return jsonify({'error_code': 200, 'result': photos}), 200
+
+
 # RecipePhoto
 
 @mod.route('/recipe', methods=['POST'])
@@ -83,6 +92,11 @@ def get_all_photos():
 @mod.route('/recipe/<int:id>', methods=['DELETE'])
 def delete_photo(id):
     delete_photo(id, RecipePhoto)
+
+
+@mod.route('/fullrecipe/<int:id>', methods=['GET'])
+def get_recipe_photos(id):
+    get_full_photos(id, RecipePhoto)
 
 # ChefPhoto
 
@@ -110,30 +124,10 @@ def get_all_photos():
 def delete_photo(id):
     delete_photo(id, ChefPhoto)
 
-# ToolPhoto
 
-@mod.route('/tool', methods=['POST'])
-def new_photo():
-    new_photo(ToolPhoto)
-
-@mod.route('/tool/<int:id>', methods=['PUT'])
-def update_photo(id):
-    update_photo(id, ToolPhoto)
-
-
-@mod.route('/tool/<int:id>', methods=['GET'])
-def get_photo(id):
-    get_photo(id, ToolPhoto)
-
-
-@mod.route('/tool/', methods=['GET'])
-def get_all_photos():
-    get_all_photos(ToolPhoto)
-
-
-@mod.route('/tool/<int:id>', methods=['DELETE'])
-def delete_photo(id):
-    delete_photo(id, ToolPhoto)
+@mod.route('/fullchef/<int:id>', methods=['GET'])
+def get_chef_photos(id):
+    get_full_photos(id, ChefPhoto)
 
 # SchoolPhoto
 
@@ -159,3 +153,8 @@ def get_all_photos():
 @mod.route('/school/<int:id>', methods=['DELETE'])
 def delete_photo(id):
     delete_photo(id, SchoolPhoto)
+
+
+@mod.route('/fullschool/<int:id>', methods=['GET'])
+def get_school_photos(id):
+    get_full_photos(id, SchoolPhoto)

@@ -7,7 +7,7 @@ DEBUG = True
 
 ADMINS = frozenset(['ff.warprobot@gmail.com'])
 SECRET_KEY = 'This string will be replaced with a proper key in production.'
-SERVER_NAME = '127.0.0.1:6000'
+SERVER_NAME = '127.0.0.1:5000'
 
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(_basedir, 'app.db')
 SQLALCHEMY_ECHO = True

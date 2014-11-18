@@ -18,8 +18,8 @@ class Chef(db.Model):
     biography = db.Column(db.Text, nullable=True)
     quote = db.Column(db.Text, nullable=True)
     email = db.Column(db.String(250), nullable=False)
-    main_photo = db.Column(db.Text, nullable=False)
-    medium_photo = db.Column(db.Text, nullable=False)
+    main_photo = db.Column(db.Text, nullable=True)
+    medium_photo = db.Column(db.Text, nullable=True)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
     # links

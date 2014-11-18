@@ -1,4 +1,7 @@
 import app
+from app.api.chefs.model import Chef
+from app.api.recipes.model import Recipe
+from app.api.schools.model import School
 from app.api.users.model import User
 
 
@@ -14,7 +17,16 @@ def response_builder(current_object, entity, excluded=[]):
     excluded.append('is_deleted')
     for columnName in entity.__table__.columns.keys():
         if columnName not in excluded:
-            if "user" in columnName:
+            if "recipe" in columnName:
+                recipe_id = getattr(current_object, columnName)
+                result["recipe"] = response_builder(Recipe.query.get(recipe_id), Recipe)
+            elif "chef" in columnName:
+                chef_id = getattr(current_object, columnName)
+                result["chef"] = response_builder(Chef.query.get(chef_id), Chef)
+            elif "school" in columnName:
+                school_id = getattr(current_object, columnName)
+                result["school"] = response_builder(School.query.get(school_id), School)
+            elif "user" in columnName:
                 user_id = getattr(current_object, columnName)
                 if columnName == "user_id":
                     columnName = "user"

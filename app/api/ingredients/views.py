@@ -63,3 +63,12 @@ def delete_ingredient(id):
     db.session.delete(ingredient)
     db.session.commit()
     return jsonify({'error_code': 200}), 200
+
+
+@mod.route('/recipes/<int:id>', methods=['GET'])
+def get_recipe_ingredients(id):
+    ingredients = []
+    for ingredient in Ingredient.query.filter_by(recipe_id=id):
+        information = response_builder(ingredient, Ingredient, excluded=["recipe_id"])
+        ingredients.append(information)
+    return jsonify({'error_code': 200, 'result': ingredients}), 200

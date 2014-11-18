@@ -31,7 +31,7 @@ class User(db.Model):
     likes = db.relationship(Like, backref='users', lazy='dynamic')
     favorites_recipes = db.relationship(Favorite, backref='users', lazy='dynamic')
 
-    def __init__(self, email, first_name, last_name, phone, city):
+    def __init__(self, email, first_name, last_name):
         self.email = email
         self.first_name = first_name
         self.last_name = last_name

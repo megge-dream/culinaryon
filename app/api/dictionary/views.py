@@ -8,7 +8,7 @@ from app.api.dictionary.model import Dictionary
 mod = Blueprint('dictionary', __name__, url_prefix='/api/dictionary')
 
 
-# {"title":"good"}
+# {"title":"good", "description":"smth smart"}
 @mod.route('/', methods=['POST'])
 def new_dictionary():
     title = request.json.get('title')
@@ -51,7 +51,7 @@ def get_all_dictionares():
     dictionares = []
     for dictionary in Dictionary.query.all():
         information = response_builder(dictionary, Dictionary)
-        dictionary.append(information)
+        dictionares.append(information)
     return jsonify({'error_code': 200, 'result': dictionares}), 200
 
 

@@ -5,7 +5,7 @@ from app.api.chefs.model import *
 
 mod = Blueprint('chefs', __name__, url_prefix='/api/chefs')
 
-
+# {"first_name":"alex", "last_name":"smith", "email":"smth@mail.ru", "main_photo":"", "medium_photo":""}
 @mod.route('/', methods=['POST'])
 def new_chef():
     first_name = request.json.get('first_name')
@@ -59,6 +59,10 @@ def get_chef(id):
     if not chef:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # chef with `id` isn't exist
     information = response_builder(chef, Chef)
+    information['photos'] = []
+    for photo in ChefPhoto.query.filter_by(item_id=chef.id):
+        photo_information = response_builder(photo, ChefPhoto)
+        information['photos'].append(photo_information)
     return jsonify({'error_code': 200, 'result': information}), 200
 
 
