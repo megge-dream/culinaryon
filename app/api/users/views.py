@@ -27,13 +27,11 @@ def new_user():
     password = request.json.get('password')
     first_name = request.json.get('first_name')
     last_name = request.json.get('last_name')
-    phone = request.json.get('phone')
-    city = request.json.get('city')
     if email is None or password is None:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
     if User.query.filter_by(email=email).first() is not None:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # existing user
-    user = User(email=email, first_name=first_name, last_name=last_name, phone=phone, city=city)
+    user = User(email=email, first_name=first_name, last_name=last_name)
     user.hash_password(password)
     db.session.add(user)
     db.session.commit()
@@ -56,10 +54,6 @@ def update_user(id):
         user.first_name = request.json.get('first_name')
     if request.json.get('last_name'):
         user.last_name = request.json.get('last_name')
-    if request.json.get('phone'):
-        user.phone = request.json.get('phone')
-    if request.json.get('city'):
-        user.city = request.json.get('city')
     db.session.commit()
     user = User.query.get(id)
     information = response_builder(user, User, excluded=['password'])
