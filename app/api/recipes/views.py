@@ -1,14 +1,18 @@
 from flask import request, jsonify, g, url_for, Blueprint
 
 from app.api import db, auth
+from app.api.categories.model import Category
+from app.api.cuisine_types.model import CuisineType
 from app.api.helpers import *
-from app.api.recipes.model import Recipe, InstructionItem
+from app.api.recipes.model import Recipe, InstructionItem, recipes_categories
+from app.api.tools.model import Tool
+from app.api.wines.model import Wine
 
 
 mod = Blueprint('recipes', __name__, url_prefix='/api/recipes')
 
 
-# {"title":"good"}
+# {"title":"good", "chef_id":1, "cuisine_types":[1,2]}
 @mod.route('/', methods=['POST'])
 def new_recipe():
     title = request.json.get('title')
@@ -19,6 +23,10 @@ def new_recipe():
     amount_of_persons = request.json.get('amount_of_persons')
     chef_id = request.json.get('chef_id')
     video = request.json.get('video')
+    categories = request.json.get('categories')
+    cuisine_types = request.json.get('cuisine_types')
+    tools = request.json.get('tools')
+    wines = request.json.get('wines')
     if title is None:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
     recipe = Recipe(title=title, description=description, spicy=spicy, complexity=complexity, time=time,
@@ -26,6 +34,38 @@ def new_recipe():
     db.session.add(recipe)
     db.session.commit()
     information = response_builder(recipe, Recipe)
+    information['categories'] = []
+    if categories is not None:
+        for category_id in categories:
+            category = Category.query.get(category_id)
+            recipe.categories.append(category)
+            db.session.commit()
+            category_information = response_builder(category, Category)
+            information["categories"].append(category_information)
+    information['cuisine_types'] = []
+    if cuisine_types is not None:
+        for cuisine_type_id in cuisine_types:
+            cuisine_type = CuisineType.query.get(cuisine_type_id)
+            recipe.cuisine_types.append(cuisine_type)
+            db.session.commit()
+            cuisine_type_information = response_builder(cuisine_type, CuisineType)
+            information["cuisine_types"].append(cuisine_type_information)
+    information['tools'] = []
+    if tools is not None:
+        for tool_id in tools:
+            tool = Tool.query.get(tool_id)
+            recipe.tools.append(tool)
+            db.session.commit()
+            tool_information = response_builder(tool, Tool)
+            information["tools"].append(tool_information)
+    information['wines'] = []
+    if wines is not None:
+        for wine_id in wines:
+            wine = Wine.query.get(wine_id)
+            recipe.wines.append(wine)
+            db.session.commit()
+            wine_information = response_builder(wine, Wine)
+            information["wines"].append(wine_information)
     return jsonify({'error_code': 201, 'result': information}), 201
 
 
@@ -84,7 +124,7 @@ def delete_recipe(id):
     return jsonify({'error_code': 200}), 200
 
 
-# {"title":"good"}
+# {"recipe_id":1, "step_number":1, "description":"qwertyu"}
 @mod.route('/instruction/', methods=['POST'])
 def new_instruction():
     recipe_id = request.json.get('recipe_id')

@@ -48,7 +48,7 @@ def get_all_wines():
     wines = []
     for wine in Wine.query.all():
         information = response_builder(wine, Wine)
-        wine.append(information)
+        wines.append(information)
     return jsonify({'error_code': 200, 'result': wines}), 200
 
 

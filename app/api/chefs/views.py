@@ -5,7 +5,7 @@ from app.api.chefs.model import *
 
 mod = Blueprint('chefs', __name__, url_prefix='/api/chefs')
 
-
+# {"first_name":"alex", "last_name":"smith", "email":"smth@mail.ru", "main_photo":"", "medium_photo":""}
 @mod.route('/', methods=['POST'])
 def new_chef():
     first_name = request.json.get('first_name')

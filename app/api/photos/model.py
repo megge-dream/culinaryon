@@ -48,4 +48,4 @@ class SchoolPhoto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.Text)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
-    item_id = db.Column(db.Integer, db.ForeignKey("schoolItems.id"))
+    item_id = db.Column(db.Integer, db.ForeignKey("schools.id"))

@@ -62,7 +62,7 @@ def delete_school(id):
     return jsonify({'error_code': 200}), 200
 
 
-# {"title":"good"}
+# {"school_id":1, "step_number":1, "description":"erererr"}
 @mod.route('/item/', methods=['POST'])
 def new_school_item():
     school_id = request.json.get('school_id')

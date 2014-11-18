@@ -8,7 +8,7 @@ from app.api.tools.model import Tool
 mod = Blueprint('tools', __name__, url_prefix='/api/tools')
 
 
-# {"title":"good"}
+# {"title":"good", "description":"ooooo"}
 @mod.route('/', methods=['POST'])
 def new_tool():
     title = request.json.get('title')
@@ -51,7 +51,7 @@ def get_all_tools():
     tools = []
     for tool in Tool.query.all():
         information = response_builder(tool, Tool)
-        tool.append(information)
+        tools.append(information)
     return jsonify({'error_code': 200, 'result': tools}), 200
 
 
