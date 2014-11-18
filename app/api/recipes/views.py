@@ -1,6 +1,6 @@
 from flask import request, jsonify, g, url_for, Blueprint
 
-from app.api import db, auth
+from app.api import db
 from app.api.categories.model import Category
 from app.api.cuisine_types.model import CuisineType
 from app.api.helpers import *
