@@ -3,8 +3,6 @@ from datetime import datetime
 from passlib.apps import custom_app_context as pwd_context
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
-from flask_sqlalchemy import SQLAlchemy
-from flask_dance.models import OAuthConsumerMixin
 from app.api import db, app
 from app.api.favorites.model import Favorite
 from app.api.likes.model import Like
