@@ -1,6 +1,6 @@
 from flask import request, jsonify, g, url_for, Blueprint
 
-from app.api import db, auth
+from app.api import db
 from app.api.helpers import *
 from app.api.recipes.model import Recipe, InstructionItem
 

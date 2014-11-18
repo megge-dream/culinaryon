@@ -3,7 +3,6 @@ from logging.handlers import RotatingFileHandler
 import os
 
 import sys
-from flask.ext.httpauth import HTTPBasicAuth
 from flask import Flask, render_template
 from flask.ext.sqlalchemy import SQLAlchemy
 
@@ -17,7 +16,6 @@ app = Flask(__name__)
 app.config.from_object('config')
 
 db = SQLAlchemy(app)
-auth = HTTPBasicAuth()
 
 # #######################
 # Configure Secret Key #

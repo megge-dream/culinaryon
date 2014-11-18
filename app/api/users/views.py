@@ -1,22 +1,22 @@
 from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask
 
-from app.api import db, auth
+from app.api import db
 from app.api.helpers import *
 
 mod = Blueprint('users', __name__, url_prefix='/api')
 
 
-@auth.verify_password
-def verify_password(email_or_token, password):
-    # first try to authenticate by token
-    user = User.verify_auth_token(email_or_token)
-    if not user:
-        # try to authenticate with username/password
-        user = User.query.filter_by(email=email_or_token).first()
-        if not user or not user.verify_password(password):
-            return False
-    g.user = user
-    return True
+# @auth.verify_password
+# def verify_password(email_or_token, password):
+#     # first try to authenticate by token
+#     user = User.verify_auth_token(email_or_token)
+#     if not user:
+#         # try to authenticate with username/password
+#         user = User.query.filter_by(email=email_or_token).first()
+#         if not user or not user.verify_password(password):
+#             return False
+#     g.user = user
+#     return True
 
 
 # need validate email ^(?("")("".+?""@)|(([0-9a-zA-Z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-zA-Z])@))(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,6}))$
@@ -90,7 +90,7 @@ def delete_user(id):
 
 
 @mod.route('/token')
-@auth.login_required
+#@auth.login_required
 def get_auth_token():
     token = g.user.generate_auth_token(600)
     return jsonify({'token': token.decode('ascii'), 'duration': 600})
