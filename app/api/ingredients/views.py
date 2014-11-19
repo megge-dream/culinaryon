@@ -15,7 +15,7 @@ def new_ingredient():
     amount = request.json.get('amount')
     unit = request.json.get('unit')
     recipe_id = request.json.get('recipe_id')
-    if title is None or recipe_id is None:
+    if title is None:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
     ingredient = Ingredient(title=title, unit=unit, amount=amount, recipe_id=recipe_id)
     db.session.add(ingredient)

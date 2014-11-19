@@ -98,6 +98,10 @@ app.register_blueprint(ingredients_module)
 from app.api.wines.views import mod as wines_module
 app.register_blueprint(wines_module)
 
+# Baskets types module
+from app.api.basket.views import mod as baskets_module
+app.register_blueprint(baskets_module)
+
 # #######################
 # Logs Handler          #
 # #######################
