@@ -4,6 +4,8 @@ from app.api import db, auth
 from app.api.categories.model import Category
 from app.api.cuisine_types.model import CuisineType
 from app.api.helpers import *
+from app.api.ingredients.model import Ingredient
+from app.api.likes.model import Like
 from app.api.photos.model import RecipePhoto
 from app.api.recipes.model import Recipe, InstructionItem
 from app.api.tools.model import Tool
@@ -84,7 +86,21 @@ def get_recipe(id):
 def get_all_recipes():
     recipes = []
     for recipe in Recipe.query.all():
-        information = recipe_response_builder(recipe)
+        information = response_builder(recipe, Recipe, excluded=['description', 'spicy', 'complexity', 'time',
+                                                                 'amount_of_persons', 'chef_id', 'video'])
+        categories = []
+        for category in Recipe.query.filter_by(id=recipe.id).first().categories:
+            categories.append(category.id)
+        information['categories'] = []
+        if categories is not None:
+            for category_id in categories:
+                category = Category.query.get(category_id)
+                category_information = response_builder(category, Category)
+                information["categories"].append(category_information)
+        information['photos'] = []
+        for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
+            photo_information = response_builder(photo, RecipePhoto)
+            information['photos'].append(photo_information)
         recipes.append(information)
     return jsonify({'error_code': 200, 'result': recipes}), 200
 
@@ -229,6 +245,15 @@ def recipe_response_builder(recipe):
     for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
         photo_information = response_builder(photo, RecipePhoto)
         information['photos'].append(photo_information)
+    information['ingredients'] = []
+    for ingredient in Ingredient.query.filter_by(recipe_id=recipe.id):
+        ingredient_information = response_builder(ingredient, Ingredient, excluded=["recipe_id"])
+        information['ingredients'].append(ingredient_information)
+    information['instructions'] = []
+    for instruction in InstructionItem.query.filter_by(recipe_id=recipe.id):
+        instruction_information = response_builder(instruction, InstructionItem, excluded=["recipe_id"])
+        information['instructions'].append(instruction_information)
+    information['likes'] = Like.query.filter_by(recipe_id=recipe.id).count()
     return information
 
 

@@ -1,7 +1,9 @@
 from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask
+from app.api.categories.model import Category
 
 from app.api.helpers import *
 from app.api.chefs.model import *
+from app.api.photos.model import RecipePhoto
 
 mod = Blueprint('chefs', __name__, url_prefix='/api/chefs')
 
@@ -58,11 +60,29 @@ def get_chef(id):
     chef = Chef.query.get(id)
     if not chef:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # chef with `id` isn't exist
-    information = response_builder(chef, Chef)
+    information = response_builder(chef, Chef, excluded=['main_photo', 'work'])
     information['photos'] = []
     for photo in ChefPhoto.query.filter_by(item_id=chef.id):
         photo_information = response_builder(photo, ChefPhoto)
         information['photos'].append(photo_information)
+    information['recipes'] = []
+    for recipe in Recipe.query.filter_by(chef_id=id):
+        recipe_information = response_builder(recipe, Recipe, excluded=['description', 'spicy', 'complexity', 'time',
+                                                                        'amount_of_persons', 'chef_id', 'video'])
+        categories = []
+        for category in Recipe.query.filter_by(id=recipe.id).first().categories:
+            categories.append(category.id)
+        recipe_information['categories'] = []
+        if categories is not None:
+            for category_id in categories:
+                category = Category.query.get(category_id)
+                category_information = response_builder(category, Category)
+                recipe_information["categories"].append(category_information)
+        recipe_information['photos'] = []
+        for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
+            photo_information = response_builder(photo, RecipePhoto)
+            recipe_information['photos'].append(photo_information)
+        information['recipes'].append(recipe_information)
     return jsonify({'error_code': 200, 'result': information}), 200
 
 
@@ -70,7 +90,7 @@ def get_chef(id):
 def get_all_chefs():
     chefs = []
     for chef in Chef.query.all():
-        information = response_builder(chef, Chef)
+        information = response_builder(chef, Chef, excluded=['biography', 'quote', 'email', 'medium_photo'])
         chefs.append(information)
     return jsonify({'error_code': 200, 'result': chefs}), 200
 

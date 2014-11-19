@@ -19,18 +19,22 @@ def response_builder(current_object, entity, excluded=[]):
         if columnName not in excluded:
             if "recipe" in columnName:
                 recipe_id = getattr(current_object, columnName)
-                result["recipe"] = response_builder(Recipe.query.get(recipe_id), Recipe)
+                if recipe_id is not None:
+                    result["recipe"] = response_builder(Recipe.query.get(recipe_id), Recipe)
             elif "chef" in columnName:
                 chef_id = getattr(current_object, columnName)
-                result["chef"] = response_builder(Chef.query.get(chef_id), Chef)
+                if chef_id is not None:
+                    result["chef"] = response_builder(Chef.query.get(chef_id), Chef)
             elif "school" in columnName:
                 school_id = getattr(current_object, columnName)
-                result["school"] = response_builder(School.query.get(school_id), School)
+                if school_id is not None:
+                    result["school"] = response_builder(School.query.get(school_id), School)
             elif "user" in columnName:
                 user_id = getattr(current_object, columnName)
-                if columnName == "user_id":
-                    columnName = "user"
-                result[columnName] = response_builder(User.query.get(user_id), User, ["password"])
+                if user_id is not None:
+                    if columnName == "user_id":
+                        columnName = "user"
+                    result[columnName] = response_builder(User.query.get(user_id), User, ["password"])
             else:
                 result[columnName] = getattr(current_object, columnName)
     return result

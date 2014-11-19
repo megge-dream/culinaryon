@@ -1,8 +1,10 @@
 from flask import Blueprint, jsonify, request, g
 
 from app.api import db
+from app.api.categories.model import Category
 from app.api.helpers import response_builder
 from app.api.favorites.model import Favorite
+from app.api.photos.model import RecipePhoto
 from app.api.recipes.model import Recipe
 
 mod = Blueprint('favorites', __name__, url_prefix='/api/favorites')
@@ -30,7 +32,22 @@ def get_favorite():
     favorites = Favorite.query.filter_by(user_id=user_id)
     recipes = []
     for favorite in favorites:
-        information = response_builder(Recipe.query.get(favorite.recipe_id), Recipe)
+        recipe = Recipe.query.get(favorite.recipe_id)
+        information = response_builder(recipe, Recipe, excluded=['description', 'spicy', 'complexity', 'time',
+                                                                 'amount_of_persons', 'chef_id', 'video'])
+        categories = []
+        for category in Recipe.query.filter_by(id=recipe.id).first().categories:
+            categories.append(category.id)
+        information['categories'] = []
+        if categories is not None:
+            for category_id in categories:
+                category = Category.query.get(category_id)
+                category_information = response_builder(category, Category)
+                information["categories"].append(category_information)
+        information['photos'] = []
+        for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
+            photo_information = response_builder(photo, RecipePhoto)
+            information['photos'].append(photo_information)
         recipes.append(information)
     return jsonify({'error_code': 200, 'recipes': recipes}), 200
 

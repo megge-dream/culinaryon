@@ -8,14 +8,16 @@ from app.api.ingredients.model import Ingredient
 mod = Blueprint('ingredients', __name__, url_prefix='/api/ingredients')
 
 
-# {"title":"good", "recipe_id":1}
+# {"title":"good", "amount":2, "unit":"spoon", "recipe_id":1}
 @mod.route('/', methods=['POST'])
 def new_ingredient():
     title = request.json.get('title')
+    amount = request.json.get('amount')
+    unit = request.json.get('unit')
     recipe_id = request.json.get('recipe_id')
     if title is None or recipe_id is None:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
-    ingredient = Ingredient(title=title, recipe_id=recipe_id)
+    ingredient = Ingredient(title=title, unit=unit, amount=amount, recipe_id=recipe_id)
     db.session.add(ingredient)
     db.session.commit()
     information = response_builder(ingredient, Ingredient)
@@ -29,6 +31,10 @@ def update_ingredient(id):
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200
     if request.json.get('title'):
         ingredient.title = request.json.get('title')
+    if request.json.get('amount'):
+        ingredient.amount = request.json.get('amount')
+    if request.json.get('unit'):
+        ingredient.unit = request.json.get('unit')
     if request.json.get('recipe_id'):
         ingredient.recipe_id = request.json.get('recipe_id')
     db.session.commit()

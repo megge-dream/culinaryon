@@ -47,6 +47,33 @@ class User(db.Model):
         s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
         return s.dumps({'id': self.id})
 
+    @property
+    def num_followers(self):
+        if self.followers:
+            return len(self.followers)
+        return 0
+
+    @property
+    def num_following(self):
+        return len(self.following)
+
+    def follow(self, user):
+        user.followers.add(self.id)
+        self.following.add(user.id)
+
+    def unfollow(self, user):
+        if self.id in user.followers:
+            user.followers.remove(self.id)
+
+        if user.id in self.following:
+            self.following.remove(user.id)
+
+    def get_following_query(self):
+        return User.query.filter(User.id.in_(self.following or set()))
+
+    def get_followers_query(self):
+        return User.query.filter(User.id.in_(self.followers or set()))
+
     # TODO return status code
     @staticmethod
     def verify_auth_token(token):
