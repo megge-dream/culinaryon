@@ -5,6 +5,7 @@ import os
 import sys
 from flask import Flask, render_template
 from flask.ext.autodoc import Autodoc
+from flask.ext.login import LoginManager
 from flask.ext.sqlalchemy import SQLAlchemy
 
 
@@ -17,6 +18,7 @@ app = Flask(__name__)
 app.config.from_object('config')
 auto = Autodoc(app)
 db = SQLAlchemy(app)
+login_manager = LoginManager(app)
 
 # #######################
 # Configure Secret Key #

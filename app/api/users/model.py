@@ -1,14 +1,17 @@
 from datetime import datetime
+from flask.ext.login import UserMixin
 
 from passlib.apps import custom_app_context as pwd_context
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
+from werkzeug.security import generate_password_hash, check_password_hash
 from app.api import db, app
 from app.api.favorites.model import Favorite
 from app.api.likes.model import Like
+from app.api.users.constants import USER, USER_ROLE, ADMIN, ACTIVE, USER_STATUS
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     """
     Need to add Table Structure
     """
@@ -16,7 +19,6 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(length=250), unique=True, nullable=False, index=True)
-    password = db.Column(db.String(length=64))  # hashed string with salt - SECRET_KEY
     first_name = db.Column(db.String(length=128), nullable=True)
     last_name = db.Column(db.String(length=128), nullable=True)
     active = db.Column(db.Boolean, default=1)
@@ -26,64 +28,80 @@ class User(db.Model):
     current_login_ip = db.Column(db.String(100))
     login_count = db.Column(db.Integer)
     registered_on = db.Column(db.DateTime, default=datetime.utcnow())
+    _password = db.Column('password', db.String(64), nullable=False)
+
+    def _get_password(self):
+        return self._password
+
+    def _set_password(self, password):
+        self._password = generate_password_hash(password)
+
+    # Hide password encryption by exposing password field only.
+    password = db.synonym('_password',
+                          descriptor=property(_get_password,
+                                              _set_password))
+
+    def check_password(self, password):
+        if self.password is None:
+            return False
+        return check_password_hash(self.password, password)
+
+
+    # ================================================================
+    role_code = db.Column(db.SmallInteger, default=USER, nullable=False)
+
+    @property
+    def role(self):
+        return USER_ROLE[self.role_code]
+
+    def is_admin(self):
+        return self.role_code == ADMIN
+
+    # ================================================================
+    # One-to-many relationship between users and user_statuses.
+    status_code = db.Column(db.SmallInteger, default=ACTIVE)
+
+    @property
+    def status(self):
+        return USER_STATUS[self.status_code]
+
+
+    # ================================================================
+    # Class methods
+
+
+    @classmethod
+    def authenticate(cls, email, password):
+        user = cls.query.filter(User.email == email).first()
+
+        if user:
+            authenticated = user.check_password(password)
+        else:
+            authenticated = False
+
+        return user, authenticated
+
+    @classmethod
+    def search(cls, keywords):
+        criteria = []
+        for keyword in keywords.split():
+            keyword = '%' + keyword + '%'
+            criteria.append(db.or_(
+                User.name.ilike(keyword),
+                User.email.ilike(keyword),
+            ))
+        q = reduce(db.and_, criteria)
+        return cls.query.filter(q)
+
+    @classmethod
+    def get_by_id(cls, user_id):
+        return cls.query.filter_by(id=user_id).first_or_404()
+
+    def check_name(self, name):
+        return User.query.filter(db.and_(User.name == name, User.email != self.id)).count() == 0
+
 
     # links
     likes = db.relationship(Like, backref='users', lazy='dynamic')
     favorites_recipes = db.relationship(Favorite, backref='users', lazy='dynamic')
-
-    def __init__(self, email, first_name, last_name):
-        self.email = email
-        self.first_name = first_name
-        self.last_name = last_name
-
-    # helper methods
-    def hash_password(self, password):
-        self.password = pwd_context.encrypt(password)
-
-    def verify_password(self, password):
-        return pwd_context.verify(password, self.password_hash)
-
-    def generate_auth_token(self, expiration=600):
-        s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
-        return s.dumps({'id': self.id})
-
-    @property
-    def num_followers(self):
-        if self.followers:
-            return len(self.followers)
-        return 0
-
-    @property
-    def num_following(self):
-        return len(self.following)
-
-    def follow(self, user):
-        user.followers.add(self.id)
-        self.following.add(user.id)
-
-    def unfollow(self, user):
-        if self.id in user.followers:
-            user.followers.remove(self.id)
-
-        if user.id in self.following:
-            self.following.remove(user.id)
-
-    def get_following_query(self):
-        return User.query.filter(User.id.in_(self.following or set()))
-
-    def get_followers_query(self):
-        return User.query.filter(User.id.in_(self.followers or set()))
-
-    # TODO return status code
-    @staticmethod
-    def verify_auth_token(token):
-        s = Serializer(app.config['SECRET_KEY'])
-        try:
-            data = s.loads(token)
-        except SignatureExpired:
-            return None  # valid token, but expired
-        except BadSignature:
-            return None  # invalid token
-        user = User.query.get(data['id'])
-        return user
 
