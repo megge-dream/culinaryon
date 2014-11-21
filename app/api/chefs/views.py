@@ -1,4 +1,5 @@
 from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask
+from app.api import auto
 from app.api.categories.model import Category
 
 from app.api.helpers import *
@@ -7,9 +8,26 @@ from app.api.photos.model import RecipePhoto
 
 mod = Blueprint('chefs', __name__, url_prefix='/api/chefs')
 
-# {"first_name":"alex", "last_name":"smith", "email":"smth@mail.ru", "main_photo":"", "medium_photo":""}
+
+@auto.doc()
 @mod.route('/', methods=['POST'])
 def new_chef():
+    """
+    Add new chef. List of parameters in json request:
+            email (required)
+            last_name (required)
+            first_name (optional)
+            work (optional)
+            biography (optional)
+            quote (optional)
+            main_photo (optional)
+            medium_photo (optional)
+    Example of request:
+            {"first_name":"alex", "last_name":"smith", "email":"smth@mail.ru", "main_photo":"", "medium_photo":""}
+    :return: json with parameters:
+            error_code - server response_code
+            result - information about created chef
+    """
     first_name = request.json.get('first_name')
     last_name = request.json.get('last_name')
     work = request.json.get('work')
@@ -28,8 +46,26 @@ def new_chef():
     return jsonify({'error_code': 201, 'result': information}), 201
 
 
+@auto.doc()
 @mod.route('/<int:id>', methods=['PUT'])
 def update_chef(id):
+    """
+    Update exists chef. List of parameters in json request:
+            email (optional)
+            last_name (optional)
+            first_name (optional)
+            work (optional)
+            biography (optional)
+            quote (optional)
+            main_photo (optional)
+            medium_photo (optional)
+    Example of request:
+            {"first_name":"alex", "last_name":"smith", "email":"smth@mail.ru", "main_photo":"", "medium_photo":""}
+    :param id: chef id
+    :return: json with parameters:
+            error_code - server response_code
+            result - information about updated chef
+    """
     chef = Chef.query.get(id)
     if not chef:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200
@@ -55,8 +91,16 @@ def update_chef(id):
     return jsonify({'error_code': 200, 'result': information}), 200
 
 
+@auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
 def get_chef(id):
+    """
+    Get information about chef (with list of his recipes and photos, without main photo and work).
+    :param id: chef id
+    :return: json with parameters:
+            error_code - server response_code
+            result - information about chef
+    """
     chef = Chef.query.get(id)
     if not chef:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # chef with `id` isn't exist
@@ -86,8 +130,15 @@ def get_chef(id):
     return jsonify({'error_code': 200, 'result': information}), 200
 
 
+@auto.doc()
 @mod.route('/', methods=['GET'])
 def get_all_chefs():
+    """
+    Get short information about all exist chefs - email, last_name, first_name, work, main_photo
+    :return: json with parameters:
+            error_code - server response_code
+            result - information about chefs
+    """
     chefs = []
     for chef in Chef.query.all():
         information = response_builder(chef, Chef, excluded=['biography', 'quote', 'email', 'medium_photo'])
@@ -95,8 +146,15 @@ def get_all_chefs():
     return jsonify({'error_code': 200, 'result': chefs}), 200
 
 
+@auto.doc()
 @mod.route('/<int:id>', methods=['DELETE'])
 def delete_chef(id):
+    """
+    Delete chef.
+    :param id: chef id
+    :return: json with parameters:
+            error_code - server response_code
+    """
     chef = Chef.query.get(id)
     if not chef:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # chef with `id` isn't exist

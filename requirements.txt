@@ -22,3 +22,6 @@ Flask-Cache==0.13.1
 
 # openID support
 # Flask-OpenID==1.2.4
+
+# Documentation generation
+Flask-Autodoc==0.1.1

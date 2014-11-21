@@ -4,6 +4,7 @@ import os
 
 import sys
 from flask import Flask, render_template
+from flask.ext.autodoc import Autodoc
 from flask.ext.sqlalchemy import SQLAlchemy
 
 
@@ -14,7 +15,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config.from_object('config')
-
+auto = Autodoc(app)
 db = SQLAlchemy(app)
 
 # #######################
@@ -101,6 +102,10 @@ app.register_blueprint(wines_module)
 # Baskets types module
 from app.api.basket.views import mod as baskets_module
 app.register_blueprint(baskets_module)
+
+# docsmodule
+from app.api.docs.views import mod as docs_module
+app.register_blueprint(docs_module)
 
 # #######################
 # Logs Handler          #

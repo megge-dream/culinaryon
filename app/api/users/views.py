@@ -1,6 +1,6 @@
 from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask
 
-from app.api import db
+from app.api import db, auto
 from app.api.helpers import *
 
 mod = Blueprint('users', __name__, url_prefix='/api')
@@ -20,9 +20,21 @@ mod = Blueprint('users', __name__, url_prefix='/api')
 
 
 # need validate email ^(?("")("".+?""@)|(([0-9a-zA-Z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-zA-Z])@))(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,6}))$
-# {"email": "admin@mail.ru", "password": "password"}
+@auto.doc()
 @mod.route('/users/', methods=['POST'])
 def new_user():
+    """
+    Add new user. List of parameters in json request:
+            email (required)
+            password (required)
+            first_name (optional)
+            last_name (optional)
+    Example of request:
+            {"email": "admin@mail.ru", "password": "password"}
+    :return: json with parameters:
+            error_code - server response_code
+            result - information about created user
+    """
     email = request.json.get('email')
     password = request.json.get('password')
     first_name = request.json.get('first_name')
@@ -39,9 +51,22 @@ def new_user():
     return (jsonify({'error_code': 200, 'result': information}), 201,
             {'Location': url_for('.get_user', id=user.id, _external=True)})
 
-
+@auto.doc()
 @mod.route('/users/<int:id>', methods=['PUT'])
 def update_user(id):
+    """
+    Update exists user. List of parameters in json request:
+            email (optional)
+            password (optional)
+            first_name (optional)
+            last_name (optional)
+    Example of request:
+            {"email": "admin@mail.ru", "password": "password"}
+    :param id: user id
+    :return: json with parameters:
+            error_code - server response_code
+            result - information about updated user
+    """
     user = User.query.get(id)
     if not user:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200
@@ -60,8 +85,15 @@ def update_user(id):
     return jsonify({'error_code': 200, 'result': information}), 200
 
 
+@auto.doc()
 @mod.route('/users/', methods=['GET'])
 def get_all_users():
+    """
+    Get information about all exist users.
+    :return: json with parameters:
+            error_code - server response_code
+            result - information about users
+    """
     users = []
     for user in User.query.all():
         information = response_builder(user, User, excluded=['password'])
@@ -69,8 +101,16 @@ def get_all_users():
     return jsonify({'error_code': 200, 'result': users}), 200
 
 
+@auto.doc()
 @mod.route('/users/<int:id>', methods=['GET'])
 def get_user(id):
+    """
+    Get information about user.
+    :param id: user id
+    :return: json with parameters:
+            error_code - server response_code
+            result - information about user
+    """
     user = User.query.get(id)
     if not user:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200
@@ -79,8 +119,15 @@ def get_user(id):
 
 
 # User can delete only himself.
+@auto.doc()
 @mod.route('/users/<int:id>', methods=['DELETE'])
 def delete_user(id):
+    """
+    Delete user.
+    :param id: user id
+    :return: json with parameters:
+            error_code - server response_code
+    """
     user = User.query.get(id)
     if not user:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200
@@ -89,8 +136,16 @@ def delete_user(id):
     return jsonify({'error_code': 200}), 200
 
 
+# TODO doc description of return
+@auto.doc()
 @mod.route('/token')
 #@auth.login_required
 def get_auth_token():
+    """
+    Get token for current user.
+    :return: json with parameters:
+            token -
+            duration -
+    """
     token = g.user.generate_auth_token(600)
     return jsonify({'token': token.decode('ascii'), 'duration': 600})
