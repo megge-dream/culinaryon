@@ -3,6 +3,7 @@ from flask.ext.login import login_required, current_user
 
 from app.api import db, auto
 from app.api.helpers import *
+from app.api.users.model import *
 
 mod = Blueprint('users', __name__, url_prefix='/api')
 
@@ -30,8 +31,7 @@ def new_user():
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
     if User.query.filter_by(email=email).first() is not None:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # existing user
-    user = User(email=email, first_name=first_name, last_name=last_name)
-    user.hash_password(password)
+    user = User(email=email, password=password, first_name=first_name, last_name=last_name)
     db.session.add(user)
     db.session.commit()
     information = response_builder(user, User, excluded=['password'])
@@ -137,6 +137,7 @@ def get_auth_token():
     token = g.user.generate_auth_token(600)
     return jsonify({'token': token.decode('ascii'), 'duration': 600})
 
+
 @mod.route('/test')
 # @login_required
 def test():
@@ -144,3 +145,53 @@ def test():
     #     return jsonify(flag='bye'), 200
     f = str(current_user.is_authenticated)
     return jsonify(flag=f),200
+
+
+@mod.route('/login', methods=['POST'])
+def log_in():
+    email = request.json.get('email')
+    password = request.json.get('password')
+    if email is None or password is None:
+        return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
+    if User.query.filter_by(email=email).first() is None:
+        return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # existing user
+    user = User.query.filter_by(email=email).first()
+    if not user.check_password(password):
+        return jsonify({'error_code': 400, 'result': 'incorrect password'}), 200
+    information = response_builder(user, User, excluded=['password'])
+    return jsonify({'error_code': 200, 'result': information}), 200
+
+
+# {"access_token": "qwerty123", "social_id": 42, "social": "vk"}
+@mod.route('/login/provider', methods=['POST'])
+def provider_log_in():
+    access_token = request.json.get('access_token')
+    social_id = request.json.get('social_id')
+    expire_in = request.json.get('expire_in')
+    social = request.json.get('social')
+    provider_id = 0
+    if social == 'vk':
+        provider_id = 0
+    elif social == 'fb':
+        provider_id = 1
+    if Connection.query.filter_by(prv_user_id=social_id, provider_id=provider_id).first() is None:
+        user = User(social_id=social_id, provider_id=provider_id)
+        db.session.add(user)
+        db.session.commit()
+        user = User.query.filter_by(social_id=social_id, provider_id=provider_id).first()
+        connection = Connection(user_id=user.id, provider_id=provider_id, prv_user_id=social_id, a_token=access_token,
+                                expire_in=expire_in)
+        db.session.add(connection)
+        db.session.commit()
+        return jsonify({'error_code': 200, 'result': 'user is created'}), 201
+    else:
+        user = User.query.filter_by(social_id=social_id, provider_id=provider_id).first()
+        user.social_id = social_id
+        user.provider_id = provider_id
+        user.last_login_at = datetime.utcnow()
+        db.session.commit()
+        connection = Connection.query.filter_by(provider_id=provider_id, prv_user_id=social_id)
+        connection.a_token = access_token
+        connection.expire_in = expire_in
+        return jsonify({'error_code': 200, 'result': 'user is updated'}), 201,
+

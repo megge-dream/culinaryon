@@ -11,6 +11,21 @@ from app.api.likes.model import Like
 from app.api.users.constants import USER, USER_ROLE, ADMIN, ACTIVE, USER_STATUS
 
 
+class Connection(db.Model):
+    """
+    Need to add Table Structure
+    """
+    __tablename__ = "connections"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    provider_id = db.Column(db.Integer)
+    prv_user_id = db.Column(db.Integer)
+    a_token = db.Column(db.Text)
+    expire_in = db.Column(db.DateTime())
+    creation_date = db.Column(db.DateTime, default=datetime.utcnow())
+
+
 class User(db.Model, UserMixin):
     """
     Need to add Table Structure
@@ -18,7 +33,7 @@ class User(db.Model, UserMixin):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(length=250), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(length=250), nullable=True)
     first_name = db.Column(db.String(length=128), nullable=True)
     last_name = db.Column(db.String(length=128), nullable=True)
     active = db.Column(db.Boolean, default=1)
@@ -28,7 +43,9 @@ class User(db.Model, UserMixin):
     current_login_ip = db.Column(db.String(100))
     login_count = db.Column(db.Integer)
     registered_on = db.Column(db.DateTime, default=datetime.utcnow())
-    _password = db.Column('password', db.String(64), nullable=False)
+    provider_id = db.Column(db.Integer, nullable=True)
+    social_id = db.Column(db.Integer, nullable=True)
+    _password = db.Column('password', db.String(64))
 
     def _get_password(self):
         return self._password
@@ -100,8 +117,8 @@ class User(db.Model, UserMixin):
     def check_name(self, name):
         return User.query.filter(db.and_(User.name == name, User.email != self.id)).count() == 0
 
-
     # links
     likes = db.relationship(Like, backref='users', lazy='dynamic')
     favorites_recipes = db.relationship(Favorite, backref='users', lazy='dynamic')
+    connections = db.relationship(Connection, backref='users', lazy='dynamic')
 
