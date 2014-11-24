@@ -19,3 +19,13 @@ USER_STATUS = {
     NEW: 'new',
     ACTIVE: 'active',
 }
+
+# Providers' list
+NO_PROVIDER = 0
+VK = 1
+FB = 2
+PROVIDER_LIST = {
+    NO_PROVIDER: 'no_provider',
+    VK: 'vkontakte',
+    FB: 'facebook',
+}

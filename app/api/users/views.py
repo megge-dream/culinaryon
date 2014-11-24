@@ -1,5 +1,5 @@
 from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask, abort
-from flask.ext.login import login_required, current_user
+from flask.ext.login import login_required, current_user, login_user, logout_user
 
 from app.api import db, auto
 from app.api.helpers import *
@@ -31,9 +31,10 @@ def new_user():
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
     if User.query.filter_by(email=email).first() is not None:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # existing user
-    user = User(email=email, password=password, first_name=first_name, last_name=last_name)
+    user = User(email=email, password=password, first_name=first_name, last_name=last_name, last_login_at=datetime.utcnow())
     db.session.add(user)
     db.session.commit()
+    login_user(user, remember=True)
     information = response_builder(user, User, excluded=['password'])
     return (jsonify({'error_code': 200, 'result': information}), 201,
             {'Location': url_for('.get_user', id=user.id, _external=True)})
@@ -123,75 +124,66 @@ def delete_user(id):
     return jsonify({'error_code': 200}), 200
 
 
-# TODO doc description of return
-@auto.doc()
-@mod.route('/token')
-#@auth.login_required
-def get_auth_token():
-    """
-    Get token for current user.
-    :return: json with parameters:
-            token -
-            duration -
-    """
-    token = g.user.generate_auth_token(600)
-    return jsonify({'token': token.decode('ascii'), 'duration': 600})
+# @mod.route('/login', methods=['POST'])
+# def log_in():
+#     email = request.json.get('email')
+#     password = request.json.get('password')
+#     if email is None or password is None:
+#         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
+#     if User.query.filter_by(email=email).first() is None:
+#         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # existing user
+#     user = User.query.filter_by(email=email).first()
+#     if not user.check_password(password):
+#         return jsonify({'error_code': 400, 'result': 'incorrect password'}), 200
+#     information = response_builder(user, User, excluded=['password'])
+#     return jsonify({'error_code': 200, 'result': information}), 200
+#
+#
+# # {"access_token": "qwerty123", "social_id": 42, "social": "vk"}
+# @mod.route('/login/provider', methods=['POST'])
+# def provider_log_in():
+#     access_token = request.json.get('access_token')
+#     social_id = request.json.get('social_id')
+#     expire_in = request.json.get('expire_in')
+#     social = request.json.get('social')
+#     provider_id = 0
+#     if social == 'vk':
+#         provider_id = 0
+#     elif social == 'fb':
+#         provider_id = 1
+#     if Connection.query.filter_by(prv_user_id=social_id, provider_id=provider_id).first() is None:
+#         user = User(social_id=social_id, provider_id=provider_id)
+#         db.session.add(user)
+#         db.session.commit()
+#         user = User.query.filter_by(social_id=social_id, provider_id=provider_id).first()
+#         connection = Connection(user_id=user.id, provider_id=provider_id, prv_user_id=social_id, a_token=access_token,
+#                                 expire_in=expire_in)
+#         db.session.add(connection)
+#         db.session.commit()
+#         return jsonify({'error_code': 200, 'result': 'user is created'}), 201
+#     else:
+#         user = User.query.filter_by(social_id=social_id, provider_id=provider_id).first()
+#         user.social_id = social_id
+#         user.provider_id = provider_id
+#         user.last_login_at = datetime.utcnow()
+#         db.session.commit()
+#         connection = Connection.query.filter_by(provider_id=provider_id, prv_user_id=social_id)
+#         connection.a_token = access_token
+#         connection.expire_in = expire_in
+#         return jsonify({'error_code': 200, 'result': 'user is updated'}), 201
 
-
-@mod.route('/test')
-# @login_required
+@mod.route('/test/')
+@login_required
 def test():
     # if not current_user.is_authenticated:
     #     return jsonify(flag='bye'), 200
-    f = str(current_user.is_authenticated)
-    return jsonify(flag=f),200
+    user = current_user
 
+    return jsonify(flag='true', userid=user.id), 200
 
-@mod.route('/login', methods=['POST'])
-def log_in():
-    email = request.json.get('email')
-    password = request.json.get('password')
-    if email is None or password is None:
-        return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
-    if User.query.filter_by(email=email).first() is None:
-        return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # existing user
-    user = User.query.filter_by(email=email).first()
-    if not user.check_password(password):
-        return jsonify({'error_code': 400, 'result': 'incorrect password'}), 200
-    information = response_builder(user, User, excluded=['password'])
-    return jsonify({'error_code': 200, 'result': information}), 200
-
-
-# {"access_token": "qwerty123", "social_id": 42, "social": "vk"}
-@mod.route('/login/provider', methods=['POST'])
-def provider_log_in():
-    access_token = request.json.get('access_token')
-    social_id = request.json.get('social_id')
-    expire_in = request.json.get('expire_in')
-    social = request.json.get('social')
-    provider_id = 0
-    if social == 'vk':
-        provider_id = 0
-    elif social == 'fb':
-        provider_id = 1
-    if Connection.query.filter_by(prv_user_id=social_id, provider_id=provider_id).first() is None:
-        user = User(social_id=social_id, provider_id=provider_id)
-        db.session.add(user)
-        db.session.commit()
-        user = User.query.filter_by(social_id=social_id, provider_id=provider_id).first()
-        connection = Connection(user_id=user.id, provider_id=provider_id, prv_user_id=social_id, a_token=access_token,
-                                expire_in=expire_in)
-        db.session.add(connection)
-        db.session.commit()
-        return jsonify({'error_code': 200, 'result': 'user is created'}), 201
-    else:
-        user = User.query.filter_by(social_id=social_id, provider_id=provider_id).first()
-        user.social_id = social_id
-        user.provider_id = provider_id
-        user.last_login_at = datetime.utcnow()
-        db.session.commit()
-        connection = Connection.query.filter_by(provider_id=provider_id, prv_user_id=social_id)
-        connection.a_token = access_token
-        connection.expire_in = expire_in
-        return jsonify({'error_code': 200, 'result': 'user is updated'}), 201,
+@mod.route('/test1/')
+@login_required
+def test1():
+    logout_user()
+    return jsonify(flag='true', id=current_user.get_id())
 

@@ -7,12 +7,14 @@ from flask import Flask, render_template
 from flask.ext.autodoc import Autodoc
 from flask.ext.login import LoginManager
 from flask.ext.sqlalchemy import SQLAlchemy
+from itsdangerous import JSONWebSignatureSerializer as Serializer
+from config import SECRET_KEY
 
 
 # #######################
 # Init                  #
 # #######################
-
+_basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -116,12 +118,12 @@ app.register_blueprint(docs_module)
 
 formatter = logging.Formatter("%(asctime)s\t%(name)s\t%(message)s")
 
-error_handler = RotatingFileHandler('logs/error.log', maxBytes=10000, backupCount=2)
+error_handler = RotatingFileHandler(os.path.join(_basedir, '../logs/error.log'), maxBytes=10000, backupCount=2)
 error_handler.setLevel(logging.ERROR)
 error_handler.setFormatter(formatter)
 app.logger.addHandler(error_handler)
 
-info_handler = RotatingFileHandler('logs/info.log', maxBytes=10000, backupCount=2)
+info_handler = RotatingFileHandler(os.path.join(_basedir, '../logs/info.log'), maxBytes=10000, backupCount=2)
 info_handler.setLevel(logging.INFO)
 info_handler.setFormatter(formatter)
 app.logger.addHandler(info_handler)
