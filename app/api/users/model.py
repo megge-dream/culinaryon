@@ -61,7 +61,7 @@ class User(db.Model, UserMixin):
     # token-based auth implementation
     def get_auth_token(self):
         s = Serializer(SECRET_KEY)
-        # TODO: helper function datetime->timestamp
+        # TODO helper function datetime->timestamp
 
         return s.dumps({'id': self.id, 'last_login_at': time.mktime(self.last_login_at.timetuple())})
 
@@ -120,7 +120,7 @@ def token_loader(token):
     try:
         data = s.loads(token)
     except Exception:
-        # TODO: need to implement normal logging w/ except
+        # TODO need to implement normal logging w/ except
         app.logger.error("TokenLoader: cannot loads from token")
         return None
     user = User.query.get(data['id'])
