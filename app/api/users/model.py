@@ -25,7 +25,7 @@ class Connection(db.Model):
     expire_in = db.Column(db.DateTime())
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
-    #TODO Test Issue
+
 class User(db.Model, UserMixin):
     """
     Need to add Table Structure
@@ -62,6 +62,7 @@ class User(db.Model, UserMixin):
     def get_auth_token(self):
         s = Serializer(SECRET_KEY)
         # TODO: helper function datetime->timestamp
+
         return s.dumps({'id': self.id, 'last_login_at': time.mktime(self.last_login_at.timetuple())})
 
     # ================================================================
@@ -119,7 +120,8 @@ def token_loader(token):
     try:
         data = s.loads(token)
     except Exception:
-        app.logger.error("TokenLoader: cannot loads from token")  # TODO: need to implement normal logging w/ except
+        # TODO: need to implement normal logging w/ except
+        app.logger.error("TokenLoader: cannot loads from token")
         return None
     user = User.query.get(data['id'])
     if user is not None and user.last_login_at == datetime.fromtimestamp(data['last_login_at']):
