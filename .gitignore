@@ -59,7 +59,5 @@ target/
 # Idea
 .idea/
 
-
-=======
-# Created by .gitignore support plugin (hsz.mobi)
->>>>>>> origin/master
+# Debug DB
+app.db
