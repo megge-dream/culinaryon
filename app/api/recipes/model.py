@@ -73,3 +73,5 @@ class Recipe(db.Model):
                             backref=db.backref('recipes', lazy='dynamic'))
     ingredients = db.relationship(Ingredient, backref='recipes', lazy='dynamic')
 
+    def __unicode__(self):
+        return self.title

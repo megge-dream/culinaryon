@@ -4,12 +4,14 @@ import os
 
 import sys
 from flask import Flask, render_template
+from flask.ext.admin.contrib.sqla import ModelView
 from flask.ext.autodoc import Autodoc
-from flask.ext.login import LoginManager
+from flask.ext.login import LoginManager, current_user, logout_user
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.admin import Admin, BaseView, expose, AdminIndexView
+
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 from config import SECRET_KEY
-
 
 # #######################
 # Init                  #
@@ -21,6 +23,63 @@ app.config.from_object('config')
 auto = Autodoc(app)
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
+
+
+class MyAdminIndexView(AdminIndexView):
+
+    @expose('/')
+    def index(self):
+        # TODO: redirect to login page
+        # if not current_user.is_authenticated():
+        #     return render_template('forbidden_page.html')
+        return super(MyAdminIndexView, self).index()
+
+    @expose('/logout/')
+    def logout_view(self):
+        logout_user()
+        # TODO: redirect to login page
+        # return redirect(url_for('.index'))
+
+
+admin = Admin(app, index_view=MyAdminIndexView())
+
+from app.api.chefs.model import Chef
+from app.api.users.model import User
+from app.api.basket.model import Basket
+from app.api.categories.model import Category
+from app.api.cuisine_types.model import CuisineType
+from app.api.dictionary.model import Dictionary
+from app.api.favorites.model import Favorite
+from app.api.ingredients.model import Ingredient
+from app.api.likes.model import Like
+from app.api.photos.model import RecipePhoto, ChefPhoto, SchoolPhoto
+from app.api.recipes.model import InstructionItem, Recipe
+from app.api.schools.model import School, SchoolItem
+from app.api.tools.model import Tool
+from app.api.wines.model import Wine
+
+
+class MyUserAdmin(ModelView):
+    excluded_list_columns = ('_password',)
+
+
+admin.add_view(MyUserAdmin(User, db.session))
+admin.add_view(ModelView(Chef, db.session))
+admin.add_view(ModelView(Basket, db.session))
+admin.add_view(ModelView(Category, db.session))
+admin.add_view(ModelView(CuisineType, db.session))
+admin.add_view(ModelView(Dictionary, db.session))
+admin.add_view(ModelView(Ingredient, db.session))
+admin.add_view(ModelView(Like, db.session))
+admin.add_view(ModelView(RecipePhoto, db.session))
+admin.add_view(ModelView(ChefPhoto, db.session))
+admin.add_view(ModelView(SchoolPhoto, db.session))
+admin.add_view(ModelView(InstructionItem, db.session))
+admin.add_view(ModelView(Recipe, db.session))
+admin.add_view(ModelView(School, db.session))
+admin.add_view(ModelView(SchoolItem, db.session))
+admin.add_view(ModelView(Tool, db.session))
+admin.add_view(ModelView(Wine, db.session))
 
 # #######################
 # Configure Secret Key #
@@ -118,12 +177,12 @@ app.register_blueprint(docs_module)
 
 formatter = logging.Formatter("%(asctime)s\t%(name)s\t%(message)s")
 
-error_handler = RotatingFileHandler(os.path.join(_basedir, '../logs/error.log'), maxBytes=10000, backupCount=2)
+error_handler = RotatingFileHandler(os.path.join(_basedir, '../../logs/error.log'), maxBytes=10000, backupCount=2)
 error_handler.setLevel(logging.ERROR)
 error_handler.setFormatter(formatter)
 app.logger.addHandler(error_handler)
 
-info_handler = RotatingFileHandler(os.path.join(_basedir, '../logs/info.log'), maxBytes=10000, backupCount=2)
+info_handler = RotatingFileHandler(os.path.join(_basedir, '../../logs/info.log'), maxBytes=10000, backupCount=2)
 info_handler.setLevel(logging.INFO)
 info_handler.setFormatter(formatter)
 app.logger.addHandler(info_handler)

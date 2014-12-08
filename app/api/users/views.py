@@ -184,6 +184,7 @@ def test():
 @mod.route('/test1/')
 @login_required
 def test1():
+    print(current_user.get_id())
     logout_user()
     return jsonify(flag='true', id=current_user.get_id())
 

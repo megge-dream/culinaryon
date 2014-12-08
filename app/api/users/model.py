@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app.api import db, login_manager, app
 from app.api.favorites.model import Favorite
 from app.api.likes.model import Like
+from app.api.basket.model import Basket
 from app.api.users.constants import USER, USER_ROLE, ADMIN, ACTIVE, USER_STATUS, NO_PROVIDER, PROVIDER_LIST
 from config import SECRET_KEY
 
@@ -112,6 +113,7 @@ class User(db.Model, UserMixin):
     likes = db.relationship(Like, backref='users', lazy='dynamic')
     favorites_recipes = db.relationship(Favorite, backref='users', lazy='dynamic')
     connections = db.relationship(Connection, backref='users', lazy='dynamic')
+    baskets = db.relationship(Basket, backref='users', lazy='dynamic')
 
 
 @login_manager.token_loader
