@@ -14,6 +14,4 @@ class Category(db.Model):
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
     def __unicode__(self):
-        attrs = db.class_mapper(self.__class__).attrs
-        if 'title' in attrs:
-            return self.title
+        return self.title

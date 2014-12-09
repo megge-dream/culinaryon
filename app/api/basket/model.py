@@ -16,3 +16,6 @@ class Basket(db.Model):
     amount = db.Column(db.Integer)
     is_to_buy = db.Column(db.Boolean, default=0)
     is_in_stock = db.Column(db.Boolean, default=0)
+
+    def __unicode__(self):
+        return unicode(self.id) or u''

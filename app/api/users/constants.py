@@ -9,7 +9,11 @@ USER_ROLE = {
     STAFF: 'staff',
     USER: 'user',
 }
-
+USER_ROLE_SELECT = [
+    (ADMIN, 'admin'),
+    (STAFF, 'staff'),
+    (USER, 'user')
+]
 # User status
 INACTIVE = 0
 NEW = 1
@@ -19,7 +23,11 @@ USER_STATUS = {
     NEW: 'new',
     ACTIVE: 'active',
 }
-
+USER_STATUS_SELECT = {
+    (INACTIVE, 'inactive'),
+    (NEW, 'new'),
+    (ACTIVE, 'active')
+}
 # Providers' list
 NO_PROVIDER = 0
 VK = 1
@@ -28,4 +36,9 @@ PROVIDER_LIST = {
     NO_PROVIDER: 'no_provider',
     VK: 'vkontakte',
     FB: 'facebook',
+}
+PROVIDER_LIST_SELECT = {
+    (NO_PROVIDER, 'no_provider'),
+    (VK, 'vkontakte'),
+    (FB, 'facebook')
 }

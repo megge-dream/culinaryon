@@ -13,3 +13,6 @@ class Favorite(db.Model):
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipes.id'))
+
+    def __unicode__(self):
+        return str(self.id)

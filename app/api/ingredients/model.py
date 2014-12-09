@@ -18,3 +18,6 @@ class Ingredient(db.Model):
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
     baskets = db.relationship(Basket, backref='ingredients', lazy='dynamic')
+
+    def __unicode__(self):
+        return self.title

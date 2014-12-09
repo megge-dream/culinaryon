@@ -47,7 +47,8 @@ class User(db.Model, UserMixin):
         return self._password
 
     def _set_password(self, password):
-        self._password = generate_password_hash(password)
+        if password is not None:
+            self._password = generate_password_hash(password)
 
     # Hide password encryption by exposing password field only.
     password = db.synonym('_password',
@@ -110,10 +111,13 @@ class User(db.Model, UserMixin):
 
 
     # links
-    likes = db.relationship(Like, backref='users', lazy='dynamic')
-    favorites_recipes = db.relationship(Favorite, backref='users', lazy='dynamic')
-    connections = db.relationship(Connection, backref='users', lazy='dynamic')
-    baskets = db.relationship(Basket, backref='users', lazy='dynamic')
+    likes = db.relationship(Like, backref='users', lazy='select')
+    favorites_recipes = db.relationship(Favorite, backref='users', lazy='select')
+    connections = db.relationship(Connection, backref='users', lazy='select')
+    baskets = db.relationship(Basket, backref='users', lazy='select')
+
+    def __unicode__(self):
+        return self.email or unicode(self.id)
 
 
 @login_manager.token_loader

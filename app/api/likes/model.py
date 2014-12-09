@@ -14,4 +14,7 @@ class Like(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     recipe_id = db.Column(db.Integer, db.ForeignKey('recipes.id'))
 
+    def __unicode__(self):
+        return unicode(self.id)
+
 

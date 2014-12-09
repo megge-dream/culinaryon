@@ -30,3 +30,5 @@ Flask-Login==0.2.9
 Flask-Autodoc==0.1.1
 
 Flask-Admin==1.0.8
+
+Pillow==2.6.1

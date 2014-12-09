@@ -23,5 +23,8 @@ class Chef(db.Model):
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
     # links
-    all_photos = db.relationship(ChefPhoto, backref='chefs', lazy='dynamic')
-    recipes = db.relationship(Recipe, backref='chefs', lazy='dynamic')
+    all_photos = db.relationship(ChefPhoto, backref='chefs', lazy='select')
+    recipes = db.relationship(Recipe, backref='chefs', lazy='select')
+
+    def __unicode__(self):
+        return self.email

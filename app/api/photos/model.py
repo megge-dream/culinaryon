@@ -14,6 +14,9 @@ class RecipePhoto(db.Model):
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
     item_id = db.Column(db.Integer, db.ForeignKey("recipes.id"))
 
+    def __unicode__(self):
+        return unicode(self.data)
+
 
 class ChefPhoto(db.Model):
     """
@@ -26,6 +29,9 @@ class ChefPhoto(db.Model):
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
     item_id = db.Column(db.Integer, db.ForeignKey("chefs.id"))
 
+    def __unicode__(self):
+        return unicode(self.data)
+
 
 class SchoolPhoto(db.Model):
     """
@@ -37,3 +43,6 @@ class SchoolPhoto(db.Model):
     data = db.Column(db.Text)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
     item_id = db.Column(db.Integer, db.ForeignKey("schools.id"))
+
+    def __unicode__(self):
+        return unicode(self.data)

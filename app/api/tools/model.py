@@ -14,3 +14,6 @@ class Tool(db.Model):
     description = db.Column(db.Text, nullable=True)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
     photo = db.Column(db.Text, nullable=True)
+
+    def __unicode__(self):
+        return self.title

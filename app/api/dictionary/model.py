@@ -13,3 +13,6 @@ class Dictionary(db.Model):
     title = db.Column(db.String(250))
     description = db.Column(db.Text, nullable=True)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
+
+    def __unicode__(self):
+        return self.title

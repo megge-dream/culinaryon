@@ -40,6 +40,9 @@ class InstructionItem(db.Model):
     description = db.Column(db.Text, nullable=True)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
+    def __unicode__(self):
+        return unicode(self.id)
+
 
 class Recipe(db.Model):
     """
@@ -59,19 +62,19 @@ class Recipe(db.Model):
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
     # links
-    likes = db.relationship(Like, backref='recipes', lazy='dynamic')
-    favorites = db.relationship(Favorite, backref='recipes', lazy='dynamic')
+    likes = db.relationship(Like, backref='recipes', lazy='select')
+    favorites = db.relationship(Favorite, backref='recipes', lazy='select')
     categories = db.relationship(Category, secondary=recipes_categories,
-                                 backref=db.backref('recipes', lazy='dynamic'))
+                                 backref=db.backref('recipes', lazy='select'))
     cuisine_types = db.relationship(CuisineType, secondary=recipes_cuisine_types,
-                                    backref=db.backref('recipes', lazy='dynamic'))
-    photos = db.relationship(RecipePhoto, backref='recipes', lazy='dynamic')
-    instructions = db.relationship(InstructionItem, backref='recipes', lazy='dynamic')
+                                    backref=db.backref('recipes', lazy='select'))
+    photos = db.relationship(RecipePhoto, backref='recipes', lazy='select')
+    instructions = db.relationship(InstructionItem, backref='recipes', lazy='select')
     tools = db.relationship(Tool, secondary=recipes_tools,
-                            backref=db.backref('recipes', lazy='dynamic'))
+                            backref=db.backref('recipes', lazy='select'))
     wines = db.relationship(Wine, secondary=recipes_wines,
-                            backref=db.backref('recipes', lazy='dynamic'))
-    ingredients = db.relationship(Ingredient, backref='recipes', lazy='dynamic')
+                            backref=db.backref('recipes', lazy='select'))
+    ingredients = db.relationship(Ingredient, backref='recipes', lazy='select')
 
     def __unicode__(self):
-        return self.title
+        return unicode(self.title)

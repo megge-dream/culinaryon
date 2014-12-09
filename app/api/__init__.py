@@ -3,22 +3,31 @@ from logging.handlers import RotatingFileHandler
 import os
 
 import sys
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for
+from flask.ext.admin._backwards import ObsoleteAttr
 from flask.ext.admin.contrib.sqla import ModelView
+from flask.ext.admin.form import ImageUploadInput, ImageUploadField, thumbgen_filename
+from flask.ext.admin.model.fields import InlineFieldList, InlineFormField
 from flask.ext.autodoc import Autodoc
 from flask.ext.login import LoginManager, current_user, logout_user
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.admin import Admin, BaseView, expose, AdminIndexView
 
 from itsdangerous import JSONWebSignatureSerializer as Serializer
-from config import SECRET_KEY
+from markupsafe import Markup
+from sqlalchemy import String
+from werkzeug.utils import secure_filename
+from wtforms import SelectField, Form
+from wtforms.validators import Optional
+from app.api.users.constants import USER_ROLE_SELECT, USER_STATUS_SELECT, PROVIDER_LIST_SELECT
+from config import SECRET_KEY, UPLOAD_FOLDER
 
 # #######################
 # Init                  #
 # #######################
 _basedir = os.path.abspath(os.path.dirname(__file__))
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=UPLOAD_FOLDER)
 app.config.from_object('config')
 auto = Autodoc(app)
 db = SQLAlchemy(app)
@@ -59,26 +68,204 @@ from app.api.tools.model import Tool
 from app.api.wines.model import Wine
 
 
+class ModelViewWithRelationships(ModelView):
+    column_display_all_relations = True
+
+
+class RecipeImageForm(Form):
+    data = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True))
+
+
+class RecipeModelViewWithUpload(ModelView):
+
+    def _list_thumbnail(view, context, model, name):
+        if not model.data:
+            return ''
+        return Markup('<img src="%s">' % url_for('static', filename='recipes/' + thumbgen_filename(model.data)))
+
+    def get_title(view, context, model, name):
+        return model.data
+
+    can_create = True
+    column_list = ('data', 'title')
+    column_formatters = {
+        "data": _list_thumbnail,
+        "title": get_title
+    }
+    form = RecipeImageForm
+
+
+class ChefImageForm(Form):
+    data = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True))
+
+
+class ChefImageModelViewWithUpload(ModelView):
+
+    def _list_thumbnail(view, context, model, name):
+        if not model.data:
+            return ''
+        return Markup('<img src="%s">' % url_for('static', filename='chefs/' + thumbgen_filename(model.data)))
+
+    def get_title(view, context, model, name):
+        return model.data
+
+    can_create = True
+    column_list = ('data', 'title')
+    column_formatters = {
+        "data": _list_thumbnail,
+        "title": get_title
+    }
+    form = ChefImageForm
+
+
+class SchoolImageForm(Form):
+    data = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True))
+
+
+class SchoolModelViewWithUpload(ModelView):
+
+    def _list_thumbnail(view, context, model, name):
+        if not model.data:
+            return ''
+        return Markup('<img src="%s">' % url_for('static', filename='schools/' + thumbgen_filename(model.data)))
+
+    def get_title(view, context, model, name):
+        return model.data
+
+    can_create = True
+    column_list = ('data', 'title')
+    column_formatters = {
+        "data": _list_thumbnail,
+        "title": get_title
+    }
+    form = SchoolImageForm
+
+
+class ToolModelViewWithUpload(ModelView):
+
+    def _list_thumbnail(view, context, model, name):
+        if not model.photo:
+            return ''
+        return Markup('<img src="%s">' % url_for('static', filename='tools/' + thumbgen_filename(model.photo)))
+
+    can_create = True
+    column_formatters = {
+        "photo": _list_thumbnail,
+    }
+
+    form_extra_fields = {
+        'photo': ImageUploadField('Image', base_path=app.config['TOOLS_UPLOAD'], thumbnail_size=(500, 500, True))
+    }
+
+
+class ChefModelViewWithUpload(ModelView):
+    column_display_all_relations = True
+
+    def _list_thumbnail_medium(view, context, model, name):
+        if not model.medium_photo:
+            return ''
+        return Markup('<img src="%s">' % url_for('static', filename='chefs/' + thumbgen_filename(model.medium_photo)))
+
+    def _list_thumbnail_main(view, context, model, name):
+        if not model.main_photo:
+            return ''
+        return Markup('<img src="%s">' % url_for('static', filename='chefs/' + thumbgen_filename(model.main_photo)))
+
+    can_create = True
+    column_formatters = {
+        "medium_photo": _list_thumbnail_medium,
+        "main_photo": _list_thumbnail_main,
+    }
+    # form = ToolImageForm
+    form_extra_fields = {
+        'medium_photo': ImageUploadField('Medium photo', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True)),
+        'main_photo': ImageUploadField('Main photo', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True))
+    }
+
+
+class SchoolItemModelViewWithUpload(ModelView):
+
+    def _list_thumbnail(view, context, model, name):
+        if not model.photo:
+            return ''
+        return Markup('<img src="%s">' % url_for('static', filename='school_items/' + thumbgen_filename(model.photo)))
+
+    can_create = True
+    column_formatters = {
+        "photo": _list_thumbnail,
+    }
+
+    form_extra_fields = {
+        'photo': ImageUploadField('Image', base_path=app.config['SCHOOL_ITEMS_UPLOAD'], thumbnail_size=(500, 500, True))
+    }
+
+
+class InstructionItemModelViewWithUpload(ModelView):
+
+    def _list_thumbnail(view, context, model, name):
+        if not model.photo:
+            return ''
+        return Markup('<img src="%s">' % url_for('static', filename='instruction_items/' + thumbgen_filename(model.photo)))
+
+    can_create = True
+    column_formatters = {
+        "photo": _list_thumbnail,
+    }
+
+    form_extra_fields = {
+        'photo': ImageUploadField('Image', base_path=app.config['INSTRUCTION_ITEMS_UPLOAD'], thumbnail_size=(500, 500, True))
+    }
+
+
 class MyUserAdmin(ModelView):
-    excluded_list_columns = ('_password',)
+    column_exclude_list = ('_password',)
+    form_edit_rules = ('role_code',)
+    column_choices = {
+        'role_code': USER_ROLE_SELECT,
+        'provider_id': PROVIDER_LIST_SELECT,
+        'status_code': USER_STATUS_SELECT
+    }
+    column_display_all_relations = True
+    form_overrides = dict(role_code=SelectField, provider_id=SelectField, status_code=SelectField)
+
+    def update_model(self, form, model):
+        if self.form_edit_rules:
+            for field in form:
+                field_name = field.name
+                if field_name not in self.form_edit_rules:
+                    form.__delitem__(field_name)
+        return super(MyUserAdmin, self).update_model(form, model)
+
+    form_args = dict(
+        role_code=dict(
+            label='Role', choices=USER_ROLE_SELECT, coerce=int
+        ),
+        provider_id=dict(
+            label='Provider', choices=PROVIDER_LIST_SELECT, coerce=int
+        ),
+        status_code=dict(
+            label='Status', choices=USER_STATUS_SELECT, coerce=int
+        ),
+    )
 
 
 admin.add_view(MyUserAdmin(User, db.session))
-admin.add_view(ModelView(Chef, db.session))
+admin.add_view(ChefModelViewWithUpload(Chef, db.session))
 admin.add_view(ModelView(Basket, db.session))
 admin.add_view(ModelView(Category, db.session))
 admin.add_view(ModelView(CuisineType, db.session))
 admin.add_view(ModelView(Dictionary, db.session))
+admin.add_view(ModelView(Favorite, db.session))
 admin.add_view(ModelView(Ingredient, db.session))
 admin.add_view(ModelView(Like, db.session))
-admin.add_view(ModelView(RecipePhoto, db.session))
-admin.add_view(ModelView(ChefPhoto, db.session))
-admin.add_view(ModelView(SchoolPhoto, db.session))
-admin.add_view(ModelView(InstructionItem, db.session))
-admin.add_view(ModelView(Recipe, db.session))
-admin.add_view(ModelView(School, db.session))
-admin.add_view(ModelView(SchoolItem, db.session))
-admin.add_view(ModelView(Tool, db.session))
+admin.add_view(RecipeModelViewWithUpload(RecipePhoto, db.session))
+admin.add_view(ChefImageModelViewWithUpload(ChefPhoto, db.session))
+admin.add_view(SchoolModelViewWithUpload(SchoolPhoto, db.session))
+admin.add_view(InstructionItemModelViewWithUpload(InstructionItem, db.session))
+admin.add_view(ModelViewWithRelationships(Recipe, db.session))
+admin.add_view(ModelViewWithRelationships(School, db.session))
+admin.add_view(SchoolItemModelViewWithUpload(SchoolItem, db.session))
+admin.add_view(ToolModelViewWithUpload(Tool, db.session))
 admin.add_view(ModelView(Wine, db.session))
 
 # #######################
