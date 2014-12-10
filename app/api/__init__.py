@@ -1,6 +1,7 @@
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+from flask.ext.oauthlib.client import OAuth
 
 import sys
 from flask import Flask, render_template, url_for
@@ -31,7 +32,20 @@ app = Flask(__name__, static_folder=UPLOAD_FOLDER)
 app.config.from_object('config')
 auto = Autodoc(app)
 db = SQLAlchemy(app)
+
 login_manager = LoginManager(app)
+login_manager.session_protection = None
+oauth = OAuth(app)
+
+twitter = oauth.remote_app(
+    'twitter',
+    consumer_key='p2LAfMjJeMqPFr0bqyiEdc8Kz',
+    consumer_secret='19F3kBdRz3PzxpDoxYZWFfeaxKCWIKPtIPQfqLdbUfsjARHEyR',
+    base_url='https://api.twitter.com/1.1/',
+    request_token_url='https://api.twitter.com/oauth/request_token',
+    access_token_url='https://api.twitter.com/oauth/access_token',
+    authorize_url='https://api.twitter.com/oauth/authenticate',
+)
 
 
 class MyAdminIndexView(AdminIndexView):

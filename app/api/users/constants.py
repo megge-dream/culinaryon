@@ -32,13 +32,17 @@ USER_STATUS_SELECT = {
 NO_PROVIDER = 0
 VK = 1
 FB = 2
+TW = 3
 PROVIDER_LIST = {
     NO_PROVIDER: 'no_provider',
     VK: 'vkontakte',
     FB: 'facebook',
+    TW: 'twitter'
 }
 PROVIDER_LIST_SELECT = {
     (NO_PROVIDER, 'no_provider'),
     (VK, 'vkontakte'),
-    (FB, 'facebook')
+    (FB, 'facebook'),
+    (TW, 'twitter')
+
 }
