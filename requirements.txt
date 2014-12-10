@@ -25,7 +25,7 @@ Flask-Cache==0.13.1
 
 # Login
 Flask-Login==0.2.9
-Flask-OAuthlib=0.8.0
+Flask-OAuthlib==0.8.0
 
 # Documentation generation
 Flask-Autodoc==0.1.1

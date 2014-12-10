@@ -15,7 +15,7 @@ class School(db.Model):
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
     #links
-    photo = db.relationship(SchoolPhoto, backref='school', lazy='select')
+    photos = db.relationship(SchoolPhoto, backref='school', lazy='select')
 
     def __unicode__(self):
         return self.title

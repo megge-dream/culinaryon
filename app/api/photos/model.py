@@ -1,4 +1,7 @@
 from datetime import datetime
+from flask import url_for
+from flask.ext.admin.form import thumbgen_filename
+from markupsafe import Markup
 
 from app.api import db
 
@@ -16,6 +19,7 @@ class RecipePhoto(db.Model):
 
     def __unicode__(self):
         return unicode(self.data)
+        # return Markup('<img src="%s">' % url_for('static', filename='recipes/' + thumbgen_filename(self.data)))
 
 
 class ChefPhoto(db.Model):

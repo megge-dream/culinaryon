@@ -3,7 +3,7 @@ from flask.ext.login import login_required, current_user, login_user, logout_use
 from sqlalchemy import and_
 
 from app.api import db, auto
-from app.api.constants import BAD_REQUEST
+from app.api.constants import BAD_REQUEST, OK
 from app.api import auto, twitter
 from app.api.helpers import *
 from app.api.users.constants import TW
