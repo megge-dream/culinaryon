@@ -40,7 +40,8 @@ class User(db.Model, UserMixin):
     active = db.Column(db.Boolean, default=1)
     last_login_at = db.Column(db.DateTime())
     registered_on = db.Column(db.DateTime, default=datetime.utcnow())
-    social_id = db.Column(db.Integer, nullable=True)
+    provider_user_id = db.Column(db.Integer, nullable=True)
+
     _password = db.Column('password', db.String(64), nullable=True)
 
     def _get_password(self):
@@ -122,6 +123,12 @@ class User(db.Model, UserMixin):
 
 @login_manager.token_loader
 def token_loader(token):
+    """
+    this sets the callback for loading a user from an authentication
+        token. The function you set should take an authentication token
+        (a ``unicode``, as returned by a user's `get_auth_token` method) and
+        return a user object, or ``None`` if the user does not exist.
+    """
     s = Serializer(SECRET_KEY)
     try:
         data = s.loads(token)
