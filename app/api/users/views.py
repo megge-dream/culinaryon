@@ -2,6 +2,7 @@ from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask, abor
 from flask.ext.login import login_required, current_user, login_user, logout_user
 
 from app.api import db, auto
+from app.api.constants import BAD_REQUEST
 from app.api.helpers import *
 from app.api.users.model import *
 
@@ -28,15 +29,15 @@ def new_user():
     first_name = request.json.get('first_name')
     last_name = request.json.get('last_name')
     if email is None or password is None:
-        return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
     if User.query.filter_by(email=email).first() is not None:
-        return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # existing user
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # existing user
     user = User(email=email, password=password, first_name=first_name, last_name=last_name, last_login_at=datetime.utcnow())
     db.session.add(user)
     db.session.commit()
     login_user(user, remember=True)
     information = response_builder(user, User, excluded=['password'])
-    return (jsonify({'error_code': 200, 'result': information}), 201,
+    return (jsonify({'error_code': OK, 'result': information}), 201,
             {'Location': url_for('.get_user', id=user.id, _external=True)})
 
 @auto.doc()
@@ -57,7 +58,7 @@ def update_user(id):
     """
     user = User.query.get(id)
     if not user:
-        return jsonify({'error_code': 400, 'result': 'not ok'}), 200
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
     if request.json.get('email'):
         user.email = request.json.get('email')
     if request.json.get('password'):
@@ -70,7 +71,7 @@ def update_user(id):
     db.session.commit()
     user = User.query.get(id)
     information = response_builder(user, User, excluded=['password'])
-    return jsonify({'error_code': 200, 'result': information}), 200
+    return jsonify({'error_code': OK, 'result': information}), 200
 
 
 @auto.doc()
@@ -86,7 +87,7 @@ def get_all_users():
     for user in User.query.all():
         information = response_builder(user, User, excluded=['password'])
         users.append(information)
-    return jsonify({'error_code': 200, 'result': users}), 200
+    return jsonify({'error_code': OK, 'result': users}), 200
 
 
 @auto.doc()
@@ -101,9 +102,9 @@ def get_user(id):
     """
     user = User.query.get(id)
     if not user:
-        return jsonify({'error_code': 400, 'result': 'not ok'}), 200
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
     information = response_builder(user, User, excluded=['password'])
-    return jsonify({'error_code': 200, 'result': information}), 200
+    return jsonify({'error_code': OK, 'result': information}), 200
 
 
 # User can delete only himself.
@@ -118,10 +119,10 @@ def delete_user(id):
     """
     user = User.query.get(id)
     if not user:
-        return jsonify({'error_code': 400, 'result': 'not ok'}), 200
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
     db.session.delete(user)
     db.session.commit()
-    return jsonify({'error_code': 200}), 200
+    return jsonify({'error_code': OK}), 200
 
 
 # @mod.route('/login', methods=['POST'])
@@ -129,14 +130,14 @@ def delete_user(id):
 #     email = request.json.get('email')
 #     password = request.json.get('password')
 #     if email is None or password is None:
-#         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
+#         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
 #     if User.query.filter_by(email=email).first() is None:
-#         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # existing user
+#         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # existing user
 #     user = User.query.filter_by(email=email).first()
 #     if not user.check_password(password):
-#         return jsonify({'error_code': 400, 'result': 'incorrect password'}), 200
+#         return jsonify({'error_code': BAD_REQUEST, 'result': 'incorrect password'}), 200
 #     information = response_builder(user, User, excluded=['password'])
-#     return jsonify({'error_code': 200, 'result': information}), 200
+#     return jsonify({'error_code': OK, 'result': information}), 200
 #
 #
 # # {"access_token": "qwerty123", "social_id": 42, "social": "vk"}
@@ -160,7 +161,7 @@ def delete_user(id):
 #                                 expire_in=expire_in)
 #         db.session.add(connection)
 #         db.session.commit()
-#         return jsonify({'error_code': 200, 'result': 'user is created'}), 201
+#         return jsonify({'error_code': OK, 'result': 'user is created'}), 201
 #     else:
 #         user = User.query.filter_by(social_id=social_id, provider_id=provider_id).first()
 #         user.social_id = social_id
@@ -170,7 +171,7 @@ def delete_user(id):
 #         connection = Connection.query.filter_by(provider_id=provider_id, prv_user_id=social_id)
 #         connection.a_token = access_token
 #         connection.expire_in = expire_in
-#         return jsonify({'error_code': 200, 'result': 'user is updated'}), 201
+#         return jsonify({'error_code': OK, 'result': 'user is updated'}), 201
 
 @mod.route('/test/')
 @login_required

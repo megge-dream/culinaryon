@@ -225,7 +225,6 @@ class MyUserAdmin(ModelView):
         'provider_id': PROVIDER_LIST_SELECT,
         'status_code': USER_STATUS_SELECT
     }
-    column_display_all_relations = True
     form_overrides = dict(role_code=SelectField, provider_id=SelectField, status_code=SelectField)
 
     def update_model(self, form, model):
