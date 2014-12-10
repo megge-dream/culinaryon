@@ -11,7 +11,7 @@ class School(db.Model):
     __tablename__ = "schools"
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String)
+    title = db.Column(db.String, nullable=False)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
     #links

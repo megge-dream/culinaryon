@@ -13,7 +13,7 @@ class RecipePhoto(db.Model):
     __tablename__ = "recipePhotos"
 
     id = db.Column(db.Integer, primary_key=True)
-    data = db.Column(db.Text)
+    data = db.Column(db.Text, nullable=False)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
     item_id = db.Column(db.Integer, db.ForeignKey("recipes.id"))
 
@@ -29,7 +29,7 @@ class ChefPhoto(db.Model):
     __tablename__ = "chefPhotos"
 
     id = db.Column(db.Integer, primary_key=True)
-    data = db.Column(db.Text)
+    data = db.Column(db.Text, nullable=False)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
     item_id = db.Column(db.Integer, db.ForeignKey("chefs.id"))
 
@@ -44,7 +44,7 @@ class SchoolPhoto(db.Model):
     __tablename__ = "schoolPhotos"
 
     id = db.Column(db.Integer, primary_key=True)
-    data = db.Column(db.Text)
+    data = db.Column(db.Text, nullable=False)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
     item_id = db.Column(db.Integer, db.ForeignKey("schools.id"))
 
