@@ -1,6 +1,8 @@
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+from flask.ext.admin.contrib.sqla.form import AdminModelConverter, InlineModelConverter
+from flask.ext.admin.model.form import InlineBaseFormAdmin, InlineFormAdmin
 from flask.ext.oauthlib.client import OAuth
 
 import sys
@@ -82,8 +84,27 @@ from app.api.tools.model import Tool
 from app.api.wines.model import Wine
 
 
+class RecipePhotoInlineModelForm(InlineFormAdmin):
+    def postprocess_form(self, form):
+        form.data = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True))
+        return form
+
+
+class ChefPhotoInlineModelForm(InlineFormAdmin):
+    def postprocess_form(self, form):
+        form.data = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True))
+        return form
+
+
+class SchoolPhotoInlineModelForm(InlineFormAdmin):
+    def postprocess_form(self, form):
+        form.data = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True))
+        return form
+
+
 class RecipeModelViewWithRelationships(ModelView):
     column_display_all_relations = True
+    column_auto_select_related = True
 
     def _list_thumbnail_many(view, context, model, name):
         if not model.photos:
@@ -96,10 +117,12 @@ class RecipeModelViewWithRelationships(ModelView):
     column_formatters = {
         "photos": _list_thumbnail_many
     }
+    inline_models = (RecipePhotoInlineModelForm(RecipePhoto),)
 
 
 class SchoolModelViewWithRelationships(ModelView):
     column_display_all_relations = True
+    column_auto_select_related = True
 
     def _list_thumbnail_many(view, context, model, name):
         if not model.photos:
@@ -112,6 +135,7 @@ class SchoolModelViewWithRelationships(ModelView):
     column_formatters = {
         "photos": _list_thumbnail_many
     }
+    inline_models = (SchoolPhotoInlineModelForm(SchoolPhoto),)
 
 
 class RecipeImageForm(Form):
@@ -202,6 +226,7 @@ class ToolModelViewWithUpload(ModelView):
 
 class ChefModelViewWithUpload(ModelView):
     column_display_all_relations = True
+    column_auto_select_related = True
 
     def _list_thumbnail_medium(view, context, model, name):
         if not model.medium_photo:
@@ -232,6 +257,7 @@ class ChefModelViewWithUpload(ModelView):
         'medium_photo': ImageUploadField('Medium photo', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True)),
         'main_photo': ImageUploadField('Main photo', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True))
     }
+    inline_models = (ChefPhotoInlineModelForm(ChefPhoto),)
 
 
 class SchoolItemModelViewWithUpload(ModelView):

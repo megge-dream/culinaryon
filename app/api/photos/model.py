@@ -18,8 +18,7 @@ class RecipePhoto(db.Model):
     item_id = db.Column(db.Integer, db.ForeignKey("recipes.id"))
 
     def __unicode__(self):
-        return unicode(self.data)
-        # return Markup('<img src="%s">' % url_for('static', filename='recipes/' + thumbgen_filename(self.data)))
+        return unicode(self.data) or u''
 
 
 class ChefPhoto(db.Model):
