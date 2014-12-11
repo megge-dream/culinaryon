@@ -12,10 +12,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="Shortcut Icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/x-icon">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/error.css') }}">
-    <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
 </head>
 <body>
-    {% include "macros/_ask_user_to_update_ie.html" %}
 
     <div id="wrap">
         {% block container %}
@@ -26,6 +24,5 @@
         {% endblock %}
     </div>
 
-    {% include "macros/_google_analytics.html" %}
 </body>
 </html>
