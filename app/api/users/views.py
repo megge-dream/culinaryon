@@ -1,10 +1,11 @@
-from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask, abort
+from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask, abort, session
 from flask.ext.login import login_required, current_user, login_user, logout_user
+from flask.ext.oauthlib.client import OAuthException
 from sqlalchemy import and_
 
-from app.api import auto, twitter
+from app.api import auto, twitter, facebook, vkontakte
 from app.api.helpers import *
-from app.api.users.constants import TW
+from app.api.users.constants import TW, FB, VK
 from app.api.users.model import *
 
 mod = Blueprint('users', __name__, url_prefix='/api')
@@ -137,16 +138,20 @@ def twitter_login():
     if new user created and login, then return {error_code: 0, result: <user info>, access_token: <token>}
     if user has existed then just return {error_code: 0, user_id: <user_id>, access_token: <token>}
     """
-    callback_url = url_for('.twitter_oauthorized')
+    # if current_user.is_authenticated():
+    #     return jsonify({'error_code': 0, 'result': "already authorized",
+    #                       'access_token': current_user.get_auth_token()})
+
+    callback_url = url_for('.twitter_authorized')
     return twitter.authorize(callback=callback_url)
 
 
 @mod.route('/login/twitter/oauthorized')
-def twitter_oauthorized():
+def twitter_authorized():
     resp = twitter.authorized_response()
 
     if resp is None:
-        return jsonify({'error_code': 500, 'result': 'Something went wrong'}), 200
+        return jsonify({'error_code': 500, 'result': 'Twitter went wrong :)'}), 200
     else:
         try:
             user_id = resp['user_id']
@@ -159,7 +164,7 @@ def twitter_oauthorized():
                 # try to login
                 update_time = datetime.utcnow()
                 user.last_login_at = update_time
-                if login_user(user, remember=True):
+                if login_user(user):
                     connection = Connection(user_id=user.id, provider_id=TW, provider_user_id=user_id,
                                             access_token=oauth_token, creation_date=update_time)
                     db.session.add(connection)
@@ -173,18 +178,159 @@ def twitter_oauthorized():
                 new_user = User(last_login_at=update_time, registered_on=update_time, provider_id=TW,
                             provider_user_id=user_id)
                 db.session.add(new_user)
+                db.session.commit()
+
                 connection = Connection(user_id=new_user.id, provider_id=TW, provider_user_id=user_id,
                                         access_token=oauth_token, creation_date=update_time)
                 db.session.add(connection)
                 db.session.commit()
-                if login_user(new_user, remember=True):
-                    information = response_builder(new_user, User, excluded=['password'])
-                    return jsonify({'error_code': 0, 'result': information, 'access_token': new_user.get_auth_token()})
+                if login_user(new_user):
+                    return jsonify({'error_code': 0, 'user_id': new_user.id, 'access_token': new_user.get_auth_token()})
                 else:
-                    return jsonify({'error_code': 500, 'result': 'Cant Login user'}), 200
+                    return jsonify({'error_code': 500, 'result': 'Cant Login user via twitter'}), 200
 
         except Exception as e:
-            return jsonify({'error_code': 500, 'result': 'Something went wrong'}), 200
+            return jsonify({'error_code': 500, 'result': str(e)}), 200
+
+
+@auto.doc()
+@mod.route('/login/facebook')
+def facebook_login():
+    """
+    Auth through the Facebook. Need to open webView
+
+    :return: if something went wrong, return `error_code` <> 0,
+    if new user created and login, then return {error_code: 0, result: <user info>, access_token: <token>}
+    if user has existed then just return {error_code: 0, user_id: <user_id>, access_token: <token>}
+    """
+    # if current_user.is_authenticated():
+    #     return jsonify({'error_code': 0, 'result': "already authorized",
+    #                       'access_token': current_user.get_auth_token()})
+
+    callback_url = url_for('.facebook_authorized', _external=True)
+    return facebook.authorize(callback=callback_url)
+
+
+@mod.route('/login/facebook/authorized')
+def facebook_authorized():
+    resp = facebook.authorized_response()
+    if resp is None:
+        return jsonify({'error_code': 500, 'result': request.args['error_reason']})
+    if isinstance(resp, OAuthException):
+        return jsonify({'error_code': 500, 'result': resp.message})
+
+    oauth_token = (resp['access_token'], '')
+    session['oauth_token'] = oauth_token
+    me = facebook.get('/me')
+
+    user_id = me.data['id']
+    user = user_exist(provider_user_id=user_id, provider_id=FB)
+    if user:
+        # user exist
+        # try to login
+        update_time = datetime.utcnow()
+        user.last_login_at = update_time
+        if login_user(user):
+            connection = Connection(user_id=user.id, provider_id=FB, provider_user_id=user_id,
+                                    access_token=str(oauth_token), creation_date=update_time)
+            db.session.add(connection)
+            db.session.commit()
+            return jsonify({'error_code': 0, 'user_id': user.id, 'access_token': user.get_auth_token()})
+        else:
+            return jsonify({'error_code': 500, 'result': 'Cant Login user via facebook'}), 200
+    else:
+        # create New User
+        update_time = datetime.utcnow()
+        new_user = User(last_login_at=update_time, registered_on=update_time, provider_id=FB,
+                    provider_user_id=user_id)
+        db.session.add(new_user)
+        db.session.commit()
+        connection = Connection(user_id=new_user.id, provider_id=FB, provider_user_id=user_id,
+                                access_token=oauth_token, creation_date=update_time)
+        db.session.add(connection)
+        db.session.commit()
+        if login_user(new_user):
+            return jsonify({'error_code': 0, 'user_id': new_user.id, 'access_token': new_user.get_auth_token()})
+        else:
+            return jsonify({'error_code': 500, 'result': 'Cant Login user via fb'}), 200
+
+
+@facebook.tokengetter
+def get_facebook_oauth_token():
+    return session.get('oauth_token')
+
+
+@auto.doc()
+@mod.route('/login/vkontakte')
+def vkontakte_login():
+    """
+    Auth through VK.COM. Need to open webView
+
+    :return: if something went wrong, return `error_code` <> 0,
+    if new user created and login, then return {error_code: 0, result: <user info>, access_token: <token>}
+    if user has existed then just return {error_code: 0, user_id: <user_id>, access_token: <token>}
+    """
+    # if current_user.is_authenticated():
+    #     return jsonify({'error_code': 0, 'result': "already authorized",
+    #                       'access_token': current_user.get_auth_token()})
+
+    callback_url = url_for('.vkontakte_authorized', _external=True)
+    return vkontakte.authorize(callback=callback_url)
+
+
+@mod.route('/login/vkontakte/authorized')
+def vkontakte_authorized():
+    resp = vkontakte.authorized_response()
+    if resp is None:
+        return jsonify({'error_code': 500, 'result': request.args['error_reason']})
+    if isinstance(resp, OAuthException):
+        return jsonify({'error_code': 500, 'result': resp.message})
+
+    user_id = resp['user_id']
+    oauth_token = resp['access_token']
+    expires_in = resp['expires_in']
+
+    user = user_exist(provider_user_id=user_id, provider_id=VK)
+    if user:
+        # user exist
+        # try to login
+        update_time = datetime.utcnow()
+        user.last_login_at = update_time
+        if login_user(user):
+            connection = Connection(user_id=user.id, provider_id=VK, provider_user_id=user_id,
+                                    access_token=str(oauth_token), expire_in=expires_in, creation_date=update_time)
+            db.session.add(connection)
+            db.session.commit()
+            return jsonify({'error_code': 0, 'user_id': user.id, 'access_token': user.get_auth_token()})
+        else:
+            return jsonify({'error_code': 500, 'result': 'Cant Login user via VK.com'}), 200
+    else:
+        # create New User
+        update_time = datetime.utcnow()
+        new_user = User(last_login_at=update_time, registered_on=update_time, provider_id=VK,
+                    provider_user_id=user_id)
+        db.session.add(new_user)
+        db.session.commit()
+        connection = Connection(user_id=new_user.id, provider_id=VK, provider_user_id=user_id,
+                                access_token=oauth_token, creation_date=update_time)
+        db.session.add(connection)
+        db.session.commit()
+        if login_user(new_user):
+            return jsonify({'error_code': 0, 'user_id': new_user.id, 'access_token': new_user.get_auth_token()})
+        else:
+            return jsonify({'error_code': 500, 'result': 'Cant Login user via VK.com'}), 200
+
+
+@mod.route('/test')
+def test():
+    user = User.get(1)
+    return jsonify(token=user.get_auth_token()), 200
+
+
+@mod.route('/test1')
+@login_required
+def test1():
+    return jsonify(flag=True, t=current_user.id), 200
 
 
 ################

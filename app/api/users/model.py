@@ -1,5 +1,5 @@
+import base64
 from datetime import datetime
-import time
 from flask.ext.login import UserMixin
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 
@@ -23,7 +23,7 @@ class Connection(db.Model):
     provider_id = db.Column(db.Integer)
     provider_user_id = db.Column(db.Integer)
     access_token = db.Column(db.Text)
-    expire_in = db.Column(db.DateTime())
+    expire_in = db.Column(db.Integer())
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
 
@@ -39,7 +39,7 @@ class User(db.Model, UserMixin):
     last_name = db.Column(db.String(length=128), nullable=True)
     active = db.Column(db.Boolean, default=1)
     last_login_at = db.Column(db.DateTime())
-    registered_on = db.Column(db.DateTime, default=datetime.utcnow())
+    registered_on = db.Column(db.DateTime, default=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"))
     provider_user_id = db.Column(db.Integer, nullable=True)
 
     _password = db.Column('password', db.String(64), nullable=True)
@@ -66,7 +66,8 @@ class User(db.Model, UserMixin):
         s = Serializer(SECRET_KEY)
         # TODO helper function datetime->timestamp
 
-        return s.dumps({'id': self.id, 'last_login_at': time.mktime(self.last_login_at.timetuple())})
+        # return s.dumps({'id': self.id, 'last_login_at': time.mktime(self.last_login_at.timetuple())})
+        return s.dumps({'id': self.id})
 
     # ================================================================
     role_code = db.Column(db.SmallInteger, default=USER, nullable=False)
@@ -121,7 +122,7 @@ class User(db.Model, UserMixin):
         return self.email or unicode(self.id)
 
 
-@login_manager.token_loader
+#@login_manager.token_loader
 def token_loader(token):
     """
     this sets the callback for loading a user from an authentication
@@ -137,19 +138,64 @@ def token_loader(token):
         app.logger.error("TokenLoader: cannot loads from token")
         return None
     user = User.query.get(data['id'])
+
     if user is not None and user.last_login_at == datetime.fromtimestamp(data['last_login_at']):
         return user
     return None
 
 
-@login_manager.user_loader
-def load_user(userid):
-    """
-    Flask-Login user_loader callback.
-    The user_loader function asks this function to get a User Object or return
-    None based on the userid.
-    The userid was stored in the session environment by Flask-Login.
-    user_loader stores the returned User object in current_user during every
-    flask request.
-    """
-    return User.get(userid)
+# @login_manager.user_loader
+# def load_user(userid):
+#     """
+#     Flask-Login user_loader callback.
+#     The user_loader function asks this function to get a User Object or return
+#     None based on the userid.
+#     The userid was stored in the session environment by Flask-Login.
+#     user_loader stores the returned User object in current_user during every
+#     flask request.
+#     """
+#     return User.get(userid)
+
+@login_manager.request_loader
+def load_user_from_header(request):
+
+    # first, try to login using the api_key url arg
+    access_token = request.args.get('access_token')
+    if access_token:
+        s = Serializer(SECRET_KEY)
+        try:
+            data = s.loads(access_token)
+        except Exception:
+            # TODO need to implement normal logging w/ except
+            app.logger.error("TokenLoader: cannot loads from token")
+            return None
+
+        user = User.get(data['id'])
+        #if user is not None and user.last_login_at == datetime.fromtimestamp(data['last_login_at']):
+        if user:
+            return user
+
+    # next, try to login using Basic Auth
+    access_token = request.headers.get('Authorization')
+    if access_token:
+        if access_token.startswith('Basic '):
+            access_token = access_token.replace('Basic ', '', 1)
+        try:
+            access_token = base64.b64decode(access_token)
+        except TypeError:
+            pass
+
+        s = Serializer(SECRET_KEY)
+        try:
+            data = s.loads(access_token)
+        except Exception:
+            # TODO need to implement normal logging w/ except
+            app.logger.error("TokenLoader: cannot loads from token")
+            return None
+
+        user = User.get(data['id'])
+        # if user is not None and user.last_login_at == datetime.fromtimestamp(data['last_login_at']):
+        if user:
+            return user
+    # finally, return None if both methods did not login the user
+    return None
