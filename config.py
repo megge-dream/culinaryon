@@ -27,7 +27,6 @@ RECIPES_UPLOAD = os.path.join(UPLOAD_FOLDER, 'recipes')
 CHEFS_UPLOAD = os.path.join(UPLOAD_FOLDER, 'chefs')
 SCHOOLS_UPLOAD = os.path.join(UPLOAD_FOLDER, 'schools')
 TOOLS_UPLOAD = os.path.join(UPLOAD_FOLDER, 'tools')
-CHEFS_UPLOAD = os.path.join(UPLOAD_FOLDER, 'chefs')
 SCHOOL_ITEMS_UPLOAD = os.path.join(UPLOAD_FOLDER, 'school_items')
 INSTRUCTION_ITEMS_UPLOAD = os.path.join(UPLOAD_FOLDER, 'instruction_items')
 
