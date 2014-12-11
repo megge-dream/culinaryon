@@ -1,0 +1,11 @@
+{% extends 'layout.html' %}
+
+{% from "macros/_form.html" import render_form %}
+
+
+{% block body %}
+<div class="container">
+    <h2>Login</h2>
+    {{ render_form(url_for('user.login'), form)}}
+</div>
+{% endblock %}
