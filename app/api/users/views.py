@@ -46,6 +46,7 @@ def new_user():
     return (jsonify({'error_code': OK, 'result': information}), 201,
             {'Location': url_for('.get_user', id=user.id, _external=True)})
 
+
 @auto.doc()
 @mod.route('/users/<int:id>', methods=['PUT'])
 def update_user(id):
@@ -113,7 +114,6 @@ def get_user(id):
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
-# User can delete only himself.
 @auto.doc()
 @mod.route('/users/<int:id>', methods=['DELETE'])
 def delete_user(id):
@@ -129,6 +129,31 @@ def delete_user(id):
     db.session.delete(user)
     db.session.commit()
     return jsonify({'error_code': OK}), 200
+
+
+@auto.doc()
+@mod.route('/login', methods=['POST'])
+def pure_login():
+    """
+    Pure auth. You should send email + password
+
+    :return: if something went wrong, return `error_code` <> 0,
+    Otherwise, return {error_code: 0, user_id: <user_id>, access_token: <token>}
+    """
+    email = request.json.get('email')
+    password = request.json.get('password')
+    if not email or not password:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'Email and password fields are required'}), 200
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'No user with such email'}), 200
+    if user.check_password(password):
+        return jsonify({'error_code': OK, 'user_id': user.id, 'access_token': user.get_auth_token()})
+    else:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'Wrong password'})
+
+
 
 
 @auto.doc()
@@ -188,7 +213,8 @@ def twitter_authorized():
                 db.session.add(connection)
                 db.session.commit()
                 if login_user(new_user):
-                    return jsonify({'error_code': OK, 'user_id': new_user.id, 'access_token': new_user.get_auth_token()})
+                    return jsonify({'error_code': OK, 'user_id': new_user.id,
+                                    'access_token': new_user.get_auth_token()})
                 else:
                     return jsonify({'error_code': BAD_REQUEST, 'result': 'Cant Login user via twitter'}), 200
 

@@ -39,7 +39,7 @@ class User(db.Model, UserMixin):
     last_name = db.Column(db.String(length=128), nullable=True)
     active = db.Column(db.Boolean, default=1)
     last_login_at = db.Column(db.DateTime())
-    registered_on = db.Column(db.DateTime, default=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"))
+    registered_on = db.Column(db.DateTime, default=datetime.utcnow())
     provider_user_id = db.Column(db.Integer, nullable=True)
 
     _password = db.Column('password', db.String(64), nullable=True)
