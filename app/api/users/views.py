@@ -1,6 +1,7 @@
-from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask, abort
+from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask, abort, render_template, flash
 from flask.ext.login import login_required, current_user, login_user, logout_user
 from sqlalchemy import and_
+from wtforms import ValidationError
 
 from app.api import db, auto
 from app.api.constants import BAD_REQUEST, OK
@@ -10,6 +11,24 @@ from app.api.users.constants import TW
 from app.api.users.model import *
 
 mod = Blueprint('users', __name__, url_prefix='/api')
+
+
+@mod.route('/login', methods=['GET', 'POST'])
+@login_required
+def login():
+    out = {}
+    if current_user.is_authenticated():
+        return redirect(url_for('main'))
+    form = LoginForm()
+    try:
+        if form.validate_on_submit():
+            login_user(User.query.filter_by(email=form.email.data).first(), remember=True)
+            flash(u"Success login.", category='success')
+            out.update({'current_user': current_user})
+            return redirect(url_for('admin'))
+    except ValidationError as v:
+        flash(v.message, category='error')
+    return render_template("login.html", form=form)
 
 
 @auto.doc()
