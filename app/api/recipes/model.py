@@ -41,7 +41,7 @@ class InstructionItem(db.Model):
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
     def __unicode__(self):
-        return unicode(self.id)
+        return unicode(self.id) or u''
 
 
 class Recipe(db.Model):
@@ -77,4 +77,4 @@ class Recipe(db.Model):
     ingredients = db.relationship(Ingredient, backref='recipes', lazy='select')
 
     def __unicode__(self):
-        return unicode(self.title)
+        return unicode(self.title) or u''

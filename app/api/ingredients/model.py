@@ -11,9 +11,9 @@ class Ingredient(db.Model):
     __tablename__ = "ingredients"
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(250))
-    amount = db.Column(db.Integer)
-    unit = db.Column(db.String(250))
+    title = db.Column(db.String(250), nullable=False)
+    amount = db.Column(db.Integer, nullable=True)
+    unit = db.Column(db.String(250), nullable=True)
     recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.id"))
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 

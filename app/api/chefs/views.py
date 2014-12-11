@@ -1,6 +1,7 @@
 from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask
 from app.api import auto
 from app.api.categories.model import Category
+from app.api.constants import OK, BAD_REQUEST
 
 from app.api.helpers import *
 from app.api.chefs.model import *
@@ -37,13 +38,13 @@ def new_chef():
     main_photo = request.json.get('main_photo')
     medium_photo = request.json.get('medium_photo')
     if last_name is None or email is None:
-        return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
     chef = Chef(first_name=first_name, last_name=last_name, work=work, biography=biography, quote=quote, email=email,
                 main_photo=main_photo, medium_photo=medium_photo)
     db.session.add(chef)
     db.session.commit()
     information = response_builder(chef, Chef)
-    return jsonify({'error_code': 201, 'result': information}), 201
+    return jsonify({'error_code': OK, 'result': information}), 201
 
 
 @auto.doc()
@@ -68,7 +69,7 @@ def update_chef(id):
     """
     chef = Chef.query.get(id)
     if not chef:
-        return jsonify({'error_code': 400, 'result': 'not ok'}), 200
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
     if request.json.get('first_name'):
         chef.first_name = request.json.get('first_name')
     if request.json.get('last_name'):
@@ -88,7 +89,7 @@ def update_chef(id):
     db.session.commit()
     chef = chef.query.get(id)
     information = response_builder(chef, Chef)
-    return jsonify({'error_code': 200, 'result': information}), 200
+    return jsonify({'error_code': OK, 'result': information}), 200
 
 
 @auto.doc()
@@ -103,7 +104,7 @@ def get_chef(id):
     """
     chef = Chef.query.get(id)
     if not chef:
-        return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # chef with `id` isn't exist
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # chef with `id` isn't exist
     information = response_builder(chef, Chef, excluded=['main_photo', 'work'])
     information['photos'] = []
     for photo in ChefPhoto.query.filter_by(item_id=chef.id):
@@ -127,7 +128,7 @@ def get_chef(id):
             photo_information = response_builder(photo, RecipePhoto)
             recipe_information['photos'].append(photo_information)
         information['recipes'].append(recipe_information)
-    return jsonify({'error_code': 200, 'result': information}), 200
+    return jsonify({'error_code': OK, 'result': information}), 200
 
 
 @auto.doc()
@@ -143,7 +144,7 @@ def get_all_chefs():
     for chef in Chef.query.all():
         information = response_builder(chef, Chef, excluded=['biography', 'quote', 'email', 'medium_photo'])
         chefs.append(information)
-    return jsonify({'error_code': 200, 'result': chefs}), 200
+    return jsonify({'error_code': OK, 'result': chefs}), 200
 
 
 @auto.doc()
@@ -157,7 +158,7 @@ def delete_chef(id):
     """
     chef = Chef.query.get(id)
     if not chef:
-        return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # chef with `id` isn't exist
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # chef with `id` isn't exist
     db.session.delete(chef)
     db.session.commit()
-    return jsonify({'error_code': 200}), 200
+    return jsonify({'error_code': OK}), 200

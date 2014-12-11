@@ -1,6 +1,8 @@
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+from flask.ext.admin.contrib.sqla.form import AdminModelConverter, InlineModelConverter
+from flask.ext.admin.model.form import InlineBaseFormAdmin, InlineFormAdmin
 from flask.ext.oauthlib.client import OAuth
 
 import sys
@@ -39,12 +41,12 @@ oauth = OAuth(app)
 
 twitter = oauth.remote_app(
     'twitter',
-    consumer_key='p2LAfMjJeMqPFr0bqyiEdc8Kz',
-    consumer_secret='19F3kBdRz3PzxpDoxYZWFfeaxKCWIKPtIPQfqLdbUfsjARHEyR',
+    consumer_key='AldBjkVl3fy2egNxP1ZYjC7YN',
+    consumer_secret='cghj3MsOcHxDdyFGgjzxsMo96U9SmbFnCqu77s0nvA8ORSzmHa',
     base_url='https://api.twitter.com/1.1/',
     request_token_url='https://api.twitter.com/oauth/request_token',
     access_token_url='https://api.twitter.com/oauth/access_token',
-    authorize_url='https://api.twitter.com/oauth/authenticate',
+    authorize_url='https://api.twitter.com/oauth/authorize',
 )
 
 facebook = oauth.remote_app(
@@ -103,8 +105,58 @@ from app.api.tools.model import Tool
 from app.api.wines.model import Wine
 
 
-class ModelViewWithRelationships(ModelView):
+class RecipePhotoInlineModelForm(InlineFormAdmin):
+    def postprocess_form(self, form):
+        form.data = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True))
+        return form
+
+
+class ChefPhotoInlineModelForm(InlineFormAdmin):
+    def postprocess_form(self, form):
+        form.data = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True))
+        return form
+
+
+class SchoolPhotoInlineModelForm(InlineFormAdmin):
+    def postprocess_form(self, form):
+        form.data = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True))
+        return form
+
+
+class RecipeModelViewWithRelationships(ModelView):
     column_display_all_relations = True
+    column_auto_select_related = True
+
+    def _list_thumbnail_many(view, context, model, name):
+        if not model.photos:
+            return ''
+        images_show = ''
+        for photo in model.photos:
+            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='recipes/' + thumbgen_filename(photo.data)))
+        return images_show
+
+    column_formatters = {
+        "photos": _list_thumbnail_many
+    }
+    inline_models = (RecipePhotoInlineModelForm(RecipePhoto),)
+
+
+class SchoolModelViewWithRelationships(ModelView):
+    column_display_all_relations = True
+    column_auto_select_related = True
+
+    def _list_thumbnail_many(view, context, model, name):
+        if not model.photos:
+            return ''
+        images_show = ''
+        for photo in model.photos:
+            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='schools/' + thumbgen_filename(photo.data)))
+        return images_show
+
+    column_formatters = {
+        "photos": _list_thumbnail_many
+    }
+    inline_models = (SchoolPhotoInlineModelForm(SchoolPhoto),)
 
 
 class RecipeImageForm(Form):
@@ -195,6 +247,7 @@ class ToolModelViewWithUpload(ModelView):
 
 class ChefModelViewWithUpload(ModelView):
     column_display_all_relations = True
+    column_auto_select_related = True
 
     def _list_thumbnail_medium(view, context, model, name):
         if not model.medium_photo:
@@ -206,16 +259,26 @@ class ChefModelViewWithUpload(ModelView):
             return ''
         return Markup('<img src="%s">' % url_for('static', filename='chefs/' + thumbgen_filename(model.main_photo)))
 
+    def _list_thumbnail_many(view, context, model, name):
+        if not model.photos:
+            return ''
+        images_show = ''
+        for photo in model.photos:
+            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='chefs/' + thumbgen_filename(photo.data)))
+        return images_show
+
     can_create = True
     column_formatters = {
         "medium_photo": _list_thumbnail_medium,
         "main_photo": _list_thumbnail_main,
+        "photos": _list_thumbnail_many
+
     }
-    # form = ToolImageForm
     form_extra_fields = {
         'medium_photo': ImageUploadField('Medium photo', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True)),
         'main_photo': ImageUploadField('Main photo', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True))
     }
+    inline_models = (ChefPhotoInlineModelForm(ChefPhoto),)
 
 
 class SchoolItemModelViewWithUpload(ModelView):
@@ -260,7 +323,6 @@ class MyUserAdmin(ModelView):
         'provider_id': PROVIDER_LIST_SELECT,
         'status_code': USER_STATUS_SELECT
     }
-    column_display_all_relations = True
     form_overrides = dict(role_code=SelectField, provider_id=SelectField, status_code=SelectField)
 
     def update_model(self, form, model):
@@ -297,8 +359,8 @@ admin.add_view(RecipeModelViewWithUpload(RecipePhoto, db.session))
 admin.add_view(ChefImageModelViewWithUpload(ChefPhoto, db.session))
 admin.add_view(SchoolModelViewWithUpload(SchoolPhoto, db.session))
 admin.add_view(InstructionItemModelViewWithUpload(InstructionItem, db.session))
-admin.add_view(ModelViewWithRelationships(Recipe, db.session))
-admin.add_view(ModelViewWithRelationships(School, db.session))
+admin.add_view(RecipeModelViewWithRelationships(Recipe, db.session))
+admin.add_view(SchoolModelViewWithRelationships(School, db.session))
 admin.add_view(SchoolItemModelViewWithUpload(SchoolItem, db.session))
 admin.add_view(ToolModelViewWithUpload(Tool, db.session))
 admin.add_view(ModelView(Wine, db.session))

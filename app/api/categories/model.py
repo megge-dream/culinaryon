@@ -10,7 +10,7 @@ class Category(db.Model):
     __tablename__ = "categories"
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(250))
+    title = db.Column(db.String(250), nullable=False)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
     def __unicode__(self):
