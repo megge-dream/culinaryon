@@ -1,9 +1,11 @@
 from flask import request, jsonify, g, url_for, Blueprint
+from flask.ext.login import login_required
 
 from app.api import db, auto
 from app.api.constants import BAD_REQUEST, OK
 from app.api.helpers import *
 from app.api.ingredients.model import Ingredient
+from app.decorators import admin_required
 
 
 mod = Blueprint('ingredients', __name__, url_prefix='/api/ingredients')
@@ -11,6 +13,8 @@ mod = Blueprint('ingredients', __name__, url_prefix='/api/ingredients')
 
 @auto.doc()
 @mod.route('/', methods=['POST'])
+@login_required
+@admin_required
 def new_ingredient():
     """
     Add new ingredient. List of parameters in json request:
@@ -39,6 +43,8 @@ def new_ingredient():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['PUT'])
+@login_required
+@admin_required
 def update_ingredient(id):
     """
     Update exists ingredient. List of parameters in json request:
@@ -72,6 +78,7 @@ def update_ingredient(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
+@login_required
 def get_ingredient(id):
     """
     Get information about ingredient.
@@ -89,6 +96,7 @@ def get_ingredient(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
+@login_required
 def get_all_ingredients():
     """
     Get information about all exist ingredients.
@@ -105,6 +113,8 @@ def get_all_ingredients():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['DELETE'])
+@login_required
+@admin_required
 def delete_ingredient(id):
     """
     Delete ingredient.
@@ -122,6 +132,7 @@ def delete_ingredient(id):
 
 @auto.doc()
 @mod.route('/recipes/<int:id>', methods=['GET'])
+@login_required
 def get_recipe_ingredients(id):
     """
     Get information about all ingredients for recipe with special id.

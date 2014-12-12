@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, g
+from flask.ext.login import login_required, current_user
 
 from app.api import db, auto
 from app.api.categories.model import Category
@@ -13,6 +14,7 @@ mod = Blueprint('favorites', __name__, url_prefix='/api/favorites')
 
 @auto.doc()
 @mod.route('/', methods=['POST'])
+@login_required
 def new_favorite():
     """
     Add new favorite. List of parameters in json request:
@@ -25,18 +27,22 @@ def new_favorite():
             result - information about created favorite
     """
     user_id = request.json.get('user_id')
-    recipe_id = request.json.get('recipe_id')
-    if user_id is None or recipe_id is None:
-        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
-    favorite = Favorite(user_id=user_id, recipe_id=recipe_id)
-    db.session.add(favorite)
-    db.session.commit()
-    information = response_builder(favorite, Favorite)
-    return jsonify({'error_code': OK, 'result': information}), 201
+    if current_user.id == user_id:
+        recipe_id = request.json.get('recipe_id')
+        if user_id is None or recipe_id is None:
+            return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
+        favorite = Favorite(user_id=user_id, recipe_id=recipe_id)
+        db.session.add(favorite)
+        db.session.commit()
+        information = response_builder(favorite, Favorite)
+        return jsonify({'error_code': OK, 'result': information}), 201
+    else:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
 
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
+@login_required
 def get_favorite():
     """
     Get favorites for current user.
@@ -73,6 +79,7 @@ def get_favorite():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['DELETE'])
+@login_required
 def delete_favorite(id):
     """
     Delete favorite.
@@ -83,6 +90,9 @@ def delete_favorite(id):
     favorite = Favorite.query.get(id)
     if not favorite:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # favorite with `id` isn't exist
-    db.session.delete(favorite)
-    db.session.commit()
-    return jsonify({'error_code': OK}), 200
+    if current_user.id == favorite.user_id:
+        db.session.delete(favorite)
+        db.session.commit()
+        return jsonify({'error_code': OK}), 200
+    else:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200

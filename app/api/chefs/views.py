@@ -1,4 +1,5 @@
 from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask
+from flask.ext.login import login_required
 from app.api import auto
 from app.api.categories.model import Category
 from app.api.constants import OK, BAD_REQUEST
@@ -6,12 +7,15 @@ from app.api.constants import OK, BAD_REQUEST
 from app.api.helpers import *
 from app.api.chefs.model import *
 from app.api.photos.model import RecipePhoto
+from app.decorators import admin_required
 
 mod = Blueprint('chefs', __name__, url_prefix='/api/chefs')
 
 
 @auto.doc()
 @mod.route('/', methods=['POST'])
+@login_required
+@admin_required
 def new_chef():
     """
     Add new chef. List of parameters in json request:
@@ -49,6 +53,8 @@ def new_chef():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['PUT'])
+@login_required
+@admin_required
 def update_chef(id):
     """
     Update exists chef. List of parameters in json request:
@@ -94,6 +100,7 @@ def update_chef(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
+@login_required
 def get_chef(id):
     """
     Get information about chef (with list of his recipes and photos, without main photo and work).
@@ -133,6 +140,7 @@ def get_chef(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
+@login_required
 def get_all_chefs():
     """
     Get short information about all exist chefs - email, last_name, first_name, work, main_photo
@@ -149,6 +157,8 @@ def get_all_chefs():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['DELETE'])
+@login_required
+@admin_required
 def delete_chef(id):
     """
     Delete chef.

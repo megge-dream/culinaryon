@@ -1,28 +1,27 @@
 import logging
 from logging.handlers import RotatingFileHandler
 import os
-from flask.ext.admin.contrib.sqla.form import AdminModelConverter, InlineModelConverter
-from flask.ext.admin.model.form import InlineBaseFormAdmin, InlineFormAdmin
 from flask.ext.oauthlib.client import OAuth
 
 import sys
-from flask import Flask, render_template, url_for
-from flask.ext.admin._backwards import ObsoleteAttr
+from flask import Flask, render_template, url_for, flash
 from flask.ext.admin.contrib.sqla import ModelView
-from flask.ext.admin.form import ImageUploadInput, ImageUploadField, thumbgen_filename
-from flask.ext.admin.model.fields import InlineFieldList, InlineFormField
-from flask.ext.autodoc import Autodoc
-from flask.ext.login import LoginManager, current_user, logout_user
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.admin.form import ImageUploadField, thumbgen_filename
+from flask.ext.admin.model.form import InlineFormAdmin
 from flask.ext.admin import Admin, BaseView, expose, AdminIndexView
+
+from flask.ext.autodoc import Autodoc
+from flask.ext.login import LoginManager, current_user, logout_user, login_user
+from flask.ext.sqlalchemy import SQLAlchemy
 
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 from markupsafe import Markup
 from sqlalchemy import String
-from werkzeug.utils import secure_filename
-from wtforms import SelectField, Form
+from werkzeug.utils import secure_filename, redirect
+from wtforms import SelectField, Form, ValidationError
 from wtforms.validators import Optional
 from app.api.users.constants import USER_ROLE_SELECT, USER_STATUS_SELECT, PROVIDER_LIST_SELECT
+from app.decorators import admin_required
 from config import SECRET_KEY, UPLOAD_FOLDER
 
 # #######################
@@ -70,21 +69,34 @@ vkontakte = oauth.remote_app(
     authorize_url='https://oauth.vk.com/authorize'
 )
 
+from app.api.forms import LoginForm
+
 
 class MyAdminIndexView(AdminIndexView):
 
-    @expose('/')
+    @expose('/', methods=['POST', 'GET'])
     def index(self):
         # TODO: redirect to login page
         # if not current_user.is_authenticated():
         #     return render_template('forbidden_page.html')
+        # if current_user.is_authenticated():
+        #     return super(MyAdminIndexView, self).index()
+        # form = LoginForm()
+        # try:
+        #     if form.validate_on_submit():
+        #         login_user(User.query.filter_by(email=form.email.data).first(), remember=True)
+        #         flash(u"Success login.", category='success')
+        #         return super(MyAdminIndexView, self).index()
+        # except ValidationError as v:
+        #     flash(v.message, category='error')
+        # return render_template("login.html", form=form)
         return super(MyAdminIndexView, self).index()
 
     @expose('/logout/')
     def logout_view(self):
         logout_user()
         # TODO: redirect to login page
-        # return redirect(url_for('.index'))
+        return redirect(url_for('.index'))
 
 
 admin = Admin(app, index_view=MyAdminIndexView())

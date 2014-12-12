@@ -1,9 +1,11 @@
 from flask import request, jsonify, g, url_for, Blueprint
+from flask.ext.login import login_required
 
 from app.api import db, auto
 from app.api.constants import BAD_REQUEST, OK
 from app.api.helpers import *
 from app.api.wines.model import Wine
+from app.decorators import admin_required
 
 
 mod = Blueprint('wines', __name__, url_prefix='/api/wines')
@@ -11,6 +13,8 @@ mod = Blueprint('wines', __name__, url_prefix='/api/wines')
 
 @auto.doc()
 @mod.route('/', methods=['POST'])
+@login_required
+@admin_required
 def new_wine():
     """
     Add new wine. List of parameters in json request:
@@ -33,6 +37,8 @@ def new_wine():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['PUT'])
+@login_required
+@admin_required
 def update_wine(id):
     """
     Update exists wine. List of parameters in json request:
@@ -57,6 +63,7 @@ def update_wine(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
+@login_required
 def get_wine(id):
     """
     Get information about wine.
@@ -74,6 +81,7 @@ def get_wine(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
+@login_required
 def get_all_wines():
     """
     Get information about all exist wines.
@@ -90,6 +98,8 @@ def get_all_wines():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['DELETE'])
+@login_required
+@admin_required
 def delete_wine(id):
     """
     Delete wine.
