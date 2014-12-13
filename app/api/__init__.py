@@ -4,7 +4,7 @@ import os
 from flask.ext.oauthlib.client import OAuth
 
 import sys
-from flask import Flask, render_template, url_for, flash
+from flask import Flask, render_template, url_for, flash, session
 from flask.ext.admin.contrib.sqla import ModelView
 from flask.ext.admin.form import ImageUploadField, thumbgen_filename
 from flask.ext.admin.model.form import InlineFormAdmin
@@ -73,30 +73,30 @@ from app.api.forms import LoginForm
 
 
 class MyAdminIndexView(AdminIndexView):
-
     @expose('/', methods=['POST', 'GET'])
     def index(self):
-        # TODO: redirect to login page
-        # if not current_user.is_authenticated():
-        #     return render_template('forbidden_page.html')
-        # if current_user.is_authenticated():
-        #     return super(MyAdminIndexView, self).index()
-        # form = LoginForm()
-        # try:
-        #     if form.validate_on_submit():
-        #         login_user(User.query.filter_by(email=form.email.data).first(), remember=True)
-        #         flash(u"Success login.", category='success')
-        #         return super(MyAdminIndexView, self).index()
-        # except ValidationError as v:
+        if current_user.is_authenticated() and current_user.is_admin():
+            return super(MyAdminIndexView, self).index()
+        form = LoginForm()
+        try:
+            if form.validate_on_submit():
+                login_user(User.query.filter_by(email=form.email.data).first(), remember=True)
+                session['email'] = form.email.data
+                if not current_user.is_admin():
+                    return render_template('errors/forbidden_page.html')
+                flash(u"Success login ass admin.", category='success')
+                return super(MyAdminIndexView, self).index()
+        except ValidationError as v:
+            pass
         #     flash(v.message, category='error')
-        # return render_template("login.html", form=form)
-        return super(MyAdminIndexView, self).index()
+        return render_template("login.html", form=form)
 
-    @expose('/logout/')
+
+class LogoutView(BaseView):
+    @expose('/')
     def logout_view(self):
         logout_user()
-        # TODO: redirect to login page
-        return redirect(url_for('.index'))
+        return redirect('/admin/')
 
 
 admin = Admin(app, index_view=MyAdminIndexView())
@@ -367,15 +367,16 @@ admin.add_view(ModelView(Dictionary, db.session))
 admin.add_view(ModelView(Favorite, db.session))
 admin.add_view(ModelView(Ingredient, db.session))
 admin.add_view(ModelView(Like, db.session))
-admin.add_view(RecipeModelViewWithUpload(RecipePhoto, db.session))
-admin.add_view(ChefImageModelViewWithUpload(ChefPhoto, db.session))
-admin.add_view(SchoolModelViewWithUpload(SchoolPhoto, db.session))
+# admin.add_view(RecipeModelViewWithUpload(RecipePhoto, db.session))
+# admin.add_view(ChefImageModelViewWithUpload(ChefPhoto, db.session))
+# admin.add_view(SchoolModelViewWithUpload(SchoolPhoto, db.session))
 admin.add_view(InstructionItemModelViewWithUpload(InstructionItem, db.session))
 admin.add_view(RecipeModelViewWithRelationships(Recipe, db.session))
 admin.add_view(SchoolModelViewWithRelationships(School, db.session))
 admin.add_view(SchoolItemModelViewWithUpload(SchoolItem, db.session))
 admin.add_view(ToolModelViewWithUpload(Tool, db.session))
 admin.add_view(ModelView(Wine, db.session))
+admin.add_view(LogoutView(name='Logout'))
 
 # #######################
 # Configure Secret Key #
