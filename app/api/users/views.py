@@ -1,7 +1,10 @@
 from flask import request, jsonify, url_for, Blueprint, session
 from flask.ext.login import login_required, current_user, login_user
 from flask.ext.oauthlib.client import OAuthException
+from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask, abort, render_template, flash
+from flask.ext.login import current_user, login_user, logout_user
 from sqlalchemy import and_
+from wtforms import ValidationError
 
 from app.api import facebook, vkontakte
 from app.api.constants import BAD_REQUEST, OK
@@ -9,9 +12,27 @@ from app.api import auto, twitter
 from app.api.helpers import *
 from app.api.users.constants import TW, FB, VK
 from app.api.users.model import *
+from app.decorators import admin_required
 
 
 mod = Blueprint('users', __name__, url_prefix='/api')
+
+
+# @mod.route('/admin_login', methods=['GET', 'POST'])
+# def login():
+#     out = {}
+#     if current_user.is_authenticated():
+#         return redirect(url_for('index'))
+#     form = LoginForm()
+#     try:
+#         if form.validate_on_submit():
+#             login_user(User.query.filter_by(email=form.email.data).first(), remember=True)
+#             flash(u"Success login.", category='success')
+#             out.update({'current_user': current_user})
+#             return redirect(url_for('__init__.index'))
+#     except ValidationError as v:
+#         flash(v.message, category='error')
+#     return render_template("login.html", form=form)
 
 
 @auto.doc()
@@ -49,6 +70,7 @@ def new_user():
 
 @auto.doc()
 @mod.route('/users/<int:id>', methods=['PUT'])
+@login_required
 def update_user(id):
     """
     Update exists user. List of parameters in json request:
@@ -63,26 +85,30 @@ def update_user(id):
             error_code - server response_code
             result - information about updated user
     """
-    user = User.query.get(id)
-    if not user:
+    if current_user.id == id:
+        user = User.query.get(id)
+        if not user:
+            return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
+        if request.json.get('email'):
+            user.email = request.json.get('email')
+        if request.json.get('password'):
+            password = request.json.get('password')
+            user.hash_password(password)
+        if request.json.get('first_name'):
+            user.first_name = request.json.get('first_name')
+        if request.json.get('last_name'):
+            user.last_name = request.json.get('last_name')
+        db.session.commit()
+        user = User.query.get(id)
+        information = response_builder(user, User, excluded=['password'])
+        return jsonify({'error_code': OK, 'result': information}), 200
+    else:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
-    if request.json.get('email'):
-        user.email = request.json.get('email')
-    if request.json.get('password'):
-        password = request.json.get('password')
-        user.hash_password(password)
-    if request.json.get('first_name'):
-        user.first_name = request.json.get('first_name')
-    if request.json.get('last_name'):
-        user.last_name = request.json.get('last_name')
-    db.session.commit()
-    user = User.query.get(id)
-    information = response_builder(user, User, excluded=['password'])
-    return jsonify({'error_code': OK, 'result': information}), 200
 
 
 @auto.doc()
 @mod.route('/users/', methods=['GET'])
+@login_required
 def get_all_users():
     """
     Get information about all exist users.
@@ -99,6 +125,7 @@ def get_all_users():
 
 @auto.doc()
 @mod.route('/users/<int:id>', methods=['GET'])
+@login_required
 def get_user(id):
     """
     Get information about user.
@@ -110,12 +137,16 @@ def get_user(id):
     user = User.query.get(id)
     if not user:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
+    print(user)
     information = response_builder(user, User, excluded=['password'])
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
+# User can delete only himself.
 @auto.doc()
 @mod.route('/users/<int:id>', methods=['DELETE'])
+@login_required
+@admin_required
 def delete_user(id):
     """
     Delete user.

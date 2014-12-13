@@ -1,9 +1,11 @@
 from flask import request, jsonify, g, url_for, Blueprint
+from flask.ext.login import login_required
 
 from app.api import db, auto
 from app.api.constants import OK, BAD_REQUEST
 from app.api.helpers import *
 from app.api.dictionary.model import Dictionary
+from app.decorators import admin_required
 
 
 mod = Blueprint('dictionary', __name__, url_prefix='/api/dictionary')
@@ -11,6 +13,8 @@ mod = Blueprint('dictionary', __name__, url_prefix='/api/dictionary')
 
 @auto.doc()
 @mod.route('/', methods=['POST'])
+@login_required
+@admin_required
 def new_dictionary():
     """
     Add new dictionary. List of parameters in json request:
@@ -35,6 +39,8 @@ def new_dictionary():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['PUT'])
+@login_required
+@admin_required
 def update_dictionary(id):
     """
     Update exists dictionary. List of parameters in json request:
@@ -62,6 +68,7 @@ def update_dictionary(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
+@login_required
 def get_dictionary(id):
     """
     Get information about dictionary.
@@ -79,6 +86,7 @@ def get_dictionary(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
+@login_required
 def get_all_dictionares():
     """
     Get information about all exist dictionaries.
@@ -95,6 +103,8 @@ def get_all_dictionares():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['DELETE'])
+@login_required
+@admin_required
 def delete_dictionary(id):
     """
     Delete dictionary.

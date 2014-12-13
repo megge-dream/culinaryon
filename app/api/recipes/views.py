@@ -1,4 +1,5 @@
 from flask import request, jsonify, g, url_for, Blueprint
+from flask.ext.login import login_required
 
 from app.api import db, auto
 from app.api.categories.model import Category
@@ -11,6 +12,7 @@ from app.api.photos.model import RecipePhoto
 from app.api.recipes.model import Recipe, InstructionItem
 from app.api.tools.model import Tool
 from app.api.wines.model import Wine
+from app.decorators import admin_required
 
 
 mod = Blueprint('recipes', __name__, url_prefix='/api/recipes')
@@ -18,6 +20,8 @@ mod = Blueprint('recipes', __name__, url_prefix='/api/recipes')
 
 @auto.doc()
 @mod.route('/', methods=['POST'])
+@login_required
+@admin_required
 def new_recipe():
     """
     Add new recipe. List of parameters in json request:
@@ -64,6 +68,8 @@ def new_recipe():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['PUT'])
+@login_required
+@admin_required
 def update_recipe(id):
     """
     Update exists recipe. List of parameters in json request:
@@ -118,6 +124,7 @@ def update_recipe(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
+@login_required
 def get_recipe(id):
     """
     Get information about recipe.
@@ -135,6 +142,7 @@ def get_recipe(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
+@login_required
 def get_all_recipes():
     """
     Get information about all exist recipes.
@@ -165,6 +173,8 @@ def get_all_recipes():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['DELETE'])
+@login_required
+@admin_required
 def delete_recipe(id):
     """
     Delete recipe.
@@ -182,6 +192,7 @@ def delete_recipe(id):
 
 @auto.doc()
 @mod.route('/chef/<int:id>', methods=['GET'])
+@login_required
 def get_chef_recipes(id):
     """
     Get information about all recipes for chef with special id.
@@ -199,6 +210,8 @@ def get_chef_recipes(id):
 
 @auto.doc()
 @mod.route('/instruction/', methods=['POST'])
+@login_required
+@admin_required
 def new_instruction():
     """
     Add new instruction. List of parameters in json request:
@@ -233,6 +246,8 @@ def new_instruction():
 
 @auto.doc()
 @mod.route('/instruction/<int:id>', methods=['PUT'])
+@login_required
+@admin_required
 def update_instruction(id):
     """
     Update exists instruction. List of parameters in json request:
@@ -273,6 +288,7 @@ def update_instruction(id):
 
 @auto.doc()
 @mod.route('/instruction/<int:id>', methods=['GET'])
+@login_required
 def get_instruction(id):
     """
     Get information about instruction.
@@ -290,6 +306,7 @@ def get_instruction(id):
 
 @auto.doc()
 @mod.route('/instruction/', methods=['GET'])
+@login_required
 def get_all_instructions():
     """
     Get information about all exist instructions.
@@ -306,6 +323,8 @@ def get_all_instructions():
 
 @auto.doc()
 @mod.route('/instruction/<int:id>', methods=['DELETE'])
+@login_required
+@admin_required
 def delete_instruction(id):
     """
     Delete instruction.
@@ -323,6 +342,7 @@ def delete_instruction(id):
 
 @auto.doc()
 @mod.route('/fullinstruction/<int:id>', methods=['GET'])
+@login_required
 def get_recipe_instructions(id):
     """
     Get information about all instructions for recipe with special id.

@@ -14,8 +14,12 @@ def response_builder(current_object, entity, excluded=[]):
     :return: return a dict with needed fields
     """
     result = {}
+    print(current_object)
     excluded.append('is_deleted')
+    print(current_object)
     for columnName in entity.__table__.columns.keys():
+        print(current_object)
+        print(columnName)
         if columnName not in excluded:
             if "recipe" in columnName:
                 recipe_id = getattr(current_object, columnName)
@@ -29,7 +33,7 @@ def response_builder(current_object, entity, excluded=[]):
                 school_id = getattr(current_object, columnName)
                 if school_id is not None:
                     result["school"] = response_builder(School.query.get(school_id), School)
-            elif "user" in columnName:
+            elif "user" in columnName and columnName != "provider_user_id":
                 user_id = getattr(current_object, columnName)
                 if user_id is not None:
                     if columnName == "user_id":

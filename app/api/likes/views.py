@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from flask.ext.login import login_required, current_user
 
 from app.api import db, auto
 from app.api.constants import BAD_REQUEST, OK
@@ -12,6 +13,7 @@ mod = Blueprint('likes', __name__, url_prefix='/api/likes')
 
 @auto.doc()
 @mod.route('/', methods=['POST'])
+@login_required
 def new_like():
     """
     Add new like. List of parameters in json request:
@@ -24,18 +26,22 @@ def new_like():
             result - information about created like
     """
     user_id = request.json.get('user_id')
-    recipe_id = request.json.get('recipe_id')
-    if user_id is None or recipe_id is None:
-        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
-    like = Like(user_id=user_id, recipe_id=recipe_id)
-    db.session.add(like)
-    db.session.commit()
-    information = response_builder(like, Like)
-    return jsonify({'error_code': OK, 'result': information}), 201
+    if current_user.id == user_id:
+        recipe_id = request.json.get('recipe_id')
+        if user_id is None or recipe_id is None:
+            return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
+        like = Like(user_id=user_id, recipe_id=recipe_id)
+        db.session.add(like)
+        db.session.commit()
+        information = response_builder(like, Like)
+        return jsonify({'error_code': OK, 'result': information}), 201
+    else:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
 
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
+@login_required
 def get_likes(id):
     """
     Get likes for recipe.
@@ -55,6 +61,7 @@ def get_likes(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['DELETE'])
+@login_required
 def delete_like(id):
     """
     Delete like.
@@ -65,6 +72,9 @@ def delete_like(id):
     like = Like.query.get(id)
     if not like:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # like with `id` isn't exist
-    db.session.delete(like)
-    db.session.commit()
-    return jsonify({'error_code': OK}), 200
+    if current_user.id == like.user_id:
+        db.session.delete(like)
+        db.session.commit()
+        return jsonify({'error_code': OK}), 200
+    else:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200

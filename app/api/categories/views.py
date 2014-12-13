@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 from flask import Blueprint, jsonify, request
+from flask.ext.login import login_required
 
 from app.api import db, auto
 from app.api.constants import OK, BAD_REQUEST
 from app.api.helpers import response_builder
 from app.api.categories.model import Category
+from app.decorators import admin_required
 
 mod = Blueprint('categories', __name__, url_prefix='/api/categories')
 
 
 @auto.doc()
 @mod.route('/', methods=['POST'])
+@login_required
+@admin_required
 def new_category():
     """
     Add new category. List of parameters in json request:
@@ -33,6 +37,8 @@ def new_category():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['PUT'])
+@login_required
+@admin_required
 def update_category(id):
     """
     Update exists category. List of parameters in json request:
@@ -57,6 +63,7 @@ def update_category(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
+@login_required
 def get_category(id):
     """
     Get information about category.
@@ -74,6 +81,7 @@ def get_category(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
+@login_required
 def get_all_categories():
     """
     Get information about all exist categories.
@@ -90,6 +98,8 @@ def get_all_categories():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['DELETE'])
+@login_required
+@admin_required
 def delete_category(id):
     """
     Delete category.

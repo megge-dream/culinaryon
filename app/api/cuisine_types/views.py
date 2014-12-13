@@ -1,9 +1,11 @@
 from flask import request, jsonify, g, url_for, Blueprint
+from flask.ext.login import login_required
 from app.api import auto
 from app.api.constants import OK, BAD_REQUEST
 
 from app.api.helpers import *
 from app.api.cuisine_types.model import *
+from app.decorators import admin_required
 
 
 mod = Blueprint('cuisine_types', __name__, url_prefix='/api/cuisine_types')
@@ -11,6 +13,8 @@ mod = Blueprint('cuisine_types', __name__, url_prefix='/api/cuisine_types')
 
 @auto.doc()
 @mod.route('/', methods=['POST'])
+@login_required
+@admin_required
 def new_cuisine_type():
     """
     Add new cuisine type. List of parameters in json request:
@@ -33,6 +37,8 @@ def new_cuisine_type():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['PUT'])
+@login_required
+@admin_required
 def update_cuisine_type(id):
     """
     Update exists cuisine type. List of parameters in json request:
@@ -57,6 +63,7 @@ def update_cuisine_type(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
+@login_required
 def get_cuisine_type(id):
     """
     Get information about cuisine type.
@@ -74,6 +81,7 @@ def get_cuisine_type(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
+@login_required
 def get_all_cuisine_types():
     """
     Get information about all exist cuisine types.
@@ -90,6 +98,8 @@ def get_all_cuisine_types():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['DELETE'])
+@login_required
+@admin_required
 def delete_cuisine_type(id):
     """
     Delete cuisine type.

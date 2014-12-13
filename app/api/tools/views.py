@@ -1,9 +1,11 @@
 from flask import request, jsonify, g, url_for, Blueprint
+from flask.ext.login import login_required
 
 from app.api import db, auto
 from app.api.constants import BAD_REQUEST, OK
 from app.api.helpers import *
 from app.api.tools.model import Tool
+from app.decorators import admin_required
 
 
 mod = Blueprint('tools', __name__, url_prefix='/api/tools')
@@ -11,6 +13,8 @@ mod = Blueprint('tools', __name__, url_prefix='/api/tools')
 
 @auto.doc()
 @mod.route('/', methods=['POST'])
+@login_required
+@admin_required
 def new_tool():
     """
     Add new tool. List of parameters in json request:
@@ -35,6 +39,8 @@ def new_tool():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['PUT'])
+@login_required
+@admin_required
 def update_tool(id):
     """
     Update exists tool. List of parameters in json request:
@@ -62,6 +68,7 @@ def update_tool(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
+@login_required
 def get_tool(id):
     """
     Get information about tool.
@@ -79,6 +86,7 @@ def get_tool(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
+@login_required
 def get_all_tools():
     """
     Get information about all exist tools.
@@ -95,6 +103,8 @@ def get_all_tools():
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['DELETE'])
+@login_required
+@admin_required
 def delete_tool(id):
     """
     Delete tool.
