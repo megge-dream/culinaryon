@@ -319,15 +319,15 @@ def vkontakte_authorized():
     oauth_token = resp['access_token']
     expires_in = resp['expires_in']
 
-    user = user_exist(provider_user_id=user_id, provider_id=VK)
+    user = user_exist(provider_user_id=int(user_id), provider_id=VK)
     if user:
         # user exist
         # try to login
         update_time = datetime.utcnow()
         user.last_login_at = update_time
         if login_user(user):
-            connection = Connection(user_id=user.id, provider_id=VK, provider_user_id=user_id,
-                                    access_token=str(oauth_token), expire_in=expires_in, creation_date=update_time)
+            connection = Connection(user_id=user.id, provider_id=VK, provider_user_id=int(user_id),
+                                    access_token=oauth_token[0], expire_in=expires_in, creation_date=update_time)
             db.session.add(connection)
             db.session.commit()
             return jsonify({'error_code': OK, 'user_id': user.id, 'access_token': user.get_auth_token()})
@@ -340,8 +340,8 @@ def vkontakte_authorized():
                     provider_user_id=user_id)
         db.session.add(new_user)
         db.session.commit()
-        connection = Connection(user_id=new_user.id, provider_id=VK, provider_user_id=user_id,
-                                access_token=oauth_token, creation_date=update_time)
+        connection = Connection(user_id=new_user.id, provider_id=VK, provider_user_id=int(user_id),
+                                access_token=oauth_token[0], creation_date=update_time)
         db.session.add(connection)
         db.session.commit()
         if login_user(new_user):
