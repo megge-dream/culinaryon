@@ -119,19 +119,19 @@ from app.api.wines.model import Wine
 
 class RecipePhotoInlineModelForm(InlineFormAdmin):
     def postprocess_form(self, form):
-        form.data = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True))
+        form.photo = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True))
         return form
 
 
 class ChefPhotoInlineModelForm(InlineFormAdmin):
     def postprocess_form(self, form):
-        form.data = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True))
+        form.photo = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True))
         return form
 
 
 class SchoolPhotoInlineModelForm(InlineFormAdmin):
     def postprocess_form(self, form):
-        form.data = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True))
+        form.photo = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True))
         return form
 
 
@@ -144,7 +144,7 @@ class RecipeModelViewWithRelationships(ModelView):
             return ''
         images_show = ''
         for photo in model.photos:
-            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='recipes/' + thumbgen_filename(photo.data)))
+            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='recipes/' + thumbgen_filename(photo.photo)))
         return images_show
 
     column_formatters = {
@@ -162,7 +162,7 @@ class SchoolModelViewWithRelationships(ModelView):
             return ''
         images_show = ''
         for photo in model.photos:
-            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='schools/' + thumbgen_filename(photo.data)))
+            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='schools/' + thumbgen_filename(photo.photo)))
         return images_show
 
     column_formatters = {
@@ -172,69 +172,69 @@ class SchoolModelViewWithRelationships(ModelView):
 
 
 class RecipeImageForm(Form):
-    data = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True))
+    photo = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True))
 
 
 class RecipeModelViewWithUpload(ModelView):
 
     def _list_thumbnail(view, context, model, name):
-        if not model.data:
+        if not model.photo:
             return ''
-        return Markup('<img src="%s">' % url_for('static', filename='recipes/' + thumbgen_filename(model.data)))
+        return Markup('<img src="%s">' % url_for('static', filename='recipes/' + thumbgen_filename(model.photo)))
 
     def get_title(view, context, model, name):
-        return model.data
+        return model.photo
 
     can_create = True
-    column_list = ('data', 'title')
+    column_list = ('photo', 'title')
     column_formatters = {
-        "data": _list_thumbnail,
+        "photo": _list_thumbnail,
         "title": get_title
     }
     form = RecipeImageForm
 
 
 class ChefImageForm(Form):
-    data = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True))
+    photo = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True))
 
 
 class ChefImageModelViewWithUpload(ModelView):
 
     def _list_thumbnail(view, context, model, name):
-        if not model.data:
+        if not model.photo:
             return ''
-        return Markup('<img src="%s">' % url_for('static', filename='chefs/' + thumbgen_filename(model.data)))
+        return Markup('<img src="%s">' % url_for('static', filename='chefs/' + thumbgen_filename(model.photo)))
 
     def get_title(view, context, model, name):
-        return model.data
+        return model.photo
 
     can_create = True
-    column_list = ('data', 'title')
+    column_list = ('photo', 'title')
     column_formatters = {
-        "data": _list_thumbnail,
+        "photo": _list_thumbnail,
         "title": get_title
     }
     form = ChefImageForm
 
 
 class SchoolImageForm(Form):
-    data = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True))
+    photo = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True))
 
 
 class SchoolModelViewWithUpload(ModelView):
 
     def _list_thumbnail(view, context, model, name):
-        if not model.data:
+        if not model.photo:
             return ''
-        return Markup('<img src="%s">' % url_for('static', filename='schools/' + thumbgen_filename(model.data)))
+        return Markup('<img src="%s">' % url_for('static', filename='schools/' + thumbgen_filename(model.photo)))
 
     def get_title(view, context, model, name):
-        return model.data
+        return model.photo
 
     can_create = True
-    column_list = ('data', 'title')
+    column_list = ('photo', 'title')
     column_formatters = {
-        "data": _list_thumbnail,
+        "photo": _list_thumbnail,
         "title": get_title
     }
     form = SchoolImageForm
@@ -276,7 +276,7 @@ class ChefModelViewWithUpload(ModelView):
             return ''
         images_show = ''
         for photo in model.photos:
-            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='chefs/' + thumbgen_filename(photo.data)))
+            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='chefs/' + thumbgen_filename(photo.photo)))
         return images_show
 
     can_create = True

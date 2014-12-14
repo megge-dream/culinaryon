@@ -50,10 +50,7 @@ def get_favorite():
             error_code - server response_code
             recipes - information about favorites recipes
     """
-    # TODO
-    # user_id = g.user.id
-    # for test
-    user_id = 1
+    user_id = current_user.id
     favorites = Favorite.query.filter_by(user_id=user_id)
     recipes = []
     for favorite in favorites:

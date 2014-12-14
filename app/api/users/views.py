@@ -333,7 +333,6 @@ def vkontakte_login():
     # if current_user.is_authenticated():
     #     return jsonify({'error_code': 0, 'result': "already authorized",
     #                       'access_token': current_user.get_auth_token()})
-
     callback_url = url_for('.vkontakte_authorized', _external=True)
     return vkontakte.authorize(callback=callback_url)
 
