@@ -1,8 +1,11 @@
-import app
+# import app
+from app.api import app
 from app.api.chefs.model import Chef
-from app.api.recipes.model import Recipe
-from app.api.schools.model import School
+from app.api.recipes.model import Recipe, InstructionItem
+from app.api.schools.model import School, SchoolItem
 from app.api.users.model import User
+from app.api.tools.model import Tool
+from app.api.photos.model import *
 
 
 def response_builder(current_object, entity, excluded=[]):
@@ -14,12 +17,8 @@ def response_builder(current_object, entity, excluded=[]):
     :return: return a dict with needed fields
     """
     result = {}
-    print(current_object)
     excluded.append('is_deleted')
-    print(current_object)
     for columnName in entity.__table__.columns.keys():
-        print(current_object)
-        print(columnName)
         if columnName not in excluded:
             if "recipe" in columnName:
                 recipe_id = getattr(current_object, columnName)
@@ -40,7 +39,24 @@ def response_builder(current_object, entity, excluded=[]):
                         columnName = "user"
                     result[columnName] = response_builder(User.query.get(user_id), User, ["password"])
             else:
-                result[columnName] = getattr(current_object, columnName)
+                if 'photo' in columnName:
+                    if entity is Recipe or entity is RecipePhoto:
+                        result[columnName] = app.config['RECIPES_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                    elif entity is Chef or entity is ChefPhoto:
+                        print(columnName)
+                        result[columnName] = app.config['CHEFS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                    elif entity is School or entity is SchoolPhoto:
+                        result[columnName] = app.config['SCHOOLS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                    elif entity is Tool:
+                        result[columnName] = app.config['TOOLS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                    elif entity is SchoolItem:
+                        result[columnName] = app.config['SCHOOL_ITEMS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                    elif entity is InstructionItem:
+                        result[columnName] = app.config['INSTRUCTION_ITEMS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                    else:
+                        result[columnName] = app.config['UPLOAD_FOLDER'] + '/' + str(getattr(current_object, columnName))
+                else:
+                    result[columnName] = getattr(current_object, columnName)
     return result
 
 
