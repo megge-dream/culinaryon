@@ -141,17 +141,21 @@ def get_recipe(id):
 
 
 @auto.doc()
-@mod.route('/', methods=['GET'])
+@mod.route('/offset=<int:offset>&limit=<int:limit>', methods=['GET'])
 @login_required
-def get_all_recipes():
+def get_all_recipes(offset, limit):
     """
     Get information about all exist recipes.
+    :param offset: starts from which recipe
+    :param limit: how many recipes you want to get
     :return: json with parameters:
             error_code - server response_code
             result - information about recipes
+            entities_count - numbers of all recipes
     """
     recipes = []
-    for recipe in Recipe.query.all():
+    count = Recipe.query.count()
+    for recipe in Recipe.query.slice(start=offset, stop=limit+offset):
         information = response_builder(recipe, Recipe, excluded=['description', 'spicy', 'complexity', 'time',
                                                                  'amount_of_persons', 'chef_id', 'video'])
         categories = []
@@ -168,7 +172,7 @@ def get_all_recipes():
             photo_information = response_builder(photo, RecipePhoto)
             information['photos'].append(photo_information)
         recipes.append(information)
-    return jsonify({'error_code': OK, 'result': recipes}), 200
+    return jsonify({'error_code': OK, 'result': recipes, 'entities_count': count}), 200
 
 
 @auto.doc()
@@ -191,21 +195,25 @@ def delete_recipe(id):
 
 
 @auto.doc()
-@mod.route('/chef/<int:id>', methods=['GET'])
+@mod.route('/chef/id=<int:id>&offset=<int:offset>&limit=<int:limit>', methods=['GET'])
 @login_required
-def get_chef_recipes(id):
+def get_chef_recipes(id, offset, limit):
     """
     Get information about all recipes for chef with special id.
     :param id: chef id
+    :param offset: starts from which recipes
+    :param limit: how many recipes you want to get
     :return: json with parameters:
             error_code - server response_code
             result - information about recipes
+            entities_count - numbers of all chefs recipes
     """
     recipes = []
-    for recipe in Recipe.query.filter_by(chef_id=id):
+    count = Recipe.query.count()
+    for recipe in Recipe.query.filter_by(chef_id=id).slice(start=offset, stop=limit+offset):
         information = recipe_response_builder(recipe)
         recipes.append(information)
-    return jsonify({'error_code': OK, 'result': recipes}), 200
+    return jsonify({'error_code': OK, 'result': recipes, 'entities_count': count}), 200
 
 
 @auto.doc()
