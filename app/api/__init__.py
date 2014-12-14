@@ -119,19 +119,22 @@ from app.api.wines.model import Wine
 
 class RecipePhotoInlineModelForm(InlineFormAdmin):
     def postprocess_form(self, form):
-        form.photo = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True))
+        form.photo = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True),
+                                      url_relative_path='recipes/')
         return form
 
 
 class ChefPhotoInlineModelForm(InlineFormAdmin):
     def postprocess_form(self, form):
-        form.photo = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True))
+        form.photo = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True),
+                                      url_relative_path='chefs/')
         return form
 
 
 class SchoolPhotoInlineModelForm(InlineFormAdmin):
     def postprocess_form(self, form):
-        form.photo = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True))
+        form.photo = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True),
+                                      url_relative_path='schools/')
         return form
 
 
@@ -172,7 +175,8 @@ class SchoolModelViewWithRelationships(ModelView):
 
 
 class RecipeImageForm(Form):
-    photo = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True))
+    photo = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True),
+                             url_relative_path='recipes/')
 
 
 class RecipeModelViewWithUpload(ModelView):
@@ -195,7 +199,8 @@ class RecipeModelViewWithUpload(ModelView):
 
 
 class ChefImageForm(Form):
-    photo = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True))
+    photo = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True),
+                             url_relative_path='chefs/')
 
 
 class ChefImageModelViewWithUpload(ModelView):
@@ -218,7 +223,8 @@ class ChefImageModelViewWithUpload(ModelView):
 
 
 class SchoolImageForm(Form):
-    photo = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True))
+    photo = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True),
+                             url_relative_path='schools/')
 
 
 class SchoolModelViewWithUpload(ModelView):
@@ -253,7 +259,8 @@ class ToolModelViewWithUpload(ModelView):
     }
 
     form_extra_fields = {
-        'photo': ImageUploadField('Image', base_path=app.config['TOOLS_UPLOAD'], thumbnail_size=(500, 500, True))
+        'photo': ImageUploadField('Image', base_path=app.config['TOOLS_UPLOAD'], thumbnail_size=(500, 500, True),
+                                  url_relative_path='tools/')
     }
 
 
@@ -287,8 +294,10 @@ class ChefModelViewWithUpload(ModelView):
 
     }
     form_extra_fields = {
-        'medium_photo': ImageUploadField('Medium photo', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True)),
-        'main_photo': ImageUploadField('Main photo', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True))
+        'medium_photo': ImageUploadField('Medium photo', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True),
+                                         url_relative_path='chefs/'),
+        'main_photo': ImageUploadField('Main photo', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True),
+                                       url_relative_path='chefs/')
     }
     inline_models = (ChefPhotoInlineModelForm(ChefPhoto),)
 
@@ -306,7 +315,8 @@ class SchoolItemModelViewWithUpload(ModelView):
     }
 
     form_extra_fields = {
-        'photo': ImageUploadField('Image', base_path=app.config['SCHOOL_ITEMS_UPLOAD'], thumbnail_size=(500, 500, True))
+        'photo': ImageUploadField('Image', base_path=app.config['SCHOOL_ITEMS_UPLOAD'], thumbnail_size=(500, 500, True),
+                                  url_relative_path='school_items/')
     }
 
 
@@ -323,7 +333,8 @@ class InstructionItemModelViewWithUpload(ModelView):
     }
 
     form_extra_fields = {
-        'photo': ImageUploadField('Image', base_path=app.config['INSTRUCTION_ITEMS_UPLOAD'], thumbnail_size=(500, 500, True))
+        'photo': ImageUploadField('Image', base_path=app.config['INSTRUCTION_ITEMS_UPLOAD'], thumbnail_size=(500, 500, True),
+                                  url_relative_path='instruction_items/')
     }
 
 
