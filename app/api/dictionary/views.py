@@ -1,5 +1,6 @@
 from flask import request, jsonify, g, url_for, Blueprint
 from flask.ext.login import login_required
+from sqlalchemy.sql import label, func
 
 from app.api import db, auto
 from app.api.constants import OK, BAD_REQUEST
@@ -94,11 +95,17 @@ def get_all_dictionares():
             error_code - server response_code
             result - information about dictionaries
     """
-    dictionares = []
-    for dictionary in Dictionary.query.all():
-        information = response_builder(dictionary, Dictionary)
-        dictionares.append(information)
-    return jsonify({'error_code': OK, 'result': dictionares}), 200
+    dic = db.session.query(func.substr(Dictionary.title, 1, 1)).group_by(func.substr(Dictionary.title, 1, 1)).all()
+    result = {}
+    for letter_arr in dic:
+        letter = letter_arr[0]
+        results_for_letter = []
+        for dictionary in Dictionary.query.all():
+            if dictionary.title[0] == letter:
+                information = response_builder(dictionary, Dictionary)
+                results_for_letter.append(information)
+        result.update({letter: results_for_letter})
+    return jsonify({'error_code': OK, 'result': result}), 200
 
 
 @auto.doc()

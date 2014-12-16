@@ -6,7 +6,7 @@ from flask.ext.oauthlib.client import OAuth
 import sys
 from flask import Flask, render_template, url_for, flash, session
 from flask.ext.admin.contrib.sqla import ModelView
-from flask.ext.admin.form import ImageUploadField, thumbgen_filename
+from flask.ext.admin.form import ImageUploadField, thumbgen_filename, ImageUploadInput
 from flask.ext.admin.model.form import InlineFormAdmin
 from flask.ext.admin import Admin, BaseView, expose, AdminIndexView
 
@@ -17,6 +17,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 from markupsafe import Markup
 from sqlalchemy import String
+from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename, redirect
 from wtforms import SelectField, Form, ValidationError
 from wtforms.validators import Optional
@@ -117,24 +118,41 @@ from app.api.tools.model import Tool
 from app.api.wines.model import Wine
 
 
+class MyImageUploadInput(ImageUploadInput):
+        data_template = ('<div class="image-thumbnail">'
+                         ' <img %(image)s>'
+                         '</div>'
+                         '<input %(file)s>')
+
+
+class MyImageUploadField(ImageUploadField):
+    widget = MyImageUploadInput()
+
+
 class RecipePhotoInlineModelForm(InlineFormAdmin):
+    form_excluded_columns = ('photo', 'creation_date')
+
     def postprocess_form(self, form):
-        form.photo = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True),
-                                      url_relative_path='recipes/')
+        form.photo = MyImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True),
+                                        url_relative_path='recipes/')
         return form
 
 
 class ChefPhotoInlineModelForm(InlineFormAdmin):
+    form_excluded_columns = ('photo', 'creation_date')
+
     def postprocess_form(self, form):
-        form.photo = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True),
-                                      url_relative_path='chefs/')
+        form.photo = MyImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True),
+                                        url_relative_path='chefs/')
         return form
 
 
 class SchoolPhotoInlineModelForm(InlineFormAdmin):
+    form_excluded_columns = ('photo', 'creation_date')
+
     def postprocess_form(self, form):
-        form.photo = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True),
-                                      url_relative_path='schools/')
+        form.photo = MyImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True),
+                                        url_relative_path='schools/')
         return form
 
 
