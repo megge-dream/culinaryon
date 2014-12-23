@@ -8,6 +8,7 @@ from app.api import db, login_manager, app
 from app.api.favorites.model import Favorite
 from app.api.likes.model import Like
 from app.api.basket.model import Basket
+from app.api.school_events.model import SchoolEvent
 from app.api.users.constants import USER, USER_ROLE, ADMIN, ACTIVE, USER_STATUS, NO_PROVIDER, PROVIDER_LIST
 from config import SECRET_KEY
 

@@ -73,6 +73,11 @@ vkontakte = oauth.remote_app(
 from app.api.forms import LoginForm
 
 
+class ModelView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated()
+
+
 class MyAdminIndexView(AdminIndexView):
     @expose('/', methods=['POST', 'GET'])
     def index(self):
@@ -85,7 +90,7 @@ class MyAdminIndexView(AdminIndexView):
                 session['email'] = form.email.data
                 if not current_user.is_admin():
                     return render_template('errors/forbidden_page.html')
-                flash(u"Success login ass admin.", category='success')
+                flash(u"Success login as admin.", category='success')
                 return super(MyAdminIndexView, self).index()
         except ValidationError as v:
             pass
@@ -116,6 +121,7 @@ from app.api.recipes.model import InstructionItem, Recipe
 from app.api.schools.model import School, SchoolItem
 from app.api.tools.model import Tool
 from app.api.wines.model import Wine
+from app.api.school_events.model import SchoolEvent
 
 
 class MyImageUploadInput(ImageUploadInput):
@@ -133,7 +139,7 @@ class RecipePhotoInlineModelForm(InlineFormAdmin):
     form_excluded_columns = ('photo', 'creation_date')
 
     def postprocess_form(self, form):
-        form.photo = MyImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True),
+        form.photo = MyImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'],
                                         url_relative_path='recipes/')
         return form
 
@@ -142,7 +148,7 @@ class ChefPhotoInlineModelForm(InlineFormAdmin):
     form_excluded_columns = ('photo', 'creation_date')
 
     def postprocess_form(self, form):
-        form.photo = MyImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True),
+        form.photo = MyImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'],
                                         url_relative_path='chefs/')
         return form
 
@@ -151,7 +157,7 @@ class SchoolPhotoInlineModelForm(InlineFormAdmin):
     form_excluded_columns = ('photo', 'creation_date')
 
     def postprocess_form(self, form):
-        form.photo = MyImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True),
+        form.photo = MyImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'],
                                         url_relative_path='schools/')
         return form
 
@@ -165,7 +171,9 @@ class RecipeModelViewWithRelationships(ModelView):
             return ''
         images_show = ''
         for photo in model.photos:
-            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='recipes/' + thumbgen_filename(photo.photo)))
+            if photo.photo is None:
+                return ''
+            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='recipes/' + photo.photo))
         return images_show
 
     column_formatters = {
@@ -183,7 +191,9 @@ class SchoolModelViewWithRelationships(ModelView):
             return ''
         images_show = ''
         for photo in model.photos:
-            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='schools/' + thumbgen_filename(photo.photo)))
+            if photo.photo is None:
+                return ''
+            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='schools/' + photo.photo))
         return images_show
 
     column_formatters = {
@@ -193,7 +203,7 @@ class SchoolModelViewWithRelationships(ModelView):
 
 
 class RecipeImageForm(Form):
-    photo = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'], thumbnail_size=(500, 500, True),
+    photo = ImageUploadField('Image', base_path=app.config['RECIPES_UPLOAD'],
                              url_relative_path='recipes/')
 
 
@@ -202,7 +212,7 @@ class RecipeModelViewWithUpload(ModelView):
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
             return ''
-        return Markup('<img src="%s">' % url_for('static', filename='recipes/' + thumbgen_filename(model.photo)))
+        return Markup('<img src="%s">' % url_for('static', filename='recipes/' + model.photo))
 
     def get_title(view, context, model, name):
         return model.photo
@@ -217,7 +227,7 @@ class RecipeModelViewWithUpload(ModelView):
 
 
 class ChefImageForm(Form):
-    photo = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True),
+    photo = ImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'],
                              url_relative_path='chefs/')
 
 
@@ -226,7 +236,7 @@ class ChefImageModelViewWithUpload(ModelView):
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
             return ''
-        return Markup('<img src="%s">' % url_for('static', filename='chefs/' + thumbgen_filename(model.photo)))
+        return Markup('<img src="%s">' % url_for('static', filename='chefs/' + model.photo))
 
     def get_title(view, context, model, name):
         return model.photo
@@ -241,7 +251,7 @@ class ChefImageModelViewWithUpload(ModelView):
 
 
 class SchoolImageForm(Form):
-    photo = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'], thumbnail_size=(500, 500, True),
+    photo = ImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'],
                              url_relative_path='schools/')
 
 
@@ -250,7 +260,7 @@ class SchoolModelViewWithUpload(ModelView):
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
             return ''
-        return Markup('<img src="%s">' % url_for('static', filename='schools/' + thumbgen_filename(model.photo)))
+        return Markup('<img src="%s">' % url_for('static', filename='schools/' + model.photo))
 
     def get_title(view, context, model, name):
         return model.photo
@@ -269,7 +279,7 @@ class ToolModelViewWithUpload(ModelView):
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
             return ''
-        return Markup('<img src="%s">' % url_for('static', filename='tools/' + thumbgen_filename(model.photo)))
+        return Markup('<img src="%s">' % url_for('static', filename='tools/' + model.photo))
 
     can_create = True
     column_formatters = {
@@ -277,7 +287,7 @@ class ToolModelViewWithUpload(ModelView):
     }
 
     form_extra_fields = {
-        'photo': ImageUploadField('Image', base_path=app.config['TOOLS_UPLOAD'], thumbnail_size=(500, 500, True),
+        'photo': ImageUploadField('Image', base_path=app.config['TOOLS_UPLOAD'],
                                   url_relative_path='tools/')
     }
 
@@ -289,19 +299,21 @@ class ChefModelViewWithUpload(ModelView):
     def _list_thumbnail_medium(view, context, model, name):
         if not model.medium_photo:
             return ''
-        return Markup('<img src="%s">' % url_for('static', filename='chefs/' + thumbgen_filename(model.medium_photo)))
+        return Markup('<img src="%s">' % url_for('static', filename='chefs/' + model.medium_photo))
 
     def _list_thumbnail_main(view, context, model, name):
         if not model.main_photo:
             return ''
-        return Markup('<img src="%s">' % url_for('static', filename='chefs/' + thumbgen_filename(model.main_photo)))
+        return Markup('<img src="%s">' % url_for('static', filename='chefs/' + model.main_photo))
 
     def _list_thumbnail_many(view, context, model, name):
         if not model.photos:
             return ''
         images_show = ''
         for photo in model.photos:
-            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='chefs/' + thumbgen_filename(photo.photo)))
+            if photo.photo is None:
+                return ''
+            images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='chefs/' + photo.photo))
         return images_show
 
     can_create = True
@@ -312,9 +324,9 @@ class ChefModelViewWithUpload(ModelView):
 
     }
     form_extra_fields = {
-        'medium_photo': ImageUploadField('Medium photo', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True),
+        'medium_photo': ImageUploadField('Medium photo', base_path=app.config['CHEFS_UPLOAD'],
                                          url_relative_path='chefs/'),
-        'main_photo': ImageUploadField('Main photo', base_path=app.config['CHEFS_UPLOAD'], thumbnail_size=(500, 500, True),
+        'main_photo': ImageUploadField('Main photo', base_path=app.config['CHEFS_UPLOAD'],
                                        url_relative_path='chefs/')
     }
     inline_models = (ChefPhotoInlineModelForm(ChefPhoto),)
@@ -325,7 +337,7 @@ class SchoolItemModelViewWithUpload(ModelView):
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
             return ''
-        return Markup('<img src="%s">' % url_for('static', filename='school_items/' + thumbgen_filename(model.photo)))
+        return Markup('<img src="%s">' % url_for('static', filename='school_items/' + model.photo))
 
     can_create = True
     column_formatters = {
@@ -333,7 +345,7 @@ class SchoolItemModelViewWithUpload(ModelView):
     }
 
     form_extra_fields = {
-        'photo': ImageUploadField('Image', base_path=app.config['SCHOOL_ITEMS_UPLOAD'], thumbnail_size=(500, 500, True),
+        'photo': ImageUploadField('Image', base_path=app.config['SCHOOL_ITEMS_UPLOAD'],
                                   url_relative_path='school_items/')
     }
 
@@ -343,7 +355,7 @@ class InstructionItemModelViewWithUpload(ModelView):
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
             return ''
-        return Markup('<img src="%s">' % url_for('static', filename='instruction_items/' + thumbgen_filename(model.photo)))
+        return Markup('<img src="%s">' % url_for('static', filename='instruction_items/' + model.photo))
 
     can_create = True
     column_formatters = {
@@ -351,7 +363,7 @@ class InstructionItemModelViewWithUpload(ModelView):
     }
 
     form_extra_fields = {
-        'photo': ImageUploadField('Image', base_path=app.config['INSTRUCTION_ITEMS_UPLOAD'], thumbnail_size=(500, 500, True),
+        'photo': ImageUploadField('Image', base_path=app.config['INSTRUCTION_ITEMS_UPLOAD'],
                                   url_relative_path='instruction_items/')
     }
 
@@ -405,6 +417,7 @@ admin.add_view(SchoolModelViewWithRelationships(School, db.session))
 admin.add_view(SchoolItemModelViewWithUpload(SchoolItem, db.session))
 admin.add_view(ToolModelViewWithUpload(Tool, db.session))
 admin.add_view(ModelView(Wine, db.session))
+admin.add_view(ModelView(SchoolEvent, db.session))
 admin.add_view(LogoutView(name='Logout'))
 
 # #######################
@@ -491,6 +504,10 @@ app.register_blueprint(wines_module)
 # Baskets types module
 from app.api.basket.views import mod as baskets_module
 app.register_blueprint(baskets_module)
+
+# School events module
+from app.api.school_events.views import mod as school_events_module
+app.register_blueprint(school_events_module)
 
 # docsmodule
 from app.api.docs.views import mod as docs_module
