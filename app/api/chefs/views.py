@@ -139,23 +139,30 @@ def get_chef(id):
 
 
 @auto.doc()
-@mod.route('/offset=<int:offset>&limit=<int:limit>', methods=['GET'])
+@mod.route('/', methods=['GET'])
 @login_required
-def get_all_chefs(offset, limit):
+def get_all_chefs():
     """
     Get short information about all exist chefs - email, last_name, first_name, work, main_photo
-    :param offset: starts from which chef
-    :param limit: how many chefs you want to get
+    :param offset (GET param) : starts from which chef
+    :param limit (GET param) : how many chefs you want to get
     :return: json with parameters:
             error_code - server response_code
             result - information about chefs
             entities_count - numbers of all chefs
     """
     chefs = []
+    offset = request.args.get('offset')
+    limit = request.args.get('limit')
     count = Chef.query.count()
-    for chef in Chef.query.slice(start=offset, stop=limit+offset):
-        information = response_builder(chef, Chef, excluded=['biography', 'quote', 'email', 'medium_photo'])
-        chefs.append(information)
+    if limit and offset:
+        for chef in Chef.query.slice(start=offset, stop=limit+offset):
+            information = response_builder(chef, Chef, excluded=['biography', 'quote', 'email', 'medium_photo'])
+            chefs.append(information)
+    else:
+        for chef in Chef.query.all():
+            information = response_builder(chef, Chef, excluded=['biography', 'quote', 'email', 'medium_photo'])
+            chefs.append(information)
     return jsonify({'error_code': OK, 'result': chefs, 'entities_count': count}), 200
 
 

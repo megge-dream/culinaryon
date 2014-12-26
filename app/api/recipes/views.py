@@ -141,21 +141,27 @@ def get_recipe(id):
 
 
 @auto.doc()
-@mod.route('/offset=<int:offset>&limit=<int:limit>', methods=['GET'])
+@mod.route('/', methods=['GET'])
 @login_required
-def get_all_recipes(offset, limit):
+def get_all_recipes():
     """
     Get information about all exist recipes.
-    :param offset: starts from which recipe
-    :param limit: how many recipes you want to get
+    :param offset (GET param) : starts from which recipe
+    :param limit (GET param) : how many recipes you want to get
     :return: json with parameters:
             error_code - server response_code
             result - information about recipes
             entities_count - numbers of all recipes
     """
     recipes = []
+    offset = request.args.get('offset')
+    limit = request.args.get('limit')
     count = Recipe.query.count()
-    for recipe in Recipe.query.slice(start=offset, stop=limit+offset):
+    if limit and offset:
+        recipes_band = Recipe.query.slice(start=offset, stop=limit+offset)
+    else:
+        recipes_band = Recipe.query.all()
+    for recipe in recipes_band:
         information = response_builder(recipe, Recipe, excluded=['description', 'spicy', 'complexity', 'time',
                                                                  'amount_of_persons', 'chef_id', 'video'])
         categories = []
@@ -195,22 +201,28 @@ def delete_recipe(id):
 
 
 @auto.doc()
-@mod.route('/chef/id=<int:id>&offset=<int:offset>&limit=<int:limit>', methods=['GET'])
+@mod.route('/chef/id=<int:id>', methods=['GET'])
 @login_required
-def get_chef_recipes(id, offset, limit):
+def get_chef_recipes(id):
     """
     Get information about all recipes for chef with special id.
     :param id: chef id
-    :param offset: starts from which recipes
-    :param limit: how many recipes you want to get
+    :param offset (GET param) : starts from which recipes
+    :param limit (GET param) : how many recipes you want to get
     :return: json with parameters:
             error_code - server response_code
             result - information about recipes
             entities_count - numbers of all chefs recipes
     """
     recipes = []
+    offset = request.args.get('offset')
+    limit = request.args.get('limit')
     count = Recipe.query.count()
-    for recipe in Recipe.query.filter_by(chef_id=id).slice(start=offset, stop=limit+offset):
+    if limit and offset:
+        recipes_band = Recipe.query.filter_by(chef_id=id).slice(start=offset, stop=limit+offset)
+    else:
+        recipes_band = Recipe.query.filter_by(chef_id=id)
+    for recipe in recipes_band:
         information = recipe_response_builder(recipe)
         recipes.append(information)
     return jsonify({'error_code': OK, 'result': recipes, 'entities_count': count}), 200
