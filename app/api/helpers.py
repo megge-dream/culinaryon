@@ -41,20 +41,20 @@ def response_builder(current_object, entity, excluded=[]):
             else:
                 if 'photo' in columnName:
                     if entity is Recipe or entity is RecipePhoto:
-                        result[columnName] = app.config['RECIPES_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', filename='recipes/' + str(getattr(current_object, columnName)))
                     elif entity is Chef or entity is ChefPhoto:
                         print(columnName)
-                        result[columnName] = app.config['CHEFS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', filename='chefs/' + str(getattr(current_object, columnName)))
                     elif entity is School or entity is SchoolPhoto:
-                        result[columnName] = app.config['SCHOOLS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', filename='schools/' + str(getattr(current_object, columnName)))
                     elif entity is Tool:
-                        result[columnName] = app.config['TOOLS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', filename='tools/' + str(getattr(current_object, columnName)))
                     elif entity is SchoolItem:
-                        result[columnName] = app.config['SCHOOL_ITEMS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', filename='school_items/' + str(getattr(current_object, columnName)))
                     elif entity is InstructionItem:
-                        result[columnName] = app.config['INSTRUCTION_ITEMS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', filename='instruction_items/' + str(getattr(current_object, columnName)))
                     else:
-                        result[columnName] = app.config['UPLOAD_FOLDER'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', filename='/' + str(getattr(current_object, columnName)))
                 else:
                     result[columnName] = getattr(current_object, columnName)
     return result

@@ -160,21 +160,22 @@ def get_all_recipes():
     else:
         recipes_band = Recipe.query.all()
     for recipe in recipes_band:
-        information = response_builder(recipe, Recipe, excluded=['description', 'spicy', 'complexity', 'time',
-                                                                 'amount_of_persons', 'chef_id', 'video'])
-        categories = []
-        for category in Recipe.query.filter_by(id=recipe.id).first().categories:
-            categories.append(category.id)
-        information['categories'] = []
-        if categories is not None:
-            for category_id in categories:
-                category = Category.query.get(category_id)
-                category_information = response_builder(category, Category)
-                information["categories"].append(category_information)
-        information['photos'] = []
-        for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
-            photo_information = response_builder(photo, RecipePhoto)
-            information['photos'].append(photo_information)
+        # information = response_builder(recipe, Recipe, excluded=['description', 'spicy', 'complexity', 'time',
+        #                                                          'amount_of_persons', 'chef_id', 'video'])
+        # categories = []
+        # for category in Recipe.query.filter_by(id=recipe.id).first().categories:
+        #     categories.append(category.id)
+        # information['categories'] = []
+        # if categories is not None:
+        #     for category_id in categories:
+        #         category = Category.query.get(category_id)
+        #         category_information = response_builder(category, Category)
+        #         information["categories"].append(category_information)
+        # information['photos'] = []
+        # for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
+        #     photo_information = response_builder(photo, RecipePhoto)
+        #     information['photos'].append(photo_information)
+        information = recipe_response_builder(recipe)
         recipes.append(information)
     return jsonify({'error_code': OK, 'result': recipes, 'entities_count': count}), 200
 
