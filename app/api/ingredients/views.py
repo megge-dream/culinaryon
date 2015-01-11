@@ -78,7 +78,6 @@ def update_ingredient(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
-@login_required
 def get_ingredient(id):
     """
     Get information about ingredient.
@@ -96,7 +95,6 @@ def get_ingredient(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
-@login_required
 def get_all_ingredients():
     """
     Get information about all exist ingredients.
@@ -132,7 +130,6 @@ def delete_ingredient(id):
 
 @auto.doc()
 @mod.route('/recipes/<int:id>', methods=['GET'])
-@login_required
 def get_recipe_ingredients(id):
     """
     Get information about all ingredients for recipe with special id.

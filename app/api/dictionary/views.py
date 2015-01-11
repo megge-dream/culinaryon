@@ -69,7 +69,6 @@ def update_dictionary(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
-@login_required
 def get_dictionary(id):
     """
     Get information about dictionary.
@@ -87,7 +86,6 @@ def get_dictionary(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
-@login_required
 def get_all_dictionares():
     """
     Get information about all exist dictionaries.

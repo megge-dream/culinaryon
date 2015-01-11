@@ -63,7 +63,6 @@ def update_category(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
-@login_required
 def get_category(id):
     """
     Get information about category.
@@ -81,7 +80,6 @@ def get_category(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
-@login_required
 def get_all_categories():
     """
     Get information about all exist categories.

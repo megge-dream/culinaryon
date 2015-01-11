@@ -85,7 +85,6 @@ def update_school_event(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
-@login_required
 def get_school_event(id):
     """
     Get information about school event.
@@ -103,7 +102,6 @@ def get_school_event(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
-@login_required
 def get_all_school_events():
     """
     Get information about all exist school events.

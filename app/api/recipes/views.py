@@ -124,7 +124,6 @@ def update_recipe(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
-@login_required
 def get_recipe(id):
     """
     Get information about recipe.
@@ -142,7 +141,6 @@ def get_recipe(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
-@login_required
 def get_all_recipes():
     """
     Get information about all exist recipes.
@@ -202,7 +200,6 @@ def delete_recipe(id):
 
 @auto.doc()
 @mod.route('/chef/id=<int:id>', methods=['GET'])
-@login_required
 def get_chef_recipes(id):
     """
     Get information about all recipes for chef with special id.
@@ -308,7 +305,6 @@ def update_instruction(id):
 
 @auto.doc()
 @mod.route('/instruction/<int:id>', methods=['GET'])
-@login_required
 def get_instruction(id):
     """
     Get information about instruction.
@@ -326,7 +322,6 @@ def get_instruction(id):
 
 @auto.doc()
 @mod.route('/instruction/', methods=['GET'])
-@login_required
 def get_all_instructions():
     """
     Get information about all exist instructions.
@@ -362,7 +357,6 @@ def delete_instruction(id):
 
 @auto.doc()
 @mod.route('/fullinstruction/<int:id>', methods=['GET'])
-@login_required
 def get_recipe_instructions(id):
     """
     Get information about all instructions for recipe with special id.

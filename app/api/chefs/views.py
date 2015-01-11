@@ -100,7 +100,6 @@ def update_chef(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
-@login_required
 def get_chef(id):
     """
     Get information about chef (with list of his recipes and photos, without main photo and work).
@@ -140,7 +139,6 @@ def get_chef(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
-@login_required
 def get_all_chefs():
     """
     Get short information about all exist chefs - email, last_name, first_name, work, main_photo

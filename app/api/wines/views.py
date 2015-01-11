@@ -63,7 +63,6 @@ def update_wine(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
-@login_required
 def get_wine(id):
     """
     Get information about wine.
@@ -81,7 +80,6 @@ def get_wine(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
-@login_required
 def get_all_wines():
     """
     Get information about all exist wines.
