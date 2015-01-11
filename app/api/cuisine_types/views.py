@@ -63,7 +63,6 @@ def update_cuisine_type(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
-@login_required
 def get_cuisine_type(id):
     """
     Get information about cuisine type.
@@ -81,7 +80,6 @@ def get_cuisine_type(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
-@login_required
 def get_all_cuisine_types():
     """
     Get information about all exist cuisine types.

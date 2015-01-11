@@ -68,7 +68,6 @@ def update_tool(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
-@login_required
 def get_tool(id):
     """
     Get information about tool.
@@ -86,7 +85,6 @@ def get_tool(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
-@login_required
 def get_all_tools():
     """
     Get information about all exist tools.

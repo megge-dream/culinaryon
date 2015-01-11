@@ -63,7 +63,6 @@ def update_school(id):
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
-@login_required
 def get_school(id):
     """
     Get information about school.
@@ -85,7 +84,6 @@ def get_school(id):
 
 @auto.doc()
 @mod.route('/', methods=['GET'])
-@login_required
 def get_all_schools():
     """
     Get information about all exist schools.
@@ -184,7 +182,6 @@ def update_school_item(id):
 
 @auto.doc()
 @mod.route('/item/<int:id>', methods=['GET'])
-@login_required
 def get_school_item(id):
     """
     Get information about school item.
@@ -202,7 +199,6 @@ def get_school_item(id):
 
 @auto.doc()
 @mod.route('/item/', methods=['GET'])
-@login_required
 def get_all_school_items():
     """
     Get information about all exist school items.
@@ -238,7 +234,6 @@ def delete_school_item(id):
 
 @auto.doc()
 @mod.route('/fullitem/<int:id>', methods=['GET'])
-@login_required
 def get_one_school_items(id):
     """
     Get information about all school items for school with special id.

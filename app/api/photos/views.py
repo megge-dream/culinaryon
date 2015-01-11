@@ -111,7 +111,6 @@ def update_photo(id):
 
 @auto.doc()
 @mod.route('/recipe/<int:id>', methods=['GET'])
-@login_required
 def get_photo(id):
     """
     Get information about photo for recipe.
@@ -125,7 +124,6 @@ def get_photo(id):
 
 @auto.doc()
 @mod.route('/recipe/', methods=['GET'])
-@login_required
 def get_all_photos():
     """
     Get information about all exist photos for recipes.
@@ -152,7 +150,6 @@ def delete_photo(id):
 
 @auto.doc()
 @mod.route('/fullrecipe/<int:id>', methods=['GET'])
-@login_required
 def get_recipe_photos(id):
     """
     Get information about all photos for recipe with special id.
@@ -204,7 +201,6 @@ def update_photo(id):
 
 @auto.doc()
 @mod.route('/chef/<int:id>', methods=['GET'])
-@login_required
 def get_photo(id):
     """
     Get information about photo for chef.
@@ -218,7 +214,6 @@ def get_photo(id):
 
 @auto.doc()
 @mod.route('/chef/', methods=['GET'])
-@login_required
 def get_all_photos():
     """
     Get information about all exist photos for chefs.
@@ -245,7 +240,6 @@ def delete_photo(id):
 
 @auto.doc()
 @mod.route('/fullchef/<int:id>', methods=['GET'])
-@login_required
 def get_chef_photos(id):
     """
     Get information about all photos for chef with special id.
@@ -296,7 +290,6 @@ def update_photo(id):
 
 @auto.doc()
 @mod.route('/school/<int:id>', methods=['GET'])
-@login_required
 def get_photo(id):
     """
     Get information about photo for school.
@@ -310,7 +303,6 @@ def get_photo(id):
 
 @auto.doc()
 @mod.route('/school/', methods=['GET'])
-@login_required
 def get_all_photos():
     """
     Get information about all exist photos for schools.
@@ -337,7 +329,6 @@ def delete_photo(id):
 
 @auto.doc()
 @mod.route('/fullschool/<int:id>', methods=['GET'])
-@login_required
 def get_school_photos(id):
     """
     Get information about all photos for school with special id.
