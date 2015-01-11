@@ -136,6 +136,8 @@ def get_recipe(id):
     if not recipe:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # recipe with `id` isn't exist
     information = recipe_response_builder(recipe)
+    hash_of_information = make_hash(information)
+    information['hash'] = hash_of_information
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -176,6 +178,8 @@ def get_all_recipes():
         #     photo_information = response_builder(photo, RecipePhoto)
         #     information['photos'].append(photo_information)
         information = recipe_response_builder(recipe)
+        hash_of_information = make_hash(information)
+        information['hash'] = hash_of_information
         recipes.append(information)
     return jsonify({'error_code': OK, 'result': recipes, 'entities_count': count}), 200
 
@@ -222,6 +226,8 @@ def get_chef_recipes(id):
         recipes_band = Recipe.query.filter_by(chef_id=id)
     for recipe in recipes_band:
         information = recipe_response_builder(recipe)
+        hash_of_information = make_hash(information)
+        information['hash'] = hash_of_information
         recipes.append(information)
     return jsonify({'error_code': OK, 'result': recipes, 'entities_count': count}), 200
 
