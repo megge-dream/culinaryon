@@ -152,11 +152,11 @@ def get_all_chefs():
             entities_count - numbers of all chefs
     """
     chefs = []
-    offset = request.args.get('offset')
-    limit = request.args.get('limit')
+    offset = request.args.get('offset', default=0, type=int)
+    limit = request.args.get('limit', type=int)
     count = Chef.query.count()
-    if limit and offset:
-        chefs_band = Chef.query.slice(start=offset, stop=limit+offset)
+    if limit is not None and offset is not None:
+        chefs_band = Chef.query.slice(start=offset, stop=limit+offset).all()
     else:
         chefs_band = Chef.query.all()
     for chef in chefs_band:
