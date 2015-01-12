@@ -111,29 +111,7 @@ def get_chef(id):
     chef = Chef.query.get(id)
     if not chef:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # chef with `id` isn't exist
-    information = response_builder(chef, Chef, excluded=['main_photo', 'work'])
-    information['photos'] = []
-    for photo in ChefPhoto.query.filter_by(item_id=chef.id):
-        photo_information = response_builder(photo, ChefPhoto)
-        information['photos'].append(photo_information)
-    information['recipes'] = []
-    for recipe in Recipe.query.filter_by(chef_id=id):
-        recipe_information = response_builder(recipe, Recipe, excluded=['description', 'spicy', 'complexity', 'time',
-                                                                        'amount_of_persons', 'chef_id', 'video'])
-        categories = []
-        for category in Recipe.query.filter_by(id=recipe.id).first().categories:
-            categories.append(category.id)
-        recipe_information['categories'] = []
-        if categories is not None:
-            for category_id in categories:
-                category = Category.query.get(category_id)
-                category_information = response_builder(category, Category)
-                recipe_information["categories"].append(category_information)
-        recipe_information['photos'] = []
-        for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
-            photo_information = response_builder(photo, RecipePhoto)
-            recipe_information['photos'].append(photo_information)
-        information['recipes'].append(recipe_information)
+    information = chef_response_builder(chef)
     hash_of_information = make_hash(information)
     information['hash'] = hash_of_information
     return jsonify({'error_code': OK, 'result': information}), 200
@@ -160,7 +138,7 @@ def get_all_chefs():
     else:
         chefs_band = Chef.query.all()
     for chef in chefs_band:
-        information = response_builder(chef, Chef, excluded=['biography', 'quote', 'email', 'medium_photo'])
+        information = chef_response_builder(chef)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         chefs.append(information)
@@ -184,3 +162,30 @@ def delete_chef(id):
     db.session.delete(chef)
     db.session.commit()
     return jsonify({'error_code': OK}), 200
+
+
+def chef_response_builder(chef):
+    information = response_builder(chef, Chef)
+    information['photos'] = []
+    for photo in ChefPhoto.query.filter_by(item_id=chef.id):
+        photo_information = response_builder(photo, ChefPhoto)
+        information['photos'].append(photo_information)
+    return information
+    # information['recipes'] = []
+    # for recipe in Recipe.query.filter_by(chef_id=id):
+    #     recipe_information = response_builder(recipe, Recipe, excluded=['description', 'spicy', 'complexity', 'time',
+    #                                                                     'amount_of_persons', 'chef_id', 'video'])
+    #     categories = []
+    #     for category in Recipe.query.filter_by(id=recipe.id).first().categories:
+    #         categories.append(category.id)
+    #     recipe_information['categories'] = []
+    #     if categories is not None:
+    #         for category_id in categories:
+    #             category = Category.query.get(category_id)
+    #             category_information = response_builder(category, Category)
+    #             recipe_information["categories"].append(category_information)
+    #     recipe_information['photos'] = []
+    #     for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
+    #         photo_information = response_builder(photo, RecipePhoto)
+    #         recipe_information['photos'].append(photo_information)
+    #     information['recipes'].append(recipe_information)

@@ -27,4 +27,4 @@ class Chef(db.Model):
     recipes = db.relationship(Recipe, backref='chefs', lazy='select')
 
     def __unicode__(self):
-        return self.email
+        return self.first_name + ' ' + self.last_name
