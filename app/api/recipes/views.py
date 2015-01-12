@@ -154,11 +154,11 @@ def get_all_recipes():
             entities_count - numbers of all recipes
     """
     recipes = []
-    offset = request.args.get('offset')
-    limit = request.args.get('limit')
+    offset = request.args.get('offset', default=0, type=int)
+    limit = request.args.get('limit', type=int)
     count = Recipe.query.count()
-    if limit and offset:
-        recipes_band = Recipe.query.slice(start=offset, stop=limit+offset)
+    if limit is not None and offset is not None:
+        recipes_band = Recipe.query.slice(start=offset, stop=limit+offset).all()
     else:
         recipes_band = Recipe.query.all()
     for recipe in recipes_band:
@@ -217,11 +217,11 @@ def get_chef_recipes(id):
             entities_count - numbers of all chefs recipes
     """
     recipes = []
-    offset = request.args.get('offset')
-    limit = request.args.get('limit')
+    offset = request.args.get('offset', default=0, type=int)
+    limit = request.args.get('limit', type=int)
     count = Recipe.query.count()
-    if limit and offset:
-        recipes_band = Recipe.query.filter_by(chef_id=id).slice(start=offset, stop=limit+offset)
+    if limit is not None and offset is not None:
+        recipes_band = Recipe.query.filter_by(chef_id=id).slice(start=offset, stop=limit+offset).all()
     else:
         recipes_band = Recipe.query.filter_by(chef_id=id)
     for recipe in recipes_band:
