@@ -136,6 +136,8 @@ def get_recipe(id):
     if not recipe:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # recipe with `id` isn't exist
     information = recipe_response_builder(recipe)
+    hash_of_information = make_hash(information)
+    information['hash'] = hash_of_information
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -160,21 +162,24 @@ def get_all_recipes():
     else:
         recipes_band = Recipe.query.all()
     for recipe in recipes_band:
-        information = response_builder(recipe, Recipe, excluded=['description', 'spicy', 'complexity', 'time',
-                                                                 'amount_of_persons', 'chef_id', 'video'])
-        categories = []
-        for category in Recipe.query.filter_by(id=recipe.id).first().categories:
-            categories.append(category.id)
-        information['categories'] = []
-        if categories is not None:
-            for category_id in categories:
-                category = Category.query.get(category_id)
-                category_information = response_builder(category, Category)
-                information["categories"].append(category_information)
-        information['photos'] = []
-        for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
-            photo_information = response_builder(photo, RecipePhoto)
-            information['photos'].append(photo_information)
+        # information = response_builder(recipe, Recipe, excluded=['description', 'spicy', 'complexity', 'time',
+        #                                                          'amount_of_persons', 'chef_id', 'video'])
+        # categories = []
+        # for category in Recipe.query.filter_by(id=recipe.id).first().categories:
+        #     categories.append(category.id)
+        # information['categories'] = []
+        # if categories is not None:
+        #     for category_id in categories:
+        #         category = Category.query.get(category_id)
+        #         category_information = response_builder(category, Category)
+        #         information["categories"].append(category_information)
+        # information['photos'] = []
+        # for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
+        #     photo_information = response_builder(photo, RecipePhoto)
+        #     information['photos'].append(photo_information)
+        information = recipe_response_builder(recipe)
+        hash_of_information = make_hash(information)
+        information['hash'] = hash_of_information
         recipes.append(information)
     return jsonify({'error_code': OK, 'result': recipes, 'entities_count': count}), 200
 
@@ -221,6 +226,8 @@ def get_chef_recipes(id):
         recipes_band = Recipe.query.filter_by(chef_id=id)
     for recipe in recipes_band:
         information = recipe_response_builder(recipe)
+        hash_of_information = make_hash(information)
+        information['hash'] = hash_of_information
         recipes.append(information)
     return jsonify({'error_code': OK, 'result': recipes, 'entities_count': count}), 200
 

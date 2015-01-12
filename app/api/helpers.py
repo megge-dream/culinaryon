@@ -1,4 +1,5 @@
 # import app
+import copy
 from app.api import app
 from app.api.chefs.model import Chef
 from app.api.recipes.model import Recipe, InstructionItem
@@ -39,22 +40,21 @@ def response_builder(current_object, entity, excluded=[]):
                         columnName = "user"
                     result[columnName] = response_builder(User.query.get(user_id), User, ["password"])
             else:
-                if 'photo' in columnName:
+                if 'photo' in columnName and getattr(current_object, columnName) is not None:
                     if entity is Recipe or entity is RecipePhoto:
-                        result[columnName] = app.config['RECIPES_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='recipes/' + str(getattr(current_object, columnName)))
                     elif entity is Chef or entity is ChefPhoto:
-                        print(columnName)
-                        result[columnName] = app.config['CHEFS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='chefs/' + str(getattr(current_object, columnName)))
                     elif entity is School or entity is SchoolPhoto:
-                        result[columnName] = app.config['SCHOOLS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='schools/' + str(getattr(current_object, columnName)))
                     elif entity is Tool:
-                        result[columnName] = app.config['TOOLS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='tools/' + str(getattr(current_object, columnName)))
                     elif entity is SchoolItem:
-                        result[columnName] = app.config['SCHOOL_ITEMS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='school_items/' + str(getattr(current_object, columnName)))
                     elif entity is InstructionItem:
-                        result[columnName] = app.config['INSTRUCTION_ITEMS_UPLOAD'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='instruction_items/' + str(getattr(current_object, columnName)))
                     else:
-                        result[columnName] = app.config['UPLOAD_FOLDER'] + '/' + str(getattr(current_object, columnName))
+                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='/' + str(getattr(current_object, columnName)))
                 else:
                     result[columnName] = getattr(current_object, columnName)
     return result
@@ -67,3 +67,36 @@ def allowed_file(filename):
     :return: True if matches or not
     """
     return '.' in filename and filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
+
+
+DictProxyType = type(object.__dict__)
+
+
+def make_hash(o):
+    """
+    Makes a hash from a dictionary, list, tuple or set to any level, that
+    contains only other hashable types (including any lists, tuples, sets, and
+    dictionaries). In the case where other kinds of objects (like classes) need
+    to be hashed, pass in a collection of object attributes that are pertinent.
+    For example, a class can be hashed in this fashion:
+
+    make_hash([cls.__dict__, cls.__name__])
+
+    A function can be hashed like so:
+
+    make_hash([fn.__dict__, fn.__code__])
+    """
+    if type(o) == DictProxyType:
+        o2 = {}
+        for k, v in o.items():
+            if not k.startswith("__"):
+                o2[k] = v
+        o = o2
+    if isinstance(o, (set, tuple, list)):
+        return tuple([make_hash(e) for e in o])
+    elif not isinstance(o, dict):
+        return hash(o)
+    new_o = copy.deepcopy(o)
+    for k, v in new_o.items():
+        new_o[k] = make_hash(v)
+    return hash(tuple(frozenset(sorted(new_o.items()))))

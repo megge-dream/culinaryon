@@ -134,6 +134,8 @@ def get_chef(id):
             photo_information = response_builder(photo, RecipePhoto)
             recipe_information['photos'].append(photo_information)
         information['recipes'].append(recipe_information)
+    hash_of_information = make_hash(information)
+    information['hash'] = hash_of_information
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -154,13 +156,14 @@ def get_all_chefs():
     limit = request.args.get('limit')
     count = Chef.query.count()
     if limit and offset:
-        for chef in Chef.query.slice(start=offset, stop=limit+offset):
-            information = response_builder(chef, Chef, excluded=['biography', 'quote', 'email', 'medium_photo'])
-            chefs.append(information)
+        chefs_band = Chef.query.slice(start=offset, stop=limit+offset)
     else:
-        for chef in Chef.query.all():
-            information = response_builder(chef, Chef, excluded=['biography', 'quote', 'email', 'medium_photo'])
-            chefs.append(information)
+        chefs_band = Chef.query.all()
+    for chef in chefs_band:
+        information = response_builder(chef, Chef, excluded=['biography', 'quote', 'email', 'medium_photo'])
+        hash_of_information = make_hash(information)
+        information['hash'] = hash_of_information
+        chefs.append(information)
     return jsonify({'error_code': OK, 'result': chefs, 'entities_count': count}), 200
 
 
