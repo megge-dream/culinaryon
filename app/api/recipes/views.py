@@ -379,7 +379,7 @@ def get_recipe_instructions(id):
     return jsonify({'error_code': OK, 'result': instructions}), 200
 
 
-def recipe_response_builder(recipe):
+def recipe_response_builder(recipe, excluded=[]):
     categories = []
     for category in Recipe.query.filter_by(id=recipe.id).first().categories:
         categories.append(category.id)
@@ -392,7 +392,7 @@ def recipe_response_builder(recipe):
     wines = []
     for wine in Recipe.query.filter_by(id=recipe.id).first().wines:
         wines.append(wine.id)
-    information = response_builder(recipe, Recipe)
+    information = response_builder(recipe, Recipe, excluded)
     information['categories'] = []
     if categories is not None:
         for category_id in categories:
