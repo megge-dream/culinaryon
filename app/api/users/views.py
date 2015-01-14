@@ -169,21 +169,24 @@ def delete_user(id):
 def send_mail(chef_id):
     """
     Send mail to chef. List of parameters in json request:
+            name (required)
+            email (required)
             message_body (required)
     Example of request:
-            {"message_body":"good"}
+            {"name":"Alex", "email":"ria6@yandex.ru", "message_body":"good"}
     :param chef_id: chef id
     :return: json with parameters:
             error_code - server response_code
     """
+    name = request.json.get('name')
+    email_from = request.json.get('email')
     message_body = request.json.get('message_body')
     if message_body is None:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
     msg = Message('From app Culinaryon',
-                  sender='ria6@yandex.ru',
-                  # sender=current_user.email,
+                  sender=email_from,
                   recipients=[Chef.query.get(chef_id).email])
-    msg.body = message_body
+    msg.body = "You receive a message from " + name + ": \n" + message_body + "\nResponse to " + email_from
     mail.send(msg)
     return jsonify({'error_code': OK}), 200
 
