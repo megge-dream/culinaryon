@@ -56,7 +56,7 @@ def response_builder(current_object, entity, excluded=[]):
                     else:
                         result[columnName] = url_for('static', _scheme='http', _external=True, filename='/' + str(getattr(current_object, columnName)))
                 else:
-                    result[columnName] = getattr(current_object, columnName)
+                    result[columnName] = getattr(current_object, columnName, default='')
     return result
 
 
