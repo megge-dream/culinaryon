@@ -1,3 +1,4 @@
+import cgi
 from flask import request, jsonify, url_for, Blueprint, session
 from flask.ext.login import login_required, current_user, login_user
 from flask_mail import Message
@@ -186,7 +187,7 @@ def send_mail(chef_id):
     msg = Message('From app Culinaryon',
                   sender=email_from,
                   recipients=[Chef.query.get(chef_id).email])
-    msg.body = "You receive a message from " + name + ": \n" + message_body + "\nResponse to " + email_from
+    msg.body = "You receive a message from " + name + ": \n" + cgi.escape(message_body) + "\nResponse to " + email_from
     mail.send(msg)
     return jsonify({'error_code': OK}), 200
 
