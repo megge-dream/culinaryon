@@ -4,23 +4,6 @@ from app.api import db
 from app.api.photos.model import SchoolPhoto
 
 
-class School(db.Model):
-    """
-    Need to add Table Structure
-    """
-    __tablename__ = "schools"
-
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String, nullable=False)
-    creation_date = db.Column(db.DateTime, default=datetime.utcnow())
-
-    #links
-    photos = db.relationship(SchoolPhoto, backref='school', lazy='select')
-
-    def __unicode__(self):
-        return self.title
-
-
 class SchoolItem(db.Model):
     """
     Need to add Table Structure
@@ -36,3 +19,21 @@ class SchoolItem(db.Model):
 
     def __unicode__(self):
         return str(self.id)
+
+
+class School(db.Model):
+    """
+    Need to add Table Structure
+    """
+    __tablename__ = "schools"
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String, nullable=False)
+    creation_date = db.Column(db.DateTime, default=datetime.utcnow())
+
+    #links
+    photos = db.relationship(SchoolPhoto, backref='school', lazy='select')
+    school_items = db.relationship(SchoolItem, backref='school', lazy='select')
+
+    def __unicode__(self):
+        return self.title
