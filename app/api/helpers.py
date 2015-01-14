@@ -42,21 +42,31 @@ def response_builder(current_object, entity, excluded=[]):
             else:
                 if 'photo' in columnName and getattr(current_object, columnName) is not None:
                     if entity is Recipe or entity is RecipePhoto:
-                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='recipes/' + str(getattr(current_object, columnName)))
+                        result[columnName] = url_for('static', _scheme='http', _external=True,
+                                                     filename='recipes/' + str(getattr(current_object, columnName)))
                     elif entity is Chef or entity is ChefPhoto:
-                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='chefs/' + str(getattr(current_object, columnName)))
+                        result[columnName] = url_for('static', _scheme='http', _external=True,
+                                                     filename='chefs/' + str(getattr(current_object, columnName)))
                     elif entity is School or entity is SchoolPhoto:
-                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='schools/' + str(getattr(current_object, columnName)))
+                        result[columnName] = url_for('static', _scheme='http', _external=True,
+                                                     filename='schools/' + str(getattr(current_object, columnName)))
                     elif entity is Tool:
-                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='tools/' + str(getattr(current_object, columnName)))
+                        result[columnName] = url_for('static', _scheme='http', _external=True,
+                                                     filename='tools/' + str(getattr(current_object, columnName)))
                     elif entity is SchoolItem:
-                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='school_items/' + str(getattr(current_object, columnName)))
+                        result[columnName] = url_for('static', _scheme='http', _external=True,
+                                                     filename='school_items/' + str(
+                                                         getattr(current_object, columnName)))
                     elif entity is InstructionItem:
-                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='instruction_items/' + str(getattr(current_object, columnName)))
+                        result[columnName] = url_for('static', _scheme='http', _external=True,
+                                                     filename='instruction_items/' + str(
+                                                         getattr(current_object, columnName)))
                     else:
-                        result[columnName] = url_for('static', _scheme='http', _external=True, filename='/' + str(getattr(current_object, columnName)))
+                        result[columnName] = url_for('static', _scheme='http', _external=True,
+                                                     filename='/' + str(getattr(current_object, columnName)))
                 else:
-                    result[columnName] = getattr(current_object, columnName, default='')
+                    result[columnName] = getattr(current_object, columnName) if getattr(current_object,
+                                                                                        columnName) is not None else ''
     return result
 
 
