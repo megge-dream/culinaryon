@@ -25,6 +25,8 @@ from app.api.users.constants import USER_ROLE_SELECT, USER_STATUS_SELECT, PROVID
 from app.decorators import admin_required
 from config import SECRET_KEY, UPLOAD_FOLDER
 
+from flask import Flask
+from flask_mail import Mail
 # #######################
 # Init                  #
 # #######################
@@ -34,6 +36,7 @@ app = Flask(__name__, static_folder=UPLOAD_FOLDER)
 app.config.from_object('config')
 auto = Autodoc(app)
 db = SQLAlchemy(app)
+mail = Mail(app)
 
 login_manager = LoginManager(app)
 login_manager.session_protection = None

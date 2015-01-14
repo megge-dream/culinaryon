@@ -1,12 +1,13 @@
 from flask import request, jsonify, url_for, Blueprint, session
 from flask.ext.login import login_required, current_user, login_user
+from flask_mail import Message
 from flask.ext.oauthlib.client import OAuthException
 from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask, abort, render_template, flash
 from flask.ext.login import current_user, login_user, logout_user
 from sqlalchemy import and_
 from wtforms import ValidationError
 
-from app.api import facebook, vkontakte
+from app.api import facebook, vkontakte, mail
 from app.api.constants import BAD_REQUEST, OK
 from app.api import auto, twitter
 from app.api.helpers import *
@@ -159,6 +160,31 @@ def delete_user(id):
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
     db.session.delete(user)
     db.session.commit()
+    return jsonify({'error_code': OK}), 200
+
+
+@auto.doc()
+@mod.route('/send_mail/<int:chef_id>', methods=['POST'])
+# @login_required
+def send_mail(chef_id):
+    """
+    Send mail to chef. List of parameters in json request:
+            message_body (required)
+    Example of request:
+            {"message_body":"good"}
+    :param chef_id: chef id
+    :return: json with parameters:
+            error_code - server response_code
+    """
+    message_body = request.json.get('message_body')
+    if message_body is None:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
+    msg = Message('From app Culinaryon',
+                  sender='ria6@yandex.ru',
+                  # sender=current_user.email,
+                  recipients=[Chef.query.get(chef_id).email])
+    msg.body = message_body
+    mail.send(msg)
     return jsonify({'error_code': OK}), 200
 
 
