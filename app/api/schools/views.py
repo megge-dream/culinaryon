@@ -98,6 +98,14 @@ def get_all_schools():
     schools = []
     for school in School.query.all():
         information = response_builder(school, School)
+        information['photos'] = []
+        for photo in SchoolPhoto.query.filter_by(item_id=school.id):
+            photo_information = response_builder(photo, SchoolPhoto)
+            information['photos'].append(photo_information)
+        information['school_items'] = []
+        for school_item in SchoolItem.query.filter_by(school_id=school.id):
+            school_item_information = response_builder(school_item, SchoolItem, excluded=['school_id'])
+            information['school_items'].append(school_item_information)
         schools.append(information)
     return jsonify({'error_code': OK, 'result': schools}), 200
 
