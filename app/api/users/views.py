@@ -1,12 +1,12 @@
 import cgi
-from flask import request, jsonify, url_for, Blueprint, session
-from flask.ext.login import login_required, current_user, login_user
+
+from flask import session
+from flask.ext.login import login_required
 from flask_mail import Message
 from flask.ext.oauthlib.client import OAuthException
-from flask import request, jsonify, g, url_for, Blueprint, redirect, Flask, abort, render_template, flash
-from flask.ext.login import current_user, login_user, logout_user
-from sqlalchemy import and_
-from wtforms import ValidationError
+from flask import request, jsonify, Blueprint
+from flask.ext.login import current_user, login_user
+from sqlalchemy import and_, desc
 
 from app.api import facebook, vkontakte, mail
 from app.api.constants import BAD_REQUEST, OK
@@ -18,23 +18,6 @@ from app.decorators import admin_required
 
 
 mod = Blueprint('users', __name__, url_prefix='/api')
-
-
-# @mod.route('/admin_login', methods=['GET', 'POST'])
-# def login():
-#     out = {}
-#     if current_user.is_authenticated():
-#         return redirect(url_for('index'))
-#     form = LoginForm()
-#     try:
-#         if form.validate_on_submit():
-#             login_user(User.query.filter_by(email=form.email.data).first(), remember=True)
-#             flash(u"Success login.", category='success')
-#             out.update({'current_user': current_user})
-#             return redirect(url_for('__init__.index'))
-#     except ValidationError as v:
-#         flash(v.message, category='error')
-#     return render_template("login.html", form=form)
 
 
 @auto.doc()
@@ -144,14 +127,13 @@ def get_user(id):
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
-# User can delete only himself.
 @auto.doc()
 @mod.route('/users/<int:id>', methods=['DELETE'])
 @login_required
 @admin_required
 def delete_user(id):
     """
-    Delete user.
+    Delete user. (for admin users only)
     :param id: user id
     :return: json with parameters:
             error_code - server response_code
@@ -166,7 +148,6 @@ def delete_user(id):
 
 @auto.doc()
 @mod.route('/send_mail/<int:chef_id>', methods=['POST'])
-# @login_required
 def send_mail(chef_id):
     """
     Send mail to chef. List of parameters in json request:
@@ -215,8 +196,6 @@ def pure_login():
         return jsonify({'error_code': BAD_REQUEST, 'result': 'Wrong password'})
 
 
-
-
 @auto.doc()
 @mod.route('/login/twitter')
 def twitter_login():
@@ -228,8 +207,8 @@ def twitter_login():
     if user has existed then just return {error_code: 0, user_id: <user_id>, access_token: <token>}
     """
     # if current_user.is_authenticated():
-    #     return jsonify({'error_code': 0, 'result': "already authorized",
-    #                       'access_token': current_user.get_auth_token()})
+    # return jsonify({'error_code': 0, 'result': "already authorized",
+    # 'access_token': current_user.get_auth_token()})
 
     callback_url = url_for('.twitter_authorized')
     return twitter.authorize(callback=callback_url)
@@ -265,7 +244,7 @@ def twitter_authorized():
                 # create New User
                 update_time = datetime.utcnow()
                 new_user = User(last_login_at=update_time, registered_on=update_time, provider_id=TW,
-                            provider_user_id=user_id)
+                                provider_user_id=user_id)
                 db.session.add(new_user)
                 db.session.commit()
 
@@ -294,8 +273,8 @@ def facebook_login():
     if user has existed then just return {error_code: 0, user_id: <user_id>, access_token: <token>}
     """
     # if current_user.is_authenticated():
-    #     return jsonify({'error_code': 0, 'result': "already authorized",
-    #                       'access_token': current_user.get_auth_token()})
+    # return jsonify({'error_code': 0, 'result': "already authorized",
+    # 'access_token': current_user.get_auth_token()})
 
     callback_url = url_for('.facebook_authorized', _external=True)
     return facebook.authorize(callback=callback_url)
@@ -332,7 +311,7 @@ def facebook_authorized():
         # create New User
         update_time = datetime.utcnow()
         new_user = User(last_login_at=update_time, registered_on=update_time, provider_id=FB,
-                    provider_user_id=user_id)
+                        provider_user_id=user_id)
         db.session.add(new_user)
         db.session.commit()
         connection = Connection(user_id=new_user.id, provider_id=FB, provider_user_id=user_id,
@@ -361,8 +340,8 @@ def vkontakte_login():
     if user has existed then just return {error_code: 0, user_id: <user_id>, access_token: <token>}
     """
     # if current_user.is_authenticated():
-    #     return jsonify({'error_code': 0, 'result': "already authorized",
-    #                       'access_token': current_user.get_auth_token()})
+    # return jsonify({'error_code': 0, 'result': "already authorized",
+    # 'access_token': current_user.get_auth_token()})
     callback_url = url_for('.vkontakte_authorized', _external=True)
     return vkontakte.authorize(callback=callback_url)
 
@@ -397,7 +376,7 @@ def vkontakte_authorized():
         # create New User
         update_time = datetime.utcnow()
         new_user = User(last_login_at=update_time, registered_on=update_time, provider_id=VK,
-                    provider_user_id=user_id)
+                        provider_user_id=user_id)
         db.session.add(new_user)
         db.session.commit()
         connection = Connection(user_id=new_user.id, provider_id=VK, provider_user_id=int(user_id),
@@ -408,6 +387,35 @@ def vkontakte_authorized():
             return jsonify({'error_code': OK, 'user_id': new_user.id, 'access_token': new_user.get_auth_token()})
         else:
             return jsonify({'error_code': BAD_REQUEST, 'result': 'Cant Login user via VK.com'}), 200
+
+
+@auto.doc()
+@mod.route('/top/')
+def get_top():
+    """
+    :return: 5 best:
+    - chefs,
+    - seminars,
+    - recipes.
+    """
+    PLACES_IN_TOP = 5
+    information = {}
+    chefs = Chef.query.limit(PLACES_IN_TOP).all()
+    information['chefs'] = []
+    for chef in chefs:
+        information['chefs'].append(response_builder(chef, Chef))
+
+    recipes = Recipe.query.order_by(Recipe.num_likes.desc()).limit(PLACES_IN_TOP).all()
+    information['recipes'] = []
+    for recipe in recipes:
+        information['recipes'].append(response_builder(recipe, Recipe))
+
+    seminars = SchoolEvent.query.order_by(SchoolEvent.date.desc()).limit(5).all()
+    information['seminars'] = []
+    for seminar in seminars:
+        information['seminars'].append(response_builder(seminar, SchoolEvent))
+
+    return jsonify({'error_code': OK, 'result': information})
 
 
 ################

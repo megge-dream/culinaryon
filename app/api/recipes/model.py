@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from app.api import db
 from app.api.categories.model import Category
@@ -78,3 +79,14 @@ class Recipe(db.Model):
 
     def __unicode__(self):
         return unicode(self.title) or u''
+
+    @hybrid_property
+    def num_likes(self):
+        return len(self.likes)
+
+    @num_likes.expression
+    def _num_likes_expression(cls):
+        return (db.select([db.func.count(Like.id).label("num_likes")])
+                .where(Like.recipe_id == cls.id)
+                .label("total_likes")
+                )
