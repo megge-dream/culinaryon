@@ -65,7 +65,11 @@ def response_builder(current_object, entity, excluded=[]):
                         result[columnName] = url_for('static', _scheme='http', _external=True,
                                                      filename='/' + str(getattr(current_object, columnName)))
                 else:
-                    result[columnName] = getattr(current_object, columnName) if getattr(current_object,
+                    if columnName == "id" and entity == User:
+                        result["user_id"] = getattr(current_object, columnName) if getattr(current_object,
+                                                                                        columnName) is not None else ''
+                    else:
+                        result[columnName] = getattr(current_object, columnName) if getattr(current_object,
                                                                                         columnName) is not None else ''
     return result
 
