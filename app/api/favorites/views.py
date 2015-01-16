@@ -27,12 +27,14 @@ def new_favorite():
             result - information about created favorite
     """
     user_id = request.json.get('user_id')
+    recipe_id = request.json.get('recipe_id')
+    if user_id is None or recipe_id is None:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
     if current_user.id == user_id:
-        recipe_id = request.json.get('recipe_id')
-        if user_id is None or recipe_id is None:
-            return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
-        favorite = Favorite(user_id=user_id, recipe_id=recipe_id)
-        db.session.add(favorite)
+        favorite = Favorite.query.filter_by(recipe_id=recipe_id, user_id=user_id).first()
+        if not favorite:
+            favorite = Favorite(user_id=user_id, recipe_id=recipe_id)
+            db.session.add(favorite)
         db.session.commit()
         information = response_builder(favorite, Favorite)
         return jsonify({'error_code': OK, 'result': information}), 201
