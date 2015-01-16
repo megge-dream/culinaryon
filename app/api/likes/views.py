@@ -23,25 +23,29 @@ def new_like():
             {"user_id":3, "recipe_id":2}
     :return: json with parameters:
             error_code - server response_code
+            amount - new amount of likes for recipes with recipe_id
             result - information about created like
     """
     user_id = request.json.get('user_id')
+    recipe_id = request.json.get('recipe_id')
+    if user_id is None or recipe_id is None:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
     if current_user.id == user_id:
-        recipe_id = request.json.get('recipe_id')
-        if user_id is None or recipe_id is None:
-            return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
-        like = Like(user_id=user_id, recipe_id=recipe_id)
-        db.session.add(like)
+        like = Like.query.filter_by(recipe_id=recipe_id, user_id=user_id).first()
+        if like:
+            db.session.delete(like)
+        else:
+            like = Like(user_id=user_id, recipe_id=recipe_id)
+            db.session.add(like)
         db.session.commit()
-        information = response_builder(like, Like)
-        return jsonify({'error_code': OK, 'result': information}), 201
+        amount = Like.query.filter_by(recipe_id=recipe_id).count()
+        return jsonify({'error_code': OK, 'amount': amount}), 200
     else:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
 
 
 @auto.doc()
 @mod.route('/<int:id>', methods=['GET'])
-@login_required
 def get_likes(id):
     """
     Get likes for recipe.
@@ -65,7 +69,7 @@ def get_likes(id):
 def delete_like(id):
     """
     Delete like.
-    :param id: favorite id
+    :param id: like id
     :return: json with parameters:
             error_code - server response_code
     """

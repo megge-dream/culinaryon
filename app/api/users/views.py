@@ -9,9 +9,11 @@ from flask.ext.login import current_user, login_user
 from sqlalchemy import and_, desc
 
 from app.api import facebook, vkontakte, mail
+from app.api.chefs.views import chef_response_builder
 from app.api.constants import BAD_REQUEST, OK
 from app.api import auto, twitter
 from app.api.helpers import *
+from app.api.recipes.views import recipe_response_builder
 from app.api.users.constants import TW, FB, VK
 from app.api.users.model import *
 from app.decorators import admin_required
@@ -191,7 +193,7 @@ def pure_login():
     if not user:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'No user with such email'}), 200
     if user.check_password(password):
-        return jsonify({'error_code': OK, 'user_id': user.id, 'access_token': user.get_auth_token()})
+        return jsonify({'error_code': OK, 'user': response_builder(user, User), 'access_token': user.get_auth_token()})
     else:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'Wrong password'})
 
@@ -403,14 +405,12 @@ def get_top():
     chefs = Chef.query.limit(PLACES_IN_TOP).all()
     information['chefs'] = []
     for chef in chefs:
-        information['chefs'].append(response_builder(chef, Chef))
+        information['chefs'].append(chef_response_builder(chef))
 
     recipes = Recipe.query.order_by(Recipe.num_likes.desc()).limit(PLACES_IN_TOP).all()
     information['recipes'] = []
     for recipe in recipes:
-        recipe_information = response_builder(recipe, Recipe)
-        recipe_information['likes'] = Like.query.filter_by(recipe_id=recipe.id).count()
-        information['recipes'].append(recipe_information)
+        information['recipes'].append(recipe_response_builder(recipe))
 
     seminars = SchoolEvent.query.order_by(SchoolEvent.date.desc()).limit(5).all()
     information['seminars'] = []
