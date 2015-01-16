@@ -397,7 +397,7 @@ def get_top():
     """
     :return: 5 best:
     - chefs,
-    - seminars,
+    - seminars, 
     - recipes.
     """
     PLACES_IN_TOP = 5
