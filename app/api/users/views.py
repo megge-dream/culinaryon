@@ -239,7 +239,7 @@ def twitter_authorized():
                                             access_token=oauth_token, creation_date=update_time)
                     db.session.add(connection)
                     db.session.commit()
-                    return jsonify({'error_code': OK, 'user_id': user.id, 'access_token': user.get_auth_token()})
+                    return jsonify({'error_code': OK, 'user': response_builder(user, User), 'access_token': user.get_auth_token()})
                 else:
                     return jsonify({'error_code': BAD_REQUEST, 'result': 'Cant Login user'}), 200
             else:
@@ -255,7 +255,7 @@ def twitter_authorized():
                 db.session.add(connection)
                 db.session.commit()
                 if login_user(new_user):
-                    return jsonify({'error_code': OK, 'user_id': new_user.id,
+                    return jsonify({'error_code': OK, 'user': response_builder(new_user, User),
                                     'access_token': new_user.get_auth_token()})
                 else:
                     return jsonify({'error_code': BAD_REQUEST, 'result': 'Cant Login user via twitter'}), 200
@@ -306,7 +306,7 @@ def facebook_authorized():
                                     access_token=str(oauth_token), creation_date=update_time)
             db.session.add(connection)
             db.session.commit()
-            return jsonify({'error_code': OK, 'user_id': user.id, 'access_token': user.get_auth_token()})
+            return jsonify({'error_code': OK, 'user': response_builder(user, User), 'access_token': user.get_auth_token()})
         else:
             return jsonify({'error_code': BAD_REQUEST, 'result': 'Cant Login user via facebook'}), 200
     else:
@@ -321,7 +321,7 @@ def facebook_authorized():
         db.session.add(connection)
         db.session.commit()
         if login_user(new_user):
-            return jsonify({'error_code': OK, 'user_id': new_user.id, 'access_token': new_user.get_auth_token()})
+            return jsonify({'error_code': OK, 'user': response_builder(new_user, User), 'access_token': new_user.get_auth_token()})
         else:
             return jsonify({'error_code': BAD_REQUEST, 'result': 'Cant Login user via fb'}), 200
 
@@ -371,7 +371,7 @@ def vkontakte_authorized():
                                     access_token=oauth_token[0], expire_in=expires_in, creation_date=update_time)
             db.session.add(connection)
             db.session.commit()
-            return jsonify({'error_code': OK, 'user_id': user.id, 'access_token': user.get_auth_token()})
+            return jsonify({'error_code': OK, 'user': response_builder(user, User), 'access_token': user.get_auth_token()})
         else:
             return jsonify({'error_code': BAD_REQUEST, 'result': 'Cant Login user via VK.com'}), 200
     else:
@@ -386,7 +386,7 @@ def vkontakte_authorized():
         db.session.add(connection)
         db.session.commit()
         if login_user(new_user):
-            return jsonify({'error_code': OK, 'user_id': new_user.id, 'access_token': new_user.get_auth_token()})
+            return jsonify({'error_code': OK, 'user': response_builder(new_user, User), 'access_token': new_user.get_auth_token()})
         else:
             return jsonify({'error_code': BAD_REQUEST, 'result': 'Cant Login user via VK.com'}), 200
 

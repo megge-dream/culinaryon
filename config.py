@@ -9,7 +9,7 @@ ADMINS = frozenset(['ff.warprobot@gmail.com'])
 SECRET_KEY = 'This string will be replaced with a proper key in production.'
 #SERVER_NAME = '127.0.0.1:5000'
 
-SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(_basedir, 'app.db')
+SQLALCHEMY_DATABASE_URI = 'sqlite:////Users/megge/Documents/culinaryon/instance/app.sqlite'
 SQLALCHEMY_ECHO = True
 DATABASE_CONNECT_OPTIONS = {}
 
@@ -44,10 +44,10 @@ make_dir(INSTRUCTION_ITEMS_UPLOAD)
 # Dont forget to set to True in production
 WTF_CSRF_ENABLED = False
 
-MAIL_SERVER = 'smtp.gmail.com'
-MAIL_PORT = 465
+MAIL_SERVER='smtp.gmail.com'
+MAIL_PORT=465
 MAIL_USE_TLS = False
-MAIL_USE_SSL = True
-MAIL_USERNAME = ''
-MAIL_PASSWORD = ''
+MAIL_USE_SSL= True
+MAIL_USERNAME = 'm.g.zubareva@gmail.com'
+MAIL_PASSWORD = 'maxspntvd8'
 
