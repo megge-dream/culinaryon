@@ -133,3 +133,39 @@ def delete_school_event(id):
     db.session.delete(school_event)
     db.session.commit()
     return jsonify({'error_code': OK}), 200
+
+
+@auto.doc()
+@mod.route('/add_for_me/<int:event_id>')
+@login_required
+def add_school_event_for_user(event_id):
+    """
+    Add school event for current user.
+    :param event_id: event id
+    :return: json with parameters:
+            error_code - server response_code
+    """
+    school_event = SchoolEvent.query.get(event_id)
+    if not school_event:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # school_event with `id` isn't exist
+    current_user.school_events.append(school_event)
+    db.session.commit()
+    return jsonify({'error_code': OK}), 200
+
+
+@auto.doc()
+@mod.route('/delete_for_me/<int:event_id>')
+@login_required
+def delete_school_event_for_user(event_id):
+    """
+    Delete school event for current user.
+    :param event_id: event id
+    :return: json with parameters:
+            error_code - server response_code
+    """
+    school_event = SchoolEvent.query.get(event_id)
+    if not school_event:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # school_event with `id` isn't exist
+    current_user.school_events.remove(school_event)
+    db.session.commit()
+    return jsonify({'error_code': OK}), 200

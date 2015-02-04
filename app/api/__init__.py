@@ -380,6 +380,10 @@ class InstructionItemModelViewWithUpload(ModelView):
     }
 
 
+class SchoolEventModelView(ModelView):
+    column_display_all_relations = True
+
+
 class MyUserAdmin(ModelView):
     column_exclude_list = ('_password',)
     form_edit_rules = ('role_code',)
@@ -429,7 +433,7 @@ admin.add_view(SchoolModelViewWithRelationships(School, db.session))
 admin.add_view(SchoolItemModelViewWithUpload(SchoolItem, db.session))
 admin.add_view(ToolModelViewWithUpload(Tool, db.session))
 admin.add_view(ModelView(Wine, db.session))
-admin.add_view(ModelView(SchoolEvent, db.session))
+admin.add_view(SchoolEventModelView(SchoolEvent, db.session))
 admin.add_view(LogoutView(name='Logout'))
 
 # #######################

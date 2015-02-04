@@ -13,6 +13,11 @@ from app.api.users.constants import USER, USER_ROLE, ADMIN, ACTIVE, USER_STATUS,
 from config import SECRET_KEY
 
 
+users_schoolEvents = db.Table('users_schoolEvents',
+                              db.Column('user_id', db.Integer(), db.ForeignKey('users.id')),
+                              db.Column('school_event_id', db.Integer(), db.ForeignKey('schoolEvents.id')))
+
+
 class Connection(db.Model):
     """
     Need to add Table Structure
@@ -118,6 +123,9 @@ class User(db.Model, UserMixin):
     favorites_recipes = db.relationship(Favorite, backref='users', lazy='select')
     connections = db.relationship(Connection, backref='users', lazy='select')
     baskets = db.relationship(Basket, backref='users', lazy='select')
+
+    school_events = db.relationship(SchoolEvent, secondary=users_schoolEvents,
+                                    backref=db.backref('users', lazy='select'))
 
     def __unicode__(self):
         return self.email or unicode(self.id)

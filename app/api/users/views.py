@@ -126,6 +126,17 @@ def get_user(id):
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
     print(user)
     information = response_builder(user, User, excluded=['password'])
+
+    school_events = []
+    for school_event in user.school_events:
+        school_events.append(school_event.id)
+    information['school_events'] = []
+    if school_events is not None:
+        for school_event_id in school_events:
+            school_event = SchoolEvent.query.get(school_event_id)
+            school_event_information = response_builder(school_event, SchoolEvent)
+            information["school_events"].append(school_event_information)
+
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
