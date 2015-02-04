@@ -187,6 +187,27 @@ def send_mail(chef_id):
 
 
 @auto.doc()
+@mod.route('/send_report/', methods=['POST'])
+@login_required
+def send_report():
+    """
+    Send report to admin. List of parameters in json request:
+            message_body (required)
+    Example of request:
+            {"message_body":"good"}
+    :return: json with parameters:
+            error_code - server response_code
+    """
+    message_body = request.json.get('message_body')
+    if message_body is None:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
+    report = Report(user_id=current_user.id, message_body=message_body)
+    db.session.add(report)
+    db.session.commit()
+    return jsonify({'error_code': OK}), 200
+
+
+@auto.doc()
 @mod.route('/login', methods=['POST'])
 def pure_login():
     """

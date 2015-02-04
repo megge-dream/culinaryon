@@ -33,6 +33,18 @@ class Connection(db.Model):
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
 
+class Report(db.Model):
+    """
+    Need to add Table Structure
+    """
+    __tablename__ = "reports"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    message_body = db.Column(db.Text)
+    creation_date = db.Column(db.DateTime, default=datetime.utcnow())
+
+
 class User(db.Model, UserMixin):
     """
     Need to add Table Structure
@@ -126,6 +138,7 @@ class User(db.Model, UserMixin):
 
     school_events = db.relationship(SchoolEvent, secondary=users_schoolEvents,
                                     backref=db.backref('users', lazy='select'))
+    reports = db.relationship(Report, backref='users', lazy='select')
 
     def __unicode__(self):
         return self.email or unicode(self.id)
