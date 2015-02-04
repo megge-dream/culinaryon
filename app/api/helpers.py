@@ -1,6 +1,7 @@
 # import app
 import copy
-from app.api import app
+from flask.ext.login import current_user, AnonymousUserMixin
+from app.api import app, Ingredient, Basket
 from app.api.chefs.model import Chef
 from app.api.recipes.model import Recipe, InstructionItem
 from app.api.schools.model import School, SchoolItem
@@ -21,6 +22,12 @@ def response_builder(current_object, entity, excluded=[]):
     excluded.append('is_deleted')
     for columnName in entity.__table__.columns.keys():
         if columnName not in excluded:
+            if entity == Ingredient:
+                if current_user.is_authenticated() and Basket.query.filter_by(user_id=current_user.id,
+                                                                              ingredient_id=current_object.id).all():
+                        result['is_in_basket'] = True
+                else:
+                    result['is_in_basket'] = False
             if "recipe" in columnName:
                 recipe_id = getattr(current_object, columnName)
                 if recipe_id is not None:
