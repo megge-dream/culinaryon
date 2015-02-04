@@ -360,9 +360,18 @@ class InstructionItemModelViewWithUpload(ModelView):
             return ''
         return Markup('<img src="%s">' % url_for('static', filename='instruction_items/' + model.photo))
 
+    def time_sec_to_min(view, context, model, name):
+        time_sec = model.time % 60
+        if time_sec < 10:
+            time_sec = "0" + str(time_sec)
+        time_min = model.time / 60
+        time = str(time_min) + ":" + str(time_sec)
+        return time
+
     can_create = True
     column_formatters = {
         "photo": _list_thumbnail,
+        "time": time_sec_to_min,
     }
 
     form_extra_fields = {
