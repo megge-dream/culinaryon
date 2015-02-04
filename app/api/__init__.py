@@ -111,7 +111,7 @@ class LogoutView(BaseView):
 admin = Admin(app, index_view=MyAdminIndexView())
 
 from app.api.chefs.model import Chef
-from app.api.users.model import User
+from app.api.users.model import User, Report
 from app.api.basket.model import Basket
 from app.api.categories.model import Category
 from app.api.cuisine_types.model import CuisineType
@@ -434,6 +434,7 @@ admin.add_view(SchoolItemModelViewWithUpload(SchoolItem, db.session))
 admin.add_view(ToolModelViewWithUpload(Tool, db.session))
 admin.add_view(ModelView(Wine, db.session))
 admin.add_view(SchoolEventModelView(SchoolEvent, db.session))
+admin.add_view(ModelView(Report, db.session))
 admin.add_view(LogoutView(name='Logout'))
 
 # #######################
