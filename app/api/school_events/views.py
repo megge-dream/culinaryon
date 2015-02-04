@@ -169,3 +169,25 @@ def delete_school_event_for_user(event_id):
     current_user.school_events.remove(school_event)
     db.session.commit()
     return jsonify({'error_code': OK}), 200
+
+
+@auto.doc()
+@mod.route('/get_for_me/')
+@login_required
+def get_school_events_for_user():
+    """
+    Get school events for current user.
+    :return: json with parameters:
+            error_code - server response_code
+            result - information about school events
+    """
+    school_events = []
+    for school_event in current_user.school_events:
+        school_events.append(school_event.id)
+    information = []
+    if school_events is not None:
+        for school_event_id in school_events:
+            school_event = SchoolEvent.query.get(school_event_id)
+            school_event_information = response_builder(school_event, SchoolEvent)
+            information.append(school_event_information)
+    return jsonify({'error_code': OK, 'result': information}), 200
