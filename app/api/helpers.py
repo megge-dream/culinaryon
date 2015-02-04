@@ -134,7 +134,7 @@ def get_ingredients_by_divisions(recipe_id):
         information = response_builder(ingredient, Ingredient, excluded=["recipe_id"])
         if ":" in ingredient.title:
             division_info = {}
-            division_name = str(ingredient.title).split(':')[0]
+            division_name = ingredient.title.split(':')[0]
             if division_name in division_names:
                 for d in division:
                     if d['name'] == division_name:
