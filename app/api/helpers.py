@@ -1,4 +1,5 @@
 # import app
+# encoding: utf-8
 import copy
 from flask.ext.login import current_user, AnonymousUserMixin
 from app.api import app, Ingredient, Basket
@@ -75,8 +76,8 @@ def response_builder(current_object, entity, excluded=[]):
                     if columnName == "id" and entity == User:
                         result["user_id"] = getattr(current_object, columnName) if getattr(current_object,
                                                                                         columnName) is not None else ''
-                    elif entity == Ingredient and "title" == columnName and ":" in str(getattr(current_object, columnName)):
-                        result[columnName] = str(getattr(current_object, columnName)).split(':')[1][1:]
+                    elif entity == Ingredient and "title" == columnName and ":" in getattr(current_object, columnName):
+                        result[columnName] = getattr(current_object, columnName).split(':')[1][1:]
                     else:
                         result[columnName] = getattr(current_object, columnName) if getattr(current_object,
                                                                                         columnName) is not None else ''
