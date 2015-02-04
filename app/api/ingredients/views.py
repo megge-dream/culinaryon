@@ -138,8 +138,5 @@ def get_recipe_ingredients(id):
             error_code - server response_code
             result - information about ingredients
     """
-    ingredients = []
-    for ingredient in Ingredient.query.filter_by(recipe_id=id):
-        information = response_builder(ingredient, Ingredient, excluded=["recipe_id"])
-        ingredients.append(information)
+    ingredients = get_ingredients_by_divisions(id)
     return jsonify({'error_code': OK, 'result': ingredients}), 200

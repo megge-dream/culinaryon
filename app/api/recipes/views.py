@@ -136,6 +136,7 @@ def get_recipe(id):
     if not recipe:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # recipe with `id` isn't exist
     information = recipe_response_builder(recipe)
+    information['ingredients'] = get_ingredients_by_divisions(id)
     hash_of_information = make_hash(information)
     information['hash'] = hash_of_information
     return jsonify({'error_code': OK, 'result': information}), 200

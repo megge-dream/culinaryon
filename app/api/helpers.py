@@ -75,6 +75,8 @@ def response_builder(current_object, entity, excluded=[]):
                     if columnName == "id" and entity == User:
                         result["user_id"] = getattr(current_object, columnName) if getattr(current_object,
                                                                                         columnName) is not None else ''
+                    elif entity == Ingredient and "title" == columnName and ":" in str(getattr(current_object, columnName)):
+                        result[columnName] = str(getattr(current_object, columnName)).split(':')[1][1:]
                     else:
                         result[columnName] = getattr(current_object, columnName) if getattr(current_object,
                                                                                         columnName) is not None else ''
@@ -121,3 +123,29 @@ def make_hash(o):
     for k, v in new_o.items():
         new_o[k] = make_hash(v)
     return hash(tuple(frozenset(sorted(new_o.items()))))
+
+
+def get_ingredients_by_divisions(recipe_id):
+    ingredients = []
+    division = []
+    division_names = []
+    for ingredient in Ingredient.query.filter_by(recipe_id=recipe_id):
+        information = response_builder(ingredient, Ingredient, excluded=["recipe_id"])
+        if ":" in ingredient.title:
+            division_info = {}
+            division_name = str(ingredient.title).split(':')[0]
+            if division_name in division_names:
+                for d in division:
+                    if d['name'] == division_name:
+                        d['ingredients'].append(information)
+            else:
+                division_names.append(division_name)
+                division_info['ingredients'] = []
+                division_info['ingredients'].append(information)
+                division_info['name'] = division_name
+                division.append(division_info)
+        else:
+            ingredients.append(information)
+    for d in division:
+        ingredients.append(d)
+    return ingredients
