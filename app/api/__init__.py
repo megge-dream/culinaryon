@@ -52,16 +52,16 @@ twitter = oauth.remote_app(
     authorize_url='https://api.twitter.com/oauth/authorize',
 )
 
-facebook = oauth.remote_app(
-    'facebook',
-    consumer_key='488630447945634',
-    consumer_secret='2bcd79a9f0f788aa70b832ea15e1e8fc',
-    request_token_params={'scope': 'email'},
-    base_url='https://graph.facebook.com',
-    request_token_url=None,
-    access_token_url='/oauth/access_token',
-    authorize_url='https://www.facebook.com/dialog/oauth'
-)
+# facebook = oauth.remote_app(
+#     'facebook',
+#     consumer_key='488630447945634',
+#     consumer_secret='2bcd79a9f0f788aa70b832ea15e1e8fc',
+#     request_token_params={'scope': 'email'},
+#     base_url='https://graph.facebook.com',
+#     request_token_url=None,
+#     access_token_url='/oauth/access_token',
+#     authorize_url='https://www.facebook.com/dialog/oauth'
+# )
 
 vkontakte = oauth.remote_app(
     'vkontakte',
