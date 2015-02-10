@@ -29,7 +29,10 @@ def response_builder(current_object, entity, excluded=[]):
                         result['is_in_basket'] = True
                 else:
                     result['is_in_basket'] = False
-            if "recipe" in columnName:
+            if "complexity" == columnName:
+                result[columnName] = getattr(current_object, columnName) if getattr(current_object,
+                                                                                    columnName) is not None else 0
+            elif "recipe" in columnName:
                 recipe_id = getattr(current_object, columnName)
                 if recipe_id is not None:
                     result["recipe"] = response_builder(Recipe.query.get(recipe_id), Recipe)
