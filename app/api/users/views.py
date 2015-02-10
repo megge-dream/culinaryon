@@ -1,14 +1,13 @@
 import cgi
 
-from flask import session
 from flask.ext.login import login_required
 from flask_mail import Message
 from flask.ext.oauthlib.client import OAuthException
 from flask import request, jsonify, Blueprint
-from flask.ext.login import current_user, login_user
-from sqlalchemy import and_, desc
+from flask.ext.login import login_user
+from sqlalchemy import and_
 
-from app.api import facebook, vkontakte, mail
+from app.api import vkontakte, mail
 from app.api.chefs.views import chef_response_builder
 from app.api.constants import BAD_REQUEST, OK
 from app.api import auto, twitter
@@ -271,7 +270,8 @@ def twitter_authorized():
                                             access_token=oauth_token, creation_date=update_time)
                     db.session.add(connection)
                     db.session.commit()
-                    return jsonify({'error_code': OK, 'user': response_builder(user, User), 'access_token': user.get_auth_token()})
+                    return jsonify({'error_code': OK, 'user': response_builder(user, User),
+                                    'access_token': user.get_auth_token()})
                 else:
                     return jsonify({'error_code': BAD_REQUEST, 'result': 'Cant Login user'}), 200
             else:
@@ -297,70 +297,60 @@ def twitter_authorized():
 
 
 @auto.doc()
-@mod.route('/login/facebook')
+@mod.route('/login/facebook', methods=['POST'])
 def facebook_login():
     """
-    Auth through the Facebook. Need to open webView
+    Authorization through Facebook SDK.
+    If a user's successfully logged on Facebook (via SDK), get user's facebook account information:
+    `email`, `first_name`, `last_name` and facebook `user_id`.
 
     :return: if something went wrong, return `error_code` <> 0,
     if new user created and login, then return {error_code: 0, result: <user info>, access_token: <token>}
     if user has existed then just return {error_code: 0, user_id: <user_id>, access_token: <token>}
     """
-    # if current_user.is_authenticated():
-    # return jsonify({'error_code': 0, 'result': "already authorized",
-    # 'access_token': current_user.get_auth_token()})
+    facebook_user_id = request.json.get('user_id')
+    email = request.json.get('email')
+    first_name = request.json.get('first_name')
+    last_name = request.json.get('last_name')
+    if email is None or facebook_user_id is None or first_name is None or last_name is None:
+        return jsonify({'error_code': BAD_REQUEST,
+                        'result': 'Missed arguments.'
+                                  'You should provide facebook `user_id`, `first_name`,'
+                                  '`last_name` and `email`'}), 200  # missing arguments
 
-    callback_url = url_for('.facebook_authorized', _external=True)
-    return facebook.authorize(callback=callback_url)
-
-
-@mod.route('/login/facebook/authorized')
-def facebook_authorized():
-    resp = facebook.authorized_response()
-    if resp is None:
-        return jsonify({'error_code': BAD_REQUEST, 'result': request.args['error_reason']})
-    if isinstance(resp, OAuthException):
-        return jsonify({'error_code': BAD_REQUEST, 'result': resp.message})
-
-    oauth_token = (resp['access_token'], '')
-    session['oauth_token'] = oauth_token
-    me = facebook.get('/me')
-
-    user_id = me.data['id']
-    user = user_exist(provider_user_id=user_id, provider_id=FB)
+    user = user_exist(provider_user_id=facebook_user_id, provider_id=FB)
     if user:
-        # user exist
-        # try to login
+        # User exists
         update_time = datetime.utcnow()
         user.last_login_at = update_time
         if login_user(user):
-            connection = Connection(user_id=user.id, provider_id=FB, provider_user_id=user_id,
-                                    access_token=str(oauth_token), creation_date=update_time)
+            connection = Connection(user_id=user.id, provider_id=FB, provider_user_id=facebook_user_id,
+                                    access_token="", creation_date=update_time)
             db.session.add(connection)
+            user.first_name = first_name
+            user.last_name = last_name
+            user.email = email
             db.session.commit()
-            return jsonify({'error_code': OK, 'user': response_builder(user, User), 'access_token': user.get_auth_token()})
+            return jsonify({'error_code': OK, 'user': response_builder(user, User),
+                            'access_token': user.get_auth_token()})
         else:
-            return jsonify({'error_code': BAD_REQUEST, 'result': 'Cant Login user via facebook'}), 200
+            return jsonify({'error_code': BAD_REQUEST, 'result': 'Something went wrong'}), 200
     else:
         # create New User
         update_time = datetime.utcnow()
         new_user = User(last_login_at=update_time, registered_on=update_time, provider_id=FB,
-                        provider_user_id=user_id)
+                        provider_user_id=facebook_user_id, first_name=first_name, last_name=last_name, email=email)
         db.session.add(new_user)
         db.session.commit()
-        connection = Connection(user_id=new_user.id, provider_id=FB, provider_user_id=user_id,
-                                access_token=oauth_token, creation_date=update_time)
+        connection = Connection(user_id=new_user.id, provider_id=FB, provider_user_id=facebook_user_id,
+                                access_token="", creation_date=update_time)
         db.session.add(connection)
         db.session.commit()
         if login_user(new_user):
-            return jsonify({'error_code': OK, 'user': response_builder(new_user, User), 'access_token': new_user.get_auth_token()})
+            return jsonify({'error_code': OK, 'user': response_builder(new_user, User),
+                            'access_token': new_user.get_auth_token()})
         else:
             return jsonify({'error_code': BAD_REQUEST, 'result': 'Cant Login user via fb'}), 200
-
-
-@facebook.tokengetter
-def get_facebook_oauth_token():
-    return session.get('oauth_token')
 
 
 @auto.doc()
@@ -403,7 +393,8 @@ def vkontakte_authorized():
                                     access_token=oauth_token[0], expire_in=expires_in, creation_date=update_time)
             db.session.add(connection)
             db.session.commit()
-            return jsonify({'error_code': OK, 'user': response_builder(user, User), 'access_token': user.get_auth_token()})
+            return jsonify(
+                {'error_code': OK, 'user': response_builder(user, User), 'access_token': user.get_auth_token()})
         else:
             return jsonify({'error_code': BAD_REQUEST, 'result': 'Cant Login user via VK.com'}), 200
     else:
@@ -418,7 +409,8 @@ def vkontakte_authorized():
         db.session.add(connection)
         db.session.commit()
         if login_user(new_user):
-            return jsonify({'error_code': OK, 'user': response_builder(new_user, User), 'access_token': new_user.get_auth_token()})
+            return jsonify({'error_code': OK, 'user': response_builder(new_user, User),
+                            'access_token': new_user.get_auth_token()})
         else:
             return jsonify({'error_code': BAD_REQUEST, 'result': 'Cant Login user via VK.com'}), 200
 
