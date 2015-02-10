@@ -327,6 +327,9 @@ def facebook_login():
             connection = Connection(user_id=user.id, provider_id=FB, provider_user_id=facebook_user_id,
                                     access_token="", creation_date=update_time)
             db.session.add(connection)
+            user.first_name = first_name
+            user.last_name = last_name
+            user.email = email
             db.session.commit()
             return jsonify({'error_code': OK, 'user': response_builder(user, User),
                             'access_token': user.get_auth_token()})
@@ -336,7 +339,7 @@ def facebook_login():
         # create New User
         update_time = datetime.utcnow()
         new_user = User(last_login_at=update_time, registered_on=update_time, provider_id=FB,
-                        provider_user_id=facebook_user_id)
+                        provider_user_id=facebook_user_id, first_name=first_name, last_name=last_name, email=email)
         db.session.add(new_user)
         db.session.commit()
         connection = Connection(user_id=new_user.id, provider_id=FB, provider_user_id=facebook_user_id,
