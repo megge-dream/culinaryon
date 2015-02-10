@@ -64,21 +64,18 @@ def get_likes(id):
 
 
 @auto.doc()
-@mod.route('/<int:id>', methods=['DELETE'])
+@mod.route('/<int:recipe_id>', methods=['DELETE'])
 @login_required
-def delete_like(id):
+def delete_like(recipe_id):
     """
-    Delete like.
-    :param id: like id
+    Delete like for recipe from current user.
+    :param recipe_id: recipe id
     :return: json with parameters:
             error_code - server response_code
     """
-    like = Like.query.get(id)
+    like = Like.query.filter_by(user_id=current_user.id, recipe_id=recipe_id).first()
     if not like:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # like with `id` isn't exist
-    if current_user.id == like.user_id:
-        db.session.delete(like)
-        db.session.commit()
-        return jsonify({'error_code': OK}), 200
-    else:
-        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
+    db.session.delete(like)
+    db.session.commit()
+    return jsonify({'error_code': OK}), 200

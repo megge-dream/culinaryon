@@ -14,7 +14,7 @@ mod = Blueprint('favorites', __name__, url_prefix='/api/favorites')
 
 @auto.doc()
 @mod.route('/', methods=['POST'])
-# @login_required
+@login_required
 def new_favorite():
     """
     Add new favorite. List of parameters in json request:
@@ -30,8 +30,8 @@ def new_favorite():
     recipe_id = request.json.get('recipe_id')
     if user_id is None or recipe_id is None:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
-    # if current_user.id == user_id:
-    if True:
+    if current_user.id == user_id:
+    # if True:
         favorite = Favorite.query.filter_by(recipe_id=recipe_id, user_id=user_id).first()
         if not favorite:
             favorite = Favorite(user_id=user_id, recipe_id=recipe_id)
@@ -78,21 +78,18 @@ def get_favorite():
 
 
 @auto.doc()
-@mod.route('/<int:id>', methods=['DELETE'])
+@mod.route('/<int:recipe_id>', methods=['DELETE'])
 @login_required
-def delete_favorite(id):
+def delete_favorite(recipe_id):
     """
-    Delete favorite.
-    :param id: favorite id
+    Delete recipe from current user favorites.
+    :param recipe_id: recipe id
     :return: json with parameters:
             error_code - server response_code
     """
-    favorite = Favorite.query.get(id)
+    favorite = Favorite.query.filter_by(user_id=current_user.id, recipe_id=recipe_id).first()
     if not favorite:
-        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # favorite with `id` isn't exist
-    if current_user.id == favorite.user_id:
-        db.session.delete(favorite)
-        db.session.commit()
-        return jsonify({'error_code': OK}), 200
-    else:
-        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # favorite isn't exist
+    db.session.delete(favorite)
+    db.session.commit()
+    return jsonify({'error_code': OK}), 200
