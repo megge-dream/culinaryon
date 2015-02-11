@@ -19,7 +19,7 @@ from markupsafe import Markup
 from sqlalchemy import String
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename, redirect
-from wtforms import SelectField, Form, ValidationError
+from wtforms import SelectField, Form, ValidationError, TextField
 from wtforms.validators import Optional
 from app.api.users.constants import USER_ROLE_SELECT, USER_STATUS_SELECT, PROVIDER_LIST_SELECT
 from app.decorators import admin_required
@@ -376,8 +376,15 @@ class InstructionItemModelViewWithUpload(ModelView):
 
     form_extra_fields = {
         'photo': ImageUploadField('Image', base_path=app.config['INSTRUCTION_ITEMS_UPLOAD'],
-                                  url_relative_path='instruction_items/')
+                                  url_relative_path='instruction_items/'),
+        'time': TextField('Time')
     }
+
+    def on_model_change(self, form, model, is_created):
+        time = model.time.split(':')
+        new_time = int(time[0]) * 60 + int(time[1])
+        model.time = new_time
+        return
 
 
 class SchoolEventModelView(ModelView):
