@@ -220,11 +220,40 @@ def get_chef_recipes(id):
     recipes = []
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
-    count = Recipe.query.count()
+    count = Recipe.query.filter_by(chef_id=id).count()
     if limit is not None and offset is not None:
         recipes_band = Recipe.query.filter_by(chef_id=id).slice(start=offset, stop=limit+offset).all()
     else:
         recipes_band = Recipe.query.filter_by(chef_id=id)
+    for recipe in recipes_band:
+        information = recipe_response_builder(recipe)
+        hash_of_information = make_hash(information)
+        information['hash'] = hash_of_information
+        recipes.append(information)
+    return jsonify({'error_code': OK, 'result': recipes, 'entities_count': count}), 200
+
+
+@auto.doc()
+@mod.route('/category/id=<int:id>', methods=['GET'])
+def get_category_recipes(id):
+    """
+    Get information about all recipes in category with special id.
+    :param id: category id
+    :param offset (GET param) : starts from which recipes
+    :param limit (GET param) : how many recipes you want to get
+    :return: json with parameters:
+            error_code - server response_code
+            result - information about recipes
+            entities_count - numbers of all chefs recipes
+    """
+    recipes = []
+    offset = request.args.get('offset', default=0, type=int)
+    limit = request.args.get('limit', type=int)
+    count = Recipe.query.join(Category.recipes).filter(Category.id == id).count()
+    if limit is not None and offset is not None:
+        recipes_band = Recipe.query.join(Category.recipes).filter(Category.id == id).slice(start=offset, stop=limit+offset).all()
+    else:
+        recipes_band = Recipe.query.join(Category.recipes).filter(Category.id == id).all()
     for recipe in recipes_band:
         information = recipe_response_builder(recipe)
         hash_of_information = make_hash(information)

@@ -13,7 +13,7 @@ from app.api.constants import BAD_REQUEST, OK
 from app.api import auto, twitter
 from app.api.helpers import *
 from app.api.recipes.views import recipe_response_builder
-from app.api.users.constants import TW, FB, VK
+from app.api.users.constants import TW, FB, VK, APP_MAIL
 from app.api.users.model import *
 from app.decorators import admin_required
 
@@ -175,11 +175,16 @@ def send_mail(chef_id):
     name = request.json.get('name')
     email_from = request.json.get('email')
     message_body = request.json.get('message_body')
-    if message_body is None:
+    if name is None or message_body is None or email_from is None:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
-    msg = Message('From app Culinaryon',
-                  sender=email_from,
-                  recipients=[Chef.query.get(chef_id).email])
+    if Chef.query.get(chef_id).email == "" or Chef.query.get(chef_id).email is None:
+        msg = Message('From app Culinaryon',
+                      sender=email_from,
+                      recipients=APP_MAIL)
+    else:
+        msg = Message('From app Culinaryon',
+                      sender=email_from,
+                      recipients=[Chef.query.get(chef_id).email])
     msg.body = "You receive a message from " + name + ": \n" + cgi.escape(message_body) + "\nResponse to " + email_from
     mail.send(msg)
     return jsonify({'error_code': OK}), 200
@@ -192,19 +197,48 @@ def send_report():
     """
     Send report to admin. List of parameters in json request:
             message_body (required)
+            email (required)
     Example of request:
-            {"message_body":"good"}
+            {"message_body":"good", "email":"ria6@yandex.ru"}
     :return: json with parameters:
             error_code - server response_code
     """
     message_body = request.json.get('message_body')
+    email_from = request.json.get('email')
     if message_body is None:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
     report = Report(user_id=current_user.id, message_body=message_body)
     db.session.add(report)
     db.session.commit()
+    msg = Message('From app Culinaryon',
+                  sender=email_from,
+                  recipients=[APP_MAIL])
+    msg.body = "Report from " + email_from + ": \n" + cgi.escape(message_body)
+    mail.send(msg)
     return jsonify({'error_code': OK}), 200
 
+
+@auto.doc()
+@mod.route('/forget/', methods=['POST'])
+def forget_password():
+    """
+    Send password in email to user. List of parameters in json request:
+            email (required)
+    Example of request:
+            {"email":"ria6@yandex.ru"}
+    :return: json with parameters:
+            error_code - server response_code
+    """
+    user_email = request.json.get('email')
+    if user_email is None or User.query.filter_by(email=user_email).all() is None:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
+    msg = Message('From app Culinaryon',
+                  sender=APP_MAIL,
+                  recipients=[user_email])
+    message_body = ""
+    msg.body = "Your password is " + cgi.escape(message_body)
+    mail.send(msg)
+    return jsonify({'error_code': OK}), 200
 
 @auto.doc()
 @mod.route('/login', methods=['POST'])

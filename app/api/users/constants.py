@@ -46,3 +46,5 @@ PROVIDER_LIST_SELECT = {
     (TW, 'twitter')
 
 }
+# Other
+APP_MAIL = "app@culinaryon.com"
