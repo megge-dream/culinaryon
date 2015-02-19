@@ -353,6 +353,24 @@ class SchoolItemModelViewWithUpload(ModelView):
     }
 
 
+class CategoryModelViewWithUpload(ModelView):
+
+    def _list_thumbnail(view, context, model, name):
+        if not model.photo:
+            return ''
+        return Markup('<img src="%s">' % url_for('static', filename='categories/' + model.photo))
+
+    can_create = True
+    column_formatters = {
+        "photo": _list_thumbnail,
+    }
+
+    form_extra_fields = {
+        'photo': ImageUploadField('Image', base_path=app.config['CATEGORY_UPLOAD'],
+                                  url_relative_path='categories/')
+    }
+
+
 class InstructionItemModelViewWithUpload(ModelView):
 
     def _list_thumbnail(view, context, model, name):
@@ -425,7 +443,7 @@ class MyUserAdmin(ModelView):
 admin.add_view(MyUserAdmin(User, db.session))
 admin.add_view(ChefModelViewWithUpload(Chef, db.session))
 admin.add_view(ModelView(Basket, db.session))
-admin.add_view(ModelView(Category, db.session))
+admin.add_view(CategoryModelViewWithUpload(Category, db.session))
 admin.add_view(ModelView(CuisineType, db.session))
 admin.add_view(ModelView(Dictionary, db.session))
 admin.add_view(ModelView(Favorite, db.session))

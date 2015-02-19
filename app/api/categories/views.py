@@ -19,6 +19,7 @@ def new_category():
     """
     Add new category. List of parameters in json request:
             title (required)
+            photo (optional)
     Example of request:
             {"title":"good"}
     :return: json with parameters:
@@ -26,9 +27,10 @@ def new_category():
             result - information about created category
     """
     title = request.json.get('title')
+    photo = request.json.get('photo')
     if title is None:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
-    category = Category(title=title)
+    category = Category(title=title, photo=photo)
     db.session.add(category)
     db.session.commit()
     information = response_builder(category, Category)
@@ -43,6 +45,7 @@ def update_category(id):
     """
     Update exists category. List of parameters in json request:
             title (optional)
+            photo (optional)
     Example of request:
             {"title":"good"}
     :param id: category id
@@ -55,6 +58,8 @@ def update_category(id):
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
     if request.json.get('title'):
         category.title = request.json.get('title')
+    if request.json.get('photo'):
+        category.photo = request.json.get('photo')
     db.session.commit()
     category = Category.query.get(id)
     information = response_builder(category, Category)

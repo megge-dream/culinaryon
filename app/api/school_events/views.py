@@ -24,6 +24,7 @@ def new_school_event():
             places_all (required)
             places_left (required)
             description (optional)
+            url (optional)
     :return: json with parameters:
             error_code - server response_code
             result - information about created school event
@@ -34,10 +35,11 @@ def new_school_event():
     places_all = request.json.get('school_id')
     places_left = request.json.get('school_id')
     description = request.json.get('description')
+    url = request.json.get('url')
     if school_id is None or date is None or price is None or places_all is None or places_left is None:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
     school_event = SchoolEvent(date=date, price=price, school_id=school_id, places_all=places_all,
-                               places_left=places_left, description=description)
+                               places_left=places_left, description=description, url=url)
     db.session.add(school_event)
     db.session.commit()
     information = response_builder(school_event, SchoolEvent)
@@ -57,6 +59,7 @@ def update_school_event(id):
             places_all (optional)
             places_left (optional)
             description (optional)
+            url (optional)
     :param id: school event id
     :return: json with parameters:
             error_code - server response_code
@@ -77,6 +80,8 @@ def update_school_event(id):
         school_event.places_all = request.json.get('places_all')
     if request.json.get('places_left'):
         school_event.places_left = request.json.get('places_left')
+    if request.json.get('url'):
+        school_event.url = request.json.get('url')
     db.session.commit()
     school_event = SchoolEvent.query.get(id)
     information = response_builder(school_event, SchoolEvent)

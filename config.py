@@ -31,6 +31,7 @@ SCHOOLS_UPLOAD = os.path.join(UPLOAD_FOLDER, 'schools')
 TOOLS_UPLOAD = os.path.join(UPLOAD_FOLDER, 'tools')
 SCHOOL_ITEMS_UPLOAD = os.path.join(UPLOAD_FOLDER, 'school_items')
 INSTRUCTION_ITEMS_UPLOAD = os.path.join(UPLOAD_FOLDER, 'instruction_items')
+CATEGORY_UPLOAD = os.path.join(UPLOAD_FOLDER, 'categories')
 
 # create folders if not exist
 make_dir(UPLOAD_FOLDER)
@@ -41,6 +42,7 @@ make_dir(TOOLS_UPLOAD)
 make_dir(CHEFS_UPLOAD)
 make_dir(SCHOOL_ITEMS_UPLOAD)
 make_dir(INSTRUCTION_ITEMS_UPLOAD)
+make_dir(CATEGORY_UPLOAD)
 # Dont forget to set to True in production
 WTF_CSRF_ENABLED = False
 
@@ -48,6 +50,6 @@ MAIL_SERVER='smtp.gmail.com'
 MAIL_PORT=465
 MAIL_USE_TLS = False
 MAIL_USE_SSL= True
-MAIL_USERNAME = ''
+MAIL_USERNAME = 'm.g.zubareva@gmail.com'
 MAIL_PASSWORD = ''
 
