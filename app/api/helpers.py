@@ -2,7 +2,7 @@
 # encoding: utf-8
 import copy
 from flask.ext.login import current_user, AnonymousUserMixin
-from app.api import app, Ingredient, Basket
+from app.api import app, Ingredient, Basket, Category
 from app.api.chefs.model import Chef
 from app.api.recipes.model import Recipe, InstructionItem
 from app.api.schools.model import School, SchoolItem
@@ -72,9 +72,13 @@ def response_builder(current_object, entity, excluded=[]):
                         result[columnName] = url_for('static', _scheme='http', _external=True,
                                                      filename='instruction_items/' + str(
                                                          getattr(current_object, columnName)))
+                    elif entity is Category:
+                        result[columnName] = url_for('static', _scheme='http', _external=True,
+                                                     filename='categories/' + str(
+                                                         getattr(current_object, columnName)))
                     else:
                         result[columnName] = url_for('static', _scheme='http', _external=True,
-                                                     filename='/' + str(getattr(current_object, columnName)))
+                                                     filename='' + str(getattr(current_object, columnName)))
                 else:
                     if columnName == "id" and entity == User:
                         result["user_id"] = getattr(current_object, columnName) if getattr(current_object,
