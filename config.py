@@ -46,10 +46,10 @@ make_dir(CATEGORY_UPLOAD)
 # Dont forget to set to True in production
 WTF_CSRF_ENABLED = False
 
-MAIL_SERVER='smtp.gmail.com'
-MAIL_PORT=465
+MAIL_SERVER = 'mail.nic.ru'
+MAIL_PORT = 465
 MAIL_USE_TLS = False
-MAIL_USE_SSL= True
-MAIL_USERNAME = 'm.g.zubareva@gmail.com'
+MAIL_USE_SSL = True
+MAIL_USERNAME = 'app@culinaryon.com'
 MAIL_PASSWORD = ''
 
