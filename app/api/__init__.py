@@ -395,12 +395,15 @@ class InstructionItemModelViewWithUpload(ModelView):
     form_extra_fields = {
         'photo': ImageUploadField('Image', base_path=app.config['INSTRUCTION_ITEMS_UPLOAD'],
                                   url_relative_path='instruction_items/'),
-        'time': TextField('Time')
+        'time': TextField('Time (format: XX:XX)')
     }
 
     def on_model_change(self, form, model, is_created):
         time = model.time.split(':')
-        new_time = int(time[0]) * 60 + int(time[1])
+        try:
+            new_time = int(time[0]) * 60 + int(time[1])
+        except Exception:
+            new_time = 0
         model.time = new_time
         return
 
