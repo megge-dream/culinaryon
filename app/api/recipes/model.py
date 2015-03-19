@@ -63,19 +63,19 @@ class Recipe(db.Model):
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
     # links
-    likes = db.relationship(Like, backref='recipes', lazy='select')
-    favorites = db.relationship(Favorite, backref='recipes', lazy='select')
+    likes = db.relationship(Like, backref='recipes', cascade="all, delete-orphan", lazy='select')
+    favorites = db.relationship(Favorite, backref='recipes', cascade="all, delete-orphan", lazy='select')
     categories = db.relationship(Category, secondary=recipes_categories,
                                  backref=db.backref('recipes', lazy='select'))
     cuisine_types = db.relationship(CuisineType, secondary=recipes_cuisine_types,
                                     backref=db.backref('recipes', lazy='select'))
-    photos = db.relationship(RecipePhoto, backref='recipes', lazy='select')
-    instructions = db.relationship(InstructionItem, backref='recipes', lazy='select')
+    photos = db.relationship(RecipePhoto, backref='recipes', cascade="all, delete-orphan", lazy='select')
+    instructions = db.relationship(InstructionItem, backref='recipes', cascade="all, delete-orphan", lazy='select')
     tools = db.relationship(Tool, secondary=recipes_tools,
                             backref=db.backref('recipes', lazy='select'))
     wines = db.relationship(Wine, secondary=recipes_wines,
                             backref=db.backref('recipes', lazy='select'))
-    ingredients = db.relationship(Ingredient, backref='recipes', lazy='select')
+    ingredients = db.relationship(Ingredient, backref='recipes', cascade="all, delete-orphan", lazy='select')
 
     def __unicode__(self):
         return unicode(self.title) or u''
