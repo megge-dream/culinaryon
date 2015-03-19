@@ -143,7 +143,11 @@ def get_all_chefs():
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         chefs.append(information)
-    return jsonify({'error_code': OK, 'result': chefs, 'entities_count': count}), 200
+    ids = []
+    chefs_ids = Chef.query.all()
+    for chef_id in chefs_ids:
+        ids.append(chef_id.id)
+    return jsonify({'error_code': OK, 'result': chefs, 'entities_count': count, 'ids': ids}), 200
 
 
 @auto.doc()

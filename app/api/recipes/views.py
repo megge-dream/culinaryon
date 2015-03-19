@@ -1,5 +1,6 @@
 from flask import request, jsonify, g, url_for, Blueprint
 from flask.ext.login import login_required
+from sqlalchemy import distinct
 
 from app.api import db, auto
 from app.api.categories.model import Category
@@ -182,7 +183,11 @@ def get_all_recipes():
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         recipes.append(information)
-    return jsonify({'error_code': OK, 'result': recipes, 'entities_count': count}), 200
+    ids = []
+    recipes_ids = Recipe.query.all()
+    for recipe_id in recipes_ids:
+        ids.append(recipe_id.id)
+    return jsonify({'error_code': OK, 'result': recipes, 'entities_count': count, 'ids': ids}), 200
 
 
 @auto.doc()

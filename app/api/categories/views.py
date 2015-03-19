@@ -96,7 +96,11 @@ def get_all_categories():
     for category in Category.query.all():
         information = response_builder(category, Category)
         categories.append(information)
-    return jsonify({'error_code': OK, 'result': categories}), 200
+    ids = []
+    categories_ids = Category.query.all()
+    for category_id in categories_ids:
+        ids.append(category_id.id)
+    return jsonify({'error_code': OK, 'result': categories, 'ids': ids}), 200
 
 
 @auto.doc()
