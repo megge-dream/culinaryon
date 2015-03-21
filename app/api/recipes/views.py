@@ -180,6 +180,7 @@ def get_all_recipes():
         #     photo_information = response_builder(photo, RecipePhoto)
         #     information['photos'].append(photo_information)
         information = recipe_response_builder(recipe)
+        information['ingredients'] = get_ingredients_by_divisions(recipe.id)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         recipes.append(information)
@@ -232,6 +233,7 @@ def get_chef_recipes(id):
         recipes_band = Recipe.query.filter_by(chef_id=id)
     for recipe in recipes_band:
         information = recipe_response_builder(recipe)
+        information['ingredients'] = get_ingredients_by_divisions(recipe.id)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         recipes.append(information)
@@ -261,6 +263,7 @@ def get_category_recipes(id):
         recipes_band = Recipe.query.join(Category.recipes).filter(Category.id == id).all()
     for recipe in recipes_band:
         information = recipe_response_builder(recipe)
+        information['ingredients'] = get_ingredients_by_divisions(recipe.id)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         recipes.append(information)

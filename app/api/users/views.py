@@ -468,7 +468,9 @@ def get_top():
     recipes = Recipe.query.order_by(Recipe.num_likes.desc()).limit(PLACES_IN_TOP).all()
     information['recipes'] = []
     for recipe in recipes:
-        information['recipes'].append(recipe_response_builder(recipe))
+        information_of_recipe = recipe_response_builder(recipe)
+        information_of_recipe['ingredients'] = get_ingredients_by_divisions(recipe.id)
+        information['recipes'].append(information_of_recipe)
 
     seminars = SchoolEvent.query.order_by(SchoolEvent.date.desc()).limit(5).all()
     information['seminars'] = []
