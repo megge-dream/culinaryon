@@ -3,7 +3,7 @@ import cgi
 from flask.ext.login import login_required
 from flask_mail import Message
 from flask.ext.oauthlib.client import OAuthException
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint, redirect
 from flask.ext.login import login_user
 from sqlalchemy import and_
 
@@ -478,6 +478,16 @@ def get_top():
         information['seminars'].append(response_builder(seminar, SchoolEvent))
 
     return jsonify({'error_code': OK, 'result': information})
+
+
+
+@auto.doc()
+@mod.route('/appstore/')
+def to_appstore():
+    """
+    Redirect to AppStore.
+    """
+    return redirect('http://itunes.com/apps/', 302)
 
 
 ################

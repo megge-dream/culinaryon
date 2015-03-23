@@ -169,6 +169,17 @@ class RecipeModelViewWithRelationships(ModelView):
     column_display_all_relations = True
     column_auto_select_related = True
 
+    def time_sec_to_min(view, context, model, name):
+        time_sec = int(model.time) % 60
+        time_min = int(model.time) / 60 % 60
+        if time_sec < 10:
+            time_sec = "0" + str(time_sec)
+        if time_min < 10:
+            time_min = "0" + str(time_min)
+        time_hour = int(model.time) / 3600
+        time = str(time_hour) + ":" + str(time_min) + ":" + str(time_sec)
+        return time
+
     def _list_thumbnail_many(view, context, model, name):
         if not model.photos:
             return ''
@@ -179,10 +190,25 @@ class RecipeModelViewWithRelationships(ModelView):
             images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='recipes/' + photo.photo))
         return images_show
 
+    can_create = True
     column_formatters = {
-        "photos": _list_thumbnail_many
+        "photos": _list_thumbnail_many,
+        "time": time_sec_to_min,
     }
     inline_models = (RecipePhotoInlineModelForm(RecipePhoto),)
+
+    form_extra_fields = {
+        'time': TextField('Time (format: XX:XX:XX (hour:min:sec) )')
+    }
+
+    def on_model_change(self, form, model, is_created):
+        time = model.time.split(':')
+        try:
+            new_time = int(time[0]) * 3600 + int(time[1]) * 60 + int(time[2])
+        except Exception:
+            new_time = 0
+        model.time = new_time
+        return
 
 
 class SchoolModelViewWithRelationships(ModelView):
@@ -379,11 +405,14 @@ class InstructionItemModelViewWithUpload(ModelView):
         return Markup('<img src="%s">' % url_for('static', filename='instruction_items/' + model.photo))
 
     def time_sec_to_min(view, context, model, name):
-        time_sec = model.time % 60
+        time_sec = int(model.time) % 60
+        time_min = int(model.time) / 60 % 60
         if time_sec < 10:
             time_sec = "0" + str(time_sec)
-        time_min = model.time / 60
-        time = str(time_min) + ":" + str(time_sec)
+        if time_min < 10:
+            time_min = "0" + str(time_min)
+        time_hour = int(model.time) / 3600
+        time = str(time_hour) + ":" + str(time_min) + ":" + str(time_sec)
         return time
 
     can_create = True
@@ -395,13 +424,13 @@ class InstructionItemModelViewWithUpload(ModelView):
     form_extra_fields = {
         'photo': ImageUploadField('Image', base_path=app.config['INSTRUCTION_ITEMS_UPLOAD'],
                                   url_relative_path='instruction_items/'),
-        'time': TextField('Time (format: XX:XX)')
+        'time': TextField('Time (format: XX:XX:XX (hour:min:sec) ))')
     }
 
     def on_model_change(self, form, model, is_created):
         time = model.time.split(':')
         try:
-            new_time = int(time[0]) * 60 + int(time[1])
+            new_time = int(time[0]) * 3600 + int(time[1]) * 60 + int(time[2])
         except Exception:
             new_time = 0
         model.time = new_time
