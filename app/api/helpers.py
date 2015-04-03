@@ -41,7 +41,8 @@ def response_builder(current_object, entity, excluded=[]):
                     result["recipe"] = response_builder(Recipe.query.get(recipe_id), Recipe)
             elif "chef" in columnName:
                 chef_id = getattr(current_object, columnName)
-                if chef_id is not None:
+                result["chef"] = chef_id
+                if chef_id is not None and entity != Recipe:
                     result["chef"] = response_builder(Chef.query.get(chef_id), Chef)
             elif "school" in columnName:
                 school_id = getattr(current_object, columnName)
