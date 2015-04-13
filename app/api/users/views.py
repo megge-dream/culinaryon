@@ -487,7 +487,7 @@ def to_appstore():
     """
     Redirect to AppStore.
     """
-    return redirect('http://itunes.com/apps/', 302)
+    return redirect('https://itunes.apple.com/ru/app/culinaryon-lucsie-recepty/id971017562?mt=8', 302)
 
 
 ################
