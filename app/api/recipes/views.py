@@ -160,6 +160,8 @@ def get_all_recipes():
     limit = request.args.get('limit', type=int)
     count = Recipe.query.count()
     if limit is not None and offset is not None:
+        # for faster loading
+        limit = 5
         recipes_band = Recipe.query.slice(start=offset, stop=limit+offset).all()
     else:
         recipes_band = Recipe.query.all()
