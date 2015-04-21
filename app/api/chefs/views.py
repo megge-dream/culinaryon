@@ -139,7 +139,11 @@ def get_all_chefs():
     else:
         chefs_band = Chef.query.all()
     for chef in chefs_band:
-        information = chef_response_builder(chef)
+        information = response_builder(chef, Chef)
+        information['photos'] = []
+        for photo in ChefPhoto.query.filter_by(item_id=chef.id):
+            photo_information = response_builder(photo, ChefPhoto)
+            information['photos'].append(photo_information)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         chefs.append(information)
