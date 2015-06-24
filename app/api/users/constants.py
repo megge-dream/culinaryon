@@ -48,3 +48,14 @@ PROVIDER_LIST_SELECT = {
 }
 # Other
 APP_MAIL = "app@culinaryon.com"
+# Open sets length
+MONTH = 0
+FOREVER = 1
+OPEN_LENGTH = {
+    MONTH: 'month',
+    FOREVER: 'forever',
+}
+OPEN_LENGTH_SELECT = [
+    (MONTH, 'month'),
+    (FOREVER, 'forever'),
+]

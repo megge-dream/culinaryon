@@ -8,6 +8,7 @@ from app.api import db, login_manager, app
 from app.api.favorites.model import Favorite
 from app.api.likes.model import Like
 from app.api.basket.model import Basket
+from app.api.sets.model import Set, UserSet
 from app.api.school_events.model import SchoolEvent
 from app.api.users.constants import USER, USER_ROLE, ADMIN, ACTIVE, USER_STATUS, NO_PROVIDER, PROVIDER_LIST
 from config import SECRET_KEY
@@ -135,6 +136,7 @@ class User(db.Model, UserMixin):
     favorites_recipes = db.relationship(Favorite, backref='users', lazy='select')
     connections = db.relationship(Connection, backref='users', lazy='select')
     baskets = db.relationship(Basket, backref='users', lazy='select')
+    user_sets = db.relationship(UserSet, backref='users', lazy='select')
 
     school_events = db.relationship(SchoolEvent, secondary=users_schoolEvents,
                                     backref=db.backref('users', lazy='select'))

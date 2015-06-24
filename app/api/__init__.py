@@ -40,7 +40,7 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 
 app.debug = True
-toolbar = DebugToolbarExtension(app)
+# toolbar = DebugToolbarExtension(app)
 
 login_manager = LoginManager(app)
 login_manager.session_protection = None
@@ -129,6 +129,7 @@ from app.api.schools.model import School, SchoolItem
 from app.api.tools.model import Tool
 from app.api.wines.model import Wine
 from app.api.school_events.model import SchoolEvent
+from app.api.sets.model import Set
 
 
 class MyImageUploadInput(ImageUploadInput):
@@ -401,6 +402,24 @@ class CategoryModelViewWithUpload(ModelView):
     }
 
 
+class SetModelViewWithUpload(ModelView):
+
+    def _list_thumbnail(view, context, model, name):
+        if not model.photo:
+            return ''
+        return Markup('<img src="%s">' % url_for('static', filename='sets/' + model.photo))
+
+    can_create = True
+    column_formatters = {
+        "photo": _list_thumbnail,
+    }
+
+    form_extra_fields = {
+        'photo': ImageUploadField('Image', base_path=app.config['SET_UPLOAD'],
+                                  url_relative_path='sets/')
+    }
+
+
 class InstructionItemModelViewWithUpload(ModelView):
 
     def _list_thumbnail(view, context, model, name):
@@ -496,6 +515,7 @@ admin.add_view(ToolModelViewWithUpload(Tool, db.session))
 admin.add_view(ModelView(Wine, db.session))
 admin.add_view(SchoolEventModelView(SchoolEvent, db.session))
 admin.add_view(ModelView(Report, db.session))
+admin.add_view(SetModelViewWithUpload(Set, db.session))
 admin.add_view(LogoutView(name='Logout'))
 
 # #######################
@@ -539,6 +559,10 @@ app.register_blueprint(users_module)
 from app.api.categories.views import mod as categories_module
 app.register_blueprint(categories_module)
 
+# Sets module
+from app.api.sets.views_v2 import mod as sets_module
+app.register_blueprint(sets_module)
+
 # Likes module
 from app.api.likes.views import mod as likes_module
 app.register_blueprint(likes_module)
@@ -550,6 +574,10 @@ app.register_blueprint(favorites_module)
 # Recipes module
 from app.api.recipes.views import mod as recipes_module
 app.register_blueprint(recipes_module)
+
+# Recipes module (v2)
+from app.api.recipes.views_v2 import mod as recipes_v2_module
+app.register_blueprint(recipes_v2_module)
 
 # Chefs module
 from app.api.chefs.views import mod as chefs_module

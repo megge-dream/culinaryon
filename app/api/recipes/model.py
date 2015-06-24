@@ -59,6 +59,7 @@ class Recipe(db.Model):
     time = db.Column(db.String, nullable=True)
     amount_of_persons = db.Column(db.Integer, nullable=True)
     chef_id = db.Column(db.Integer, db.ForeignKey('chefs.id'))
+    set_id = db.Column(db.Integer, db.ForeignKey('sets.id'), nullable=True)
     video = db.Column(db.Text, nullable=True)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
