@@ -178,7 +178,7 @@ def load_user(userid):
     """
     return User.get(userid)
 
-@login_manager.request_loader
+# @login_manager.request_loader
 def load_user_from_header(request):
 
     # first, try to login using the api_key url arg
