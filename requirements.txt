@@ -34,3 +34,5 @@ Flask-Admin==1.0.8
 
 Pillow==2.6.1
 
+Flask-DebugToolbar==1.3
+

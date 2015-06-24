@@ -28,7 +28,7 @@ def syncdb():
         your Alchemy models
     """
 
-    db.drop_all()
+    # db.drop_all()
     db.create_all()
 
 
