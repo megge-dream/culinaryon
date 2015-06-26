@@ -1,7 +1,6 @@
 import logging
 from logging.handlers import RotatingFileHandler
 import os
-from flask.ext.debugtoolbar import DebugToolbarExtension
 from flask.ext.oauthlib.client import OAuth
 
 import sys
@@ -555,9 +554,17 @@ if not app.config['DEBUG']:
 from app.api.users.views import mod as users_module
 app.register_blueprint(users_module)
 
+# Users module (v2)
+from app.api.users.views_v2 import mod as users_v2_module
+app.register_blueprint(users_v2_module)
+
 # Categories module
 from app.api.categories.views import mod as categories_module
 app.register_blueprint(categories_module)
+
+# Categories module (v2)
+from app.api.categories.views_v2 import mod as categories_v2_module
+app.register_blueprint(categories_v2_module)
 
 # Sets module
 from app.api.sets.views_v2 import mod as sets_module
@@ -567,9 +574,17 @@ app.register_blueprint(sets_module)
 from app.api.likes.views import mod as likes_module
 app.register_blueprint(likes_module)
 
+# Likes module (v2)
+from app.api.likes.views_v2 import mod as likes_v2_module
+app.register_blueprint(likes_v2_module)
+
 # Favorites module
 from app.api.favorites.views import mod as favorites_module
 app.register_blueprint(favorites_module)
+
+# Favorites module (v2)
+from app.api.favorites.views_v2 import mod as favorites_v2_module
+app.register_blueprint(favorites_v2_module)
 
 # Recipes module
 from app.api.recipes.views import mod as recipes_module
@@ -583,37 +598,73 @@ app.register_blueprint(recipes_v2_module)
 from app.api.chefs.views import mod as chefs_module
 app.register_blueprint(chefs_module)
 
+# Chefs module (v2)
+from app.api.chefs.views_v2 import mod as chefs_v2_module
+app.register_blueprint(chefs_v2_module)
+
 # Tools module
 from app.api.tools.views import mod as tools_module
 app.register_blueprint(tools_module)
+
+# Tools module (v2)
+from app.api.tools.views_v2 import mod as tools_v2_module
+app.register_blueprint(tools_v2_module)
 
 # Dictionary module
 from app.api.dictionary.views import mod as dictionary_module
 app.register_blueprint(dictionary_module)
 
+# Dictionary module
+from app.api.dictionary.views_v2 import mod as dictionary_v2_module
+app.register_blueprint(dictionary_v2_module)
+
 # Schools module
 from app.api.schools.views import mod as schools_module
 app.register_blueprint(schools_module)
+
+# Schools module (v2)
+from app.api.schools.views_v2 import mod as schools_v2_module
+app.register_blueprint(schools_v2_module)
 
 # Cuisine types module
 from app.api.cuisine_types.views import mod as cuisine_types_module
 app.register_blueprint(cuisine_types_module)
 
+# Cuisine types module (v2)
+from app.api.cuisine_types.views_v2 import mod as cuisine_types_v2_module
+app.register_blueprint(cuisine_types_v2_module)
+
 # Ingredients types module
 from app.api.ingredients.views import mod as ingredients_module
 app.register_blueprint(ingredients_module)
+
+# Ingredients types module (v2)
+from app.api.ingredients.views_v2 import mod as ingredients_v2_module
+app.register_blueprint(ingredients_v2_module)
 
 # Wines types module
 from app.api.wines.views import mod as wines_module
 app.register_blueprint(wines_module)
 
+# Wines types module (v2)
+from app.api.wines.views_v2 import mod as wines_v2_module
+app.register_blueprint(wines_v2_module)
+
 # Baskets types module
 from app.api.basket.views import mod as baskets_module
 app.register_blueprint(baskets_module)
 
+# Baskets types module (v2)
+from app.api.basket.views_v2 import mod as baskets_v2_module
+app.register_blueprint(baskets_v2_module)
+
 # School events module
 from app.api.school_events.views import mod as school_events_module
 app.register_blueprint(school_events_module)
+
+# School events module (v2)
+from app.api.school_events.views_v2 import mod as school_events_v2_module
+app.register_blueprint(school_events_v2_module)
 
 # docsmodule
 from app.api.docs.views import mod as docs_module

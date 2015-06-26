@@ -16,3 +16,18 @@ class Favorite(db.Model):
 
     def __unicode__(self):
         return str(self.id)
+
+
+class FavoriteWine(db.Model):
+    """
+    Need to add Table Structure
+    """
+    __tablename__ = "favorites_wines"
+
+    id = db.Column(db.Integer, primary_key=True)
+    creation_date = db.Column(db.DateTime, default=datetime.utcnow())
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    wine_id = db.Column(db.Integer, db.ForeignKey('wines.id'), nullable=False)
+
+    def __unicode__(self):
+        return str(self.id)

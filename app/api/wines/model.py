@@ -17,6 +17,7 @@ class Wine(db.Model):
     year = db.Column(db.Integer, nullable=True)
     type_of_grape = db.Column(db.String(250), nullable=True)
     parker_points = db.Column(db.Integer, nullable=True)
+    photo = db.Column(db.Text, nullable=True)
 
     def __unicode__(self):
         return self.title
