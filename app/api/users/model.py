@@ -5,7 +5,7 @@ from itsdangerous import JSONWebSignatureSerializer as Serializer
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.api import db, login_manager, app
-from app.api.favorites.model import Favorite
+from app.api.favorites.model import Favorite, FavoriteWine
 from app.api.likes.model import Like
 from app.api.basket.model import Basket
 from app.api.sets.model import Set, UserSet
@@ -134,6 +134,7 @@ class User(db.Model, UserMixin):
     # links
     likes = db.relationship(Like, backref='users', lazy='select')
     favorites_recipes = db.relationship(Favorite, backref='users', lazy='select')
+    favorites_wines = db.relationship(FavoriteWine, backref='users', lazy='select')
     connections = db.relationship(Connection, backref='users', lazy='select')
     baskets = db.relationship(Basket, backref='users', lazy='select')
     user_sets = db.relationship(UserSet, backref='users', lazy='select')
@@ -146,7 +147,7 @@ class User(db.Model, UserMixin):
         return self.email or unicode(self.id)
 
 
-#@login_manager.token_loader
+@login_manager.token_loader
 def token_loader(token):
     """
     this sets the callback for loading a user from an authentication
@@ -180,7 +181,7 @@ def load_user(userid):
     """
     return User.get(userid)
 
-# @login_manager.request_loader
+@login_manager.request_loader
 def load_user_from_header(request):
 
     # first, try to login using the api_key url arg

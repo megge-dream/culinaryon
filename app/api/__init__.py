@@ -119,7 +119,7 @@ from app.api.basket.model import Basket
 from app.api.categories.model import Category
 from app.api.cuisine_types.model import CuisineType
 from app.api.dictionary.model import Dictionary
-from app.api.favorites.model import Favorite
+from app.api.favorites.model import Favorite, FavoriteWine
 from app.api.ingredients.model import Ingredient
 from app.api.likes.model import Like
 from app.api.photos.model import RecipePhoto, ChefPhoto, SchoolPhoto
@@ -172,6 +172,8 @@ class SchoolPhotoInlineModelForm(InlineFormAdmin):
 class RecipeModelViewWithRelationships(ModelView):
     column_display_all_relations = True
     column_auto_select_related = True
+    can_create = True
+    can_edit = True
 
     def time_sec_to_min(view, context, model, name):
         time_sec = int(model.time) % 60
@@ -194,7 +196,6 @@ class RecipeModelViewWithRelationships(ModelView):
             images_show = images_show + Markup('<img src="%s">' % url_for('static', filename='recipes/' + photo.photo))
         return images_show
 
-    can_create = True
     column_formatters = {
         "photos": _list_thumbnail_many,
         "time": time_sec_to_min,
@@ -206,7 +207,7 @@ class RecipeModelViewWithRelationships(ModelView):
     }
 
     def on_model_change(self, form, model, is_created):
-        time = model.time.split(':')
+        time = str(model.time).split(':')
         try:
             new_time = int(time[0]) * 3600 + int(time[1]) * 60 + int(time[2])
         except Exception:
@@ -401,6 +402,24 @@ class CategoryModelViewWithUpload(ModelView):
     }
 
 
+class WineModelViewWithUpload(ModelView):
+
+    def _list_thumbnail(view, context, model, name):
+        if not model.photo:
+            return ''
+        return Markup('<img src="%s">' % url_for('static', filename='categories/' + model.photo))
+
+    can_create = True
+    column_formatters = {
+        "photo": _list_thumbnail,
+    }
+
+    form_extra_fields = {
+        'photo': ImageUploadField('Image', base_path=app.config['CATEGORY_UPLOAD'],
+                                  url_relative_path='categories/')
+    }
+
+
 class SetModelViewWithUpload(ModelView):
 
     def _list_thumbnail(view, context, model, name):
@@ -511,9 +530,10 @@ admin.add_view(RecipeModelViewWithRelationships(Recipe, db.session))
 admin.add_view(SchoolModelViewWithRelationships(School, db.session))
 admin.add_view(SchoolItemModelViewWithUpload(SchoolItem, db.session))
 admin.add_view(ToolModelViewWithUpload(Tool, db.session))
-admin.add_view(ModelView(Wine, db.session))
+admin.add_view(WineModelViewWithUpload(Wine, db.session))
 admin.add_view(SchoolEventModelView(SchoolEvent, db.session))
 admin.add_view(ModelView(Report, db.session))
+admin.add_view(ModelView(FavoriteWine, db.session))
 admin.add_view(SetModelViewWithUpload(Set, db.session))
 admin.add_view(LogoutView(name='Logout'))
 
