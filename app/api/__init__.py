@@ -404,19 +404,27 @@ class CategoryModelViewWithUpload(ModelView):
 
 class WineModelViewWithUpload(ModelView):
 
-    def _list_thumbnail(view, context, model, name):
+    def _list_thumbnail_photo(view, context, model, name):
         if not model.photo:
             return ''
         return Markup('<img src="%s">' % url_for('static', filename='categories/' + model.photo))
 
+    def _list_thumbnail_flag_photo(view, context, model, name):
+        if not model.flag_photo:
+            return ''
+        return Markup('<img src="%s">' % url_for('static', filename='categories/' + model.flag_photo))
+
     can_create = True
     column_formatters = {
-        "photo": _list_thumbnail,
+        "photo": _list_thumbnail_photo,
+        "flag_photo": _list_thumbnail_flag_photo,
     }
 
     form_extra_fields = {
         'photo': ImageUploadField('Image', base_path=app.config['CATEGORY_UPLOAD'],
-                                  url_relative_path='categories/')
+                                  url_relative_path='categories/'),
+        'flag_photo': ImageUploadField('Flag image', base_path=app.config['CATEGORY_UPLOAD'],
+                                       url_relative_path='categories/')
     }
 
 

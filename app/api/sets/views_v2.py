@@ -50,15 +50,18 @@ def get_all_sets():
 
 def set_response_builder(set, excluded=[]):
     information = response_builder(set, Set, excluded)
-    user_set = UserSet.query.filter_by(set_id=set.id, user_id=current_user.id).first()
-    if user_set:
-        if user_set.open_type == FOREVER:
-            information['is_open'] = True
-        if user_set.open_type == MONTH:
-            if (datetime.utcnow() - user_set.open_date).days <= 30:
-                information['is_open'] = True
-            else:
-                information['is_open'] = False
-    else:
+    if not current_user.is_authenticated():
         information['is_open'] = False
+    else:
+        user_set = UserSet.query.filter_by(set_id=set.id, user_id=current_user.id).first()
+        if user_set:
+            if user_set.open_type == FOREVER:
+                information['is_open'] = True
+            if user_set.open_type == MONTH:
+                if (datetime.utcnow() - user_set.open_date).days <= 30:
+                    information['is_open'] = True
+                else:
+                    information['is_open'] = False
+        else:
+            information['is_open'] = False
     return information
