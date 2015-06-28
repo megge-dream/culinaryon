@@ -4,6 +4,7 @@ from flask.ext.login import login_required
 from app.api import db, auto
 from app.api.constants import BAD_REQUEST, OK
 from app.api.helpers import *
+from app.api.likes.model import LikeWine
 from app.api.wines.model import Wine
 from app.decorators import admin_required
 
@@ -74,7 +75,7 @@ def get_wine(id):
     wine = Wine.query.get(id)
     if not wine:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # wine with `id` isn't exist
-    information = response_builder(wine, Wine)
+    information = wine_response_builder(wine)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -89,7 +90,7 @@ def get_all_wines():
     """
     wines = []
     for wine in Wine.query.all():
-        information = response_builder(wine, Wine)
+        information = wine_response_builder(wine)
         wines.append(information)
     return jsonify({'error_code': OK, 'result': wines}), 200
 
@@ -111,3 +112,9 @@ def delete_wine(id):
     db.session.delete(wine)
     db.session.commit()
     return jsonify({'error_code': OK}), 200
+
+
+def wine_response_builder(wine, excluded=[]):
+    information = response_builder(wine, Wine, excluded)
+    information['likes'] = LikeWine.query.filter_by(wine_id=wine.id).count()
+    return information

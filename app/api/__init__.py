@@ -121,7 +121,7 @@ from app.api.cuisine_types.model import CuisineType
 from app.api.dictionary.model import Dictionary
 from app.api.favorites.model import Favorite, FavoriteWine
 from app.api.ingredients.model import Ingredient
-from app.api.likes.model import Like
+from app.api.likes.model import Like, LikeWine
 from app.api.photos.model import RecipePhoto, ChefPhoto, SchoolPhoto
 from app.api.recipes.model import InstructionItem, Recipe
 from app.api.schools.model import School, SchoolItem
@@ -530,6 +530,7 @@ admin.add_view(ModelView(Dictionary, db.session))
 admin.add_view(ModelView(Favorite, db.session))
 admin.add_view(ModelView(Ingredient, db.session))
 admin.add_view(ModelView(Like, db.session))
+admin.add_view(ModelView(LikeWine, db.session))
 # admin.add_view(RecipeModelViewWithUpload(RecipePhoto, db.session))
 # admin.add_view(ChefImageModelViewWithUpload(ChefPhoto, db.session))
 # admin.add_view(SchoolModelViewWithUpload(SchoolPhoto, db.session))

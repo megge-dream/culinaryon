@@ -3,6 +3,7 @@ from datetime import datetime
 from app.api import db
 
 from app.api.favorites.model import FavoriteWine
+from app.api.likes.model import LikeWine
 
 
 class Wine(db.Model):
@@ -24,6 +25,7 @@ class Wine(db.Model):
     info = db.Column(db.Text, nullable=True)
 
     favorites = db.relationship(FavoriteWine, backref='wines', cascade="all, delete-orphan", lazy='select')
+    likes = db.relationship(LikeWine, backref='wines', cascade="all, delete-orphan", lazy='select')
 
     def __unicode__(self):
         return self.title

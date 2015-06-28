@@ -6,7 +6,7 @@ from itsdangerous import JSONWebSignatureSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.api import db, login_manager, app
 from app.api.favorites.model import Favorite, FavoriteWine
-from app.api.likes.model import Like
+from app.api.likes.model import Like, LikeWine
 from app.api.basket.model import Basket
 from app.api.sets.model import Set, UserSet
 from app.api.school_events.model import SchoolEvent
@@ -130,9 +130,9 @@ class User(db.Model, UserMixin):
             return user
         return None
 
-
     # links
-    likes = db.relationship(Like, backref='users', lazy='select')
+    likes_recipes = db.relationship(Like, backref='users', lazy='select')
+    likes_wines = db.relationship(LikeWine, backref='users', lazy='select')
     favorites_recipes = db.relationship(Favorite, backref='users', lazy='select')
     favorites_wines = db.relationship(FavoriteWine, backref='users', lazy='select')
     connections = db.relationship(Connection, backref='users', lazy='select')
