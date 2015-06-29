@@ -16,6 +16,7 @@ from app.api.sets.views_v2 import set_response_builder
 from app.api.tools.model import Tool
 from app.api.users.constants import FOREVER, MONTH
 from app.api.wines.model import Wine
+from app.api.wines.views_v2 import wine_response_builder
 from app.decorators import admin_required
 
 
@@ -493,6 +494,79 @@ def get_set_recipes(id):
     return jsonify({'error_code': OK, 'result': recipes, 'entities_count': count}), 200
 
 
+@auto.doc()
+@mod.route('/feed', methods=['GET'])
+def get_feed():
+    """
+    Get information about all exist recipes, sets and wines.
+    :param page (GET param) : which page you want to get
+    :return: json with parameters:
+            error_code - server response_code
+            result - information about objects
+            is_last_page  - is current page last or not
+            recipes_ids - ids of all recipes
+            sets_ids - ids of all sets
+            wines_ids - ids of all wines
+    """
+    recipes = []
+    sets = []
+    wines = []
+    page = request.args.get('page', type=int)
+    if page is not None:
+        # for faster loading
+        limit_recipes = 2
+        offset_recipes = (page-1)*limit_recipes
+        limit_sets = 1
+        offset_sets = (page-1)*limit_recipes
+        limit_wines = 2
+        offset_wines = (page-1)*limit_recipes
+        recipes_band = Recipe.query.slice(start=offset_recipes, stop=limit_recipes+offset_recipes).all()
+        sets_band = Set.query.slice(start=offset_sets, stop=limit_sets+offset_sets).all()
+        wines_band = Wine.query.slice(start=offset_wines, stop=limit_wines+offset_wines).all()
+        next_recipe = Recipe.query.slice(start=limit_recipes+offset_recipes, stop=limit_recipes+offset_recipes+1).first()
+        next_set = Set.query.slice(start=limit_sets+offset_sets, stop=limit_sets+offset_sets+1).first()
+        next_wine = Wine.query.slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
+        if next_recipe or next_set or next_wine:
+            is_last_page = False
+        else:
+            is_last_page = True
+    else:
+        recipes_band = Recipe.query.all()
+        sets_band = Set.query.all()
+        wines_band = Wine.query.all()
+        is_last_page = True
+    for recipe in recipes_band:
+        information = recipe_response_builder(recipe)
+        information['ingredients'] = get_ingredients_by_divisions(recipe.id)
+        hash_of_information = make_hash(information)
+        information['hash'] = hash_of_information
+        information['type_of_object'] = 'recipe'
+        recipes.append(information)
+    recipes_ids = []
+    recipes_all = Recipe.query.all()
+    for recipe in recipes_all:
+        recipes_ids.append(recipe.id)
+    for set in sets_band:
+        information = set_response_builder(set)
+        information['type_of_object'] = 'set'
+        sets.append(information)
+    sets_ids = []
+    sets_all = Set.query.all()
+    for set in sets_all:
+        sets_ids.append(set.id)
+    for wine in wines_band:
+        information = wine_response_builder(wine)
+        information['type_of_object'] = 'wine'
+        wines.append(information)
+    wines_ids = []
+    wines_all = Wine.query.all()
+    for wine in wines_all:
+        wines_ids.append(wine.id)
+    feed = recipes + sets + wines
+    return jsonify({'error_code': OK, 'result': feed, 'is_last_page': is_last_page, 'recipes_ids': recipes_ids,
+                    'sets_ids': sets_ids, 'wines_ids': wines_ids}), 200
+
+
 def recipe_response_builder(recipe, excluded=[]):
     categories = []
     for category in Recipe.query.filter_by(id=recipe.id).first().categories:
@@ -529,7 +603,7 @@ def recipe_response_builder(recipe, excluded=[]):
     if wines is not None:
         for wine_id in wines:
             wine = Wine.query.get(wine_id)
-            wine_information = response_builder(wine, Wine)
+            wine_information = wine_response_builder(wine)
             information["wines"].append(wine_information)
     information['photos'] = []
     for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
