@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask.ext.login import current_user
 from app.api import auto
 from app.api.constants import BAD_REQUEST, OK
@@ -33,12 +33,23 @@ def get_set(id):
 def get_all_sets():
     """
     Get information about all exist sets.
+    :param offset (GET param) : starts from which set
+    :param limit (GET param) : how many sets you want to get
     :return: json with parameters:
             error_code - server response_code
             result - information about sets
+            entities_count - number of sets
+            ids - ids of all sets
     """
     sets = []
-    for set in Set.query.all():
+    offset = request.args.get('offset', default=0, type=int)
+    limit = request.args.get('limit', type=int)
+    count = Set.query.count()
+    if limit is not None and offset is not None:
+        sets_band = Set.query.slice(start=offset, stop=limit+offset).all()
+    else:
+        sets_band = Set.query.all()
+    for set in sets_band:
         information = set_response_builder(set)
         sets.append(information)
     ids = []
