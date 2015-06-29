@@ -61,6 +61,7 @@ def get_all_sets():
 
 def set_response_builder(set, excluded=[]):
     information = response_builder(set, Set, excluded)
+    information['number_of_recipes'] = len(set.recipes)
     if not current_user.is_authenticated():
         information['is_open'] = False
     else:
