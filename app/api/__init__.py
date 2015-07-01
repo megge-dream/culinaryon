@@ -407,12 +407,12 @@ class WineModelViewWithUpload(ModelView):
     def _list_thumbnail_photo(view, context, model, name):
         if not model.photo:
             return ''
-        return Markup('<img src="%s">' % url_for('static', filename='categories/' + model.photo))
+        return Markup('<img src="%s">' % url_for('static', filename='wines/' + model.photo))
 
     def _list_thumbnail_flag_photo(view, context, model, name):
         if not model.flag_photo:
             return ''
-        return Markup('<img src="%s">' % url_for('static', filename='categories/' + model.flag_photo))
+        return Markup('<img src="%s">' % url_for('static', filename='wines/' + model.flag_photo))
 
     can_create = True
     column_formatters = {
@@ -421,10 +421,10 @@ class WineModelViewWithUpload(ModelView):
     }
 
     form_extra_fields = {
-        'photo': ImageUploadField('Image', base_path=app.config['CATEGORY_UPLOAD'],
-                                  url_relative_path='categories/'),
-        'flag_photo': ImageUploadField('Flag image', base_path=app.config['CATEGORY_UPLOAD'],
-                                       url_relative_path='categories/')
+        'photo': ImageUploadField('Image', base_path=app.config['WINE_UPLOAD'],
+                                  url_relative_path='wines/'),
+        'flag_photo': ImageUploadField('Flag image', base_path=app.config['WINE_UPLOAD'],
+                                       url_relative_path='wines/')
     }
 
 
