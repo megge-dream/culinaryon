@@ -18,7 +18,7 @@ from app.api.users.model import *
 from app.decorators import admin_required
 
 
-mod = Blueprint('users_v2', __name__, url_prefix='/api')
+mod = Blueprint('users_v2', __name__, url_prefix='/api_v2')
 
 
 @auto.doc()

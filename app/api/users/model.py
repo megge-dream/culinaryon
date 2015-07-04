@@ -164,7 +164,7 @@ def token_loader(token):
         return None
     user = User.query.get(data['id'])
 
-    if user is not None and user.last_login_at == datetime.fromtimestamp(data['last_login_at']):
+    if user is not None:
         return user
     return None
 

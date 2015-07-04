@@ -7,7 +7,7 @@ from app.api.constants import OK, BAD_REQUEST
 from app.api.helpers import *
 from app.api.chefs.model import *
 from app.api.photos.model import RecipePhoto
-from app.api.recipes.views import recipe_response_builder
+from app.api.recipes.views_v2 import recipe_response_builder
 from app.decorators import admin_required
 
 mod = Blueprint('chefs_v2', __name__, url_prefix='/api_v2/chefs')

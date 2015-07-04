@@ -49,19 +49,46 @@ def new_favorite():
 @login_required
 def get_favorite():
     """
-    Get favorites for current user.
+    Get favorites (recipes and wines) for current user.
     :return: json with parameters:
             error_code - server response_code
-            recipes - information about favorites recipes
+            result - information about favorites recipes and wines
+            is_last_page  - is current page last or not
     """
     user_id = current_user.id
-    favorites = Favorite.query.filter_by(user_id=user_id)
     recipes = []
-    for favorite in favorites:
+    wines = []
+    page = request.args.get('page', type=int)
+    if page is not None:
+        # for faster loading
+        limit_recipes = 2
+        offset_recipes = (page-1)*limit_recipes
+        limit_wines = 2
+        offset_wines = (page-1)*limit_recipes
+        recipes_band = Favorite.query.filter_by(user_id=user_id).slice(start=offset_recipes, stop=limit_recipes+offset_recipes).all()
+        wines_band = FavoriteWine.query.filter_by(user_id=user_id).slice(start=offset_wines, stop=limit_wines+offset_wines).all()
+        next_recipe = Favorite.query.filter_by(user_id=user_id).slice(start=limit_recipes+offset_recipes, stop=limit_recipes+offset_recipes+1).first()
+        next_wine = FavoriteWine.query.filter_by(user_id=user_id).slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
+        if next_recipe or next_wine:
+            is_last_page = False
+        else:
+            is_last_page = True
+    else:
+        recipes_band = Favorite.query.filter_by(user_id=user_id).all()
+        wines_band = FavoriteWine.query.filter_by(user_id=user_id).all()
+        is_last_page = True
+    for favorite in recipes_band:
         recipe = Recipe.query.get(favorite.recipe_id)
         information = recipe_response_builder(recipe)
+        information['type_of_object'] = 'recipe'
         recipes.append(information)
-    return jsonify({'error_code': OK, 'recipes': recipes}), 200
+    for favorite in wines_band:
+        wine = Wine.query.get(favorite.wine_id)
+        information = response_builder(wine, Wine)
+        information['type_of_object'] = 'wine'
+        wines.append(information)
+    feed = recipes + wines
+    return jsonify({'error_code': OK, 'result': feed, 'is_last_page': is_last_page}), 200
 
 
 @auto.doc()
