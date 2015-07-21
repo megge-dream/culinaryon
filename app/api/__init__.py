@@ -14,15 +14,10 @@ from flask.ext.autodoc import Autodoc
 from flask.ext.login import LoginManager, current_user, logout_user, login_user
 from flask.ext.sqlalchemy import SQLAlchemy
 
-from itsdangerous import JSONWebSignatureSerializer as Serializer
 from markupsafe import Markup
-from sqlalchemy import String
-from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename, redirect
 from wtforms import SelectField, Form, ValidationError, TextField
-from wtforms.validators import Optional
 from app.api.users.constants import USER_ROLE_SELECT, USER_STATUS_SELECT, PROVIDER_LIST_SELECT
-from app.decorators import admin_required
 from config import SECRET_KEY, UPLOAD_FOLDER
 
 from flask import Flask
@@ -129,6 +124,7 @@ from app.api.tools.model import Tool
 from app.api.wines.model import Wine
 from app.api.school_events.model import SchoolEvent
 from app.api.sets.model import Set
+from app.api.type_of_grape.model import TypeOfGrape
 
 
 class MyImageUploadInput(ImageUploadInput):
@@ -402,6 +398,24 @@ class CategoryModelViewWithUpload(ModelView):
     }
 
 
+class TypeOfGrapeModelViewWithUpload(ModelView):
+
+    def _list_thumbnail(view, context, model, name):
+        if not model.photo:
+            return ''
+        return Markup('<img src="%s">' % url_for('static', filename='type_of_grapes/' + model.photo))
+
+    can_create = True
+    column_formatters = {
+        "photo": _list_thumbnail,
+    }
+
+    form_extra_fields = {
+        'photo': ImageUploadField('Image', base_path=app.config['TYPE_OF_GRAPE_UPLOAD'],
+                                  url_relative_path='type_of_grapes/')
+    }
+
+
 class WineModelViewWithUpload(ModelView):
 
     def _list_thumbnail_photo(view, context, model, name):
@@ -429,6 +443,10 @@ class WineModelViewWithUpload(ModelView):
 
 
 class SetModelViewWithUpload(ModelView):
+    column_display_all_relations = True
+    column_auto_select_related = True
+    form_excluded_columns = ('user_sets',)
+    column_exclude_list = ('user_sets',)
 
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
@@ -525,6 +543,7 @@ admin.add_view(MyUserAdmin(User, db.session))
 admin.add_view(ChefModelViewWithUpload(Chef, db.session))
 admin.add_view(ModelView(Basket, db.session))
 admin.add_view(CategoryModelViewWithUpload(Category, db.session))
+admin.add_view(TypeOfGrapeModelViewWithUpload(TypeOfGrape, db.session))
 admin.add_view(ModelView(CuisineType, db.session))
 admin.add_view(ModelView(Dictionary, db.session))
 admin.add_view(ModelView(Favorite, db.session))
@@ -694,6 +713,10 @@ app.register_blueprint(school_events_module)
 # School events module (v2)
 from app.api.school_events.views_v2 import mod as school_events_v2_module
 app.register_blueprint(school_events_v2_module)
+
+# Types of grape module (v2)
+from app.api.type_of_grape.views_v2 import mod as type_of_grape_v2_module
+app.register_blueprint(type_of_grape_v2_module)
 
 # docsmodule
 from app.api.docs.views import mod as docs_module

@@ -566,6 +566,81 @@ def get_feed():
                     'sets_ids': sets_ids, 'wines_ids': wines_ids}), 200
 
 
+@auto.doc()
+@mod.route('/search', methods=['GET'])
+def get_searched_goods_and_wines():
+    """
+    Get information about recipes and wines find by search.
+    :param q (GET param) : searching query in title
+    :param category (GET param) : searching recipes in which category
+    :param type_of_grape (GET param) : searching wines with type_of_grape
+    :param page (GET param) : which page you want to get
+    :return: json with parameters:
+            error_code - server response_code
+            result - information about objects
+            is_last_page  - is current page last or not
+            recipes_ids - ids of all recipes
+            wines_ids - ids of all wines
+    """
+    recipes = []
+    wines = []
+    q = request.args.get('q', type=unicode, default='')
+    category = request.args.get('category', type=int)
+    type_of_grape = request.args.get('type_of_grape', type=int)
+    page = request.args.get('page', type=int)
+    if category is not None:
+        category = Category.query.filter_by(id=category).first()
+        if category:
+            recipes_band = Recipe.query.filter(Recipe.categories.contains(category))
+        else:
+            recipes_band = Recipe.query.filter(db.false())
+    else:
+        recipes_band = Recipe.query
+    if type_of_grape is not None:
+        wines_band = Wine.query.filter_by(type_of_grape_id=type_of_grape)
+    else:
+        wines_band = Wine.query
+    if page is not None:
+        # for faster loading
+        limit_recipes = 2
+        offset_recipes = (page-1)*limit_recipes
+        limit_wines = 2
+        offset_wines = (page-1)*limit_recipes
+        recipes_band = recipes_band\
+                                   .filter(Recipe.title.ilike('%' + q + '%'))\
+                                   .slice(start=offset_recipes, stop=limit_recipes+offset_recipes).all()
+        wines_band = wines_band\
+                               .filter(Wine.title.ilike('%' + q + '%'))\
+                               .slice(start=offset_wines, stop=limit_wines+offset_wines).all()
+        next_recipe = recipes_band\
+                                  .filter(Recipe.title.ilike('%' + q + '%'))\
+                                  .slice(start=limit_recipes+offset_recipes, stop=limit_recipes+offset_recipes+1).first()
+        next_wine = wines_band\
+                              .filter(Wine.title.ilike('%' + q + '%'))\
+                              .slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
+        if next_recipe or next_wine:
+            is_last_page = False
+        else:
+            is_last_page = True
+    else:
+        recipes_band = recipes_band.filter(Recipe.title.ilike('%' + q + '%')).all()
+        wines_band = wines_band.filter(Wine.title.ilike('%' + q + '%')).all()
+        is_last_page = True
+    for recipe in recipes_band:
+        information = recipe_response_builder(recipe)
+        information['ingredients'] = get_ingredients_by_divisions(recipe.id)
+        hash_of_information = make_hash(information)
+        information['hash'] = hash_of_information
+        information['type_of_object'] = 'recipe'
+        recipes.append(information)
+    for wine in wines_band:
+        information = wine_response_builder(wine)
+        information['type_of_object'] = 'wine'
+        wines.append(information)
+    feed = recipes + wines
+    return jsonify({'error_code': OK, 'result': feed, 'is_last_page': is_last_page}), 200
+
+
 def recipe_response_builder(recipe, excluded=[]):
     categories = []
     for category in Recipe.query.filter_by(id=recipe.id).first().categories:

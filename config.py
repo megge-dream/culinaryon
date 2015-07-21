@@ -34,6 +34,7 @@ INSTRUCTION_ITEMS_UPLOAD = os.path.join(UPLOAD_FOLDER, 'instruction_items')
 CATEGORY_UPLOAD = os.path.join(UPLOAD_FOLDER, 'categories')
 SET_UPLOAD = os.path.join(UPLOAD_FOLDER, 'sets')
 WINE_UPLOAD = os.path.join(UPLOAD_FOLDER, 'wines')
+TYPE_OF_GRAPE_UPLOAD = os.path.join(UPLOAD_FOLDER, 'type_of_grapes')
 
 # create folders if not exist
 make_dir(UPLOAD_FOLDER)
@@ -47,6 +48,7 @@ make_dir(INSTRUCTION_ITEMS_UPLOAD)
 make_dir(CATEGORY_UPLOAD)
 make_dir(SET_UPLOAD)
 make_dir(WINE_UPLOAD)
+make_dir(TYPE_OF_GRAPE_UPLOAD)
 # Dont forget to set to True in production
 WTF_CSRF_ENABLED = False
 

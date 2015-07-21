@@ -18,7 +18,7 @@ class Wine(db.Model):
     country = db.Column(db.String(250), nullable=True)
     region = db.Column(db.String(250), nullable=True)
     year = db.Column(db.Integer, nullable=True)
-    type_of_grape = db.Column(db.String(250), nullable=True)
+    type_of_grape_id = db.Column(db.Integer, db.ForeignKey('type_of_grape.id'), nullable=True)
     parker_points = db.Column(db.Integer, nullable=True)
     photo = db.Column(db.Text, nullable=True)
     flag_photo = db.Column(db.Text, nullable=True)
