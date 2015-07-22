@@ -424,12 +424,6 @@ class TypeOfGrapeModelViewWithUpload(ModelView):
     }
 
 
-class UserViewCreateForm(Form):
-    title = TextField('Title')
-    photo = ImageUploadField('Image', base_path=app.config['TYPE_OF_GRAPE_UPLOAD'],
-                                  url_relative_path='type_of_grapes/')
-
-
 class WineModelViewWithUpload(ModelView):
     def _list_thumbnail_photo(view, context, model, name):
         if not model.photo:
