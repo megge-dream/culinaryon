@@ -165,7 +165,16 @@ class SchoolPhotoInlineModelForm(InlineFormAdmin):
         return form
 
 
+class InstructionItemInlineModelForm(InlineFormAdmin):
+
+    def postprocess_form(self, form):
+        form.photo = MyImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'],
+                                        url_relative_path='schools/')
+        return form
+
+
 class RecipeModelViewWithRelationships(ModelView):
+    inline_models = (Ingredient, InstructionItemInlineModelForm(InstructionItem), RecipePhotoInlineModelForm(RecipePhoto))
     column_display_all_relations = True
     column_auto_select_related = True
     can_create = True
@@ -196,7 +205,6 @@ class RecipeModelViewWithRelationships(ModelView):
         "photos": _list_thumbnail_many,
         "time": time_sec_to_min,
     }
-    inline_models = (RecipePhotoInlineModelForm(RecipePhoto),)
 
     form_extra_fields = {
         'time': TextField('Time (format: XX:XX:XX (hour:min:sec) )')
@@ -416,8 +424,13 @@ class TypeOfGrapeModelViewWithUpload(ModelView):
     }
 
 
-class WineModelViewWithUpload(ModelView):
+class UserViewCreateForm(Form):
+    title = TextField('Title')
+    photo = ImageUploadField('Image', base_path=app.config['TYPE_OF_GRAPE_UPLOAD'],
+                                  url_relative_path='type_of_grapes/')
 
+
+class WineModelViewWithUpload(ModelView):
     def _list_thumbnail_photo(view, context, model, name):
         if not model.photo:
             return ''
@@ -472,6 +485,8 @@ class InstructionItemModelViewWithUpload(ModelView):
         return Markup('<img src="%s">' % url_for('static', filename='instruction_items/' + model.photo))
 
     def time_sec_to_min(view, context, model, name):
+        if not model.time:
+            model.time = 0
         time_sec = int(model.time) % 60
         time_min = int(model.time) / 60 % 60
         if time_sec < 10:
