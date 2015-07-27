@@ -16,7 +16,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 
 from markupsafe import Markup
 from werkzeug.utils import secure_filename, redirect
-from wtforms import SelectField, Form, ValidationError, TextField
+from wtforms import SelectField, Form, ValidationError, TextField, IntegerField
 from app.api.users.constants import USER_ROLE_SELECT, USER_STATUS_SELECT, PROVIDER_LIST_SELECT
 from config import SECRET_KEY, UPLOAD_FOLDER
 
@@ -125,6 +125,8 @@ from app.api.wines.model import Wine
 from app.api.school_events.model import SchoolEvent
 from app.api.sets.model import Set
 from app.api.type_of_grape.model import TypeOfGrape
+from app.api.promo_codes.model import PromoCode
+from app.api.helpers import code_generator
 
 
 class MyImageUploadInput(ImageUploadInput):
@@ -513,6 +515,37 @@ class InstructionItemModelViewWithUpload(ModelView):
         return
 
 
+class PromoCodeModel(ModelView):
+    column_exclude_list = ('creation_date',)
+    column_list = ('number', 'value', 'code')
+
+    def get_number(view, context, model, name):
+        return "%04d" % model.id
+
+    can_create = True
+    can_edit = False
+
+    column_formatters = {
+        "number": get_number,
+    }
+
+    form_extra_fields = {
+        'amount': IntegerField('Amount')
+    }
+    form_columns = ('amount', 'value')
+
+    def on_model_change(self, form, model, is_created):
+        for i in range(model.amount - 1):
+            value = "%04d" % int(model.value)
+            code = code_generator()
+            promo_code = PromoCode(value=value, code=code)
+            db.session.add(promo_code)
+            db.session.commit()
+        model.value = "%04d" % int(model.value)
+        model.code = code_generator()
+        return
+
+
 class SchoolEventModelView(ModelView):
     column_display_all_relations = True
 
@@ -572,6 +605,7 @@ admin.add_view(SchoolEventModelView(SchoolEvent, db.session))
 admin.add_view(ModelView(Report, db.session))
 admin.add_view(ModelView(FavoriteWine, db.session))
 admin.add_view(SetModelViewWithUpload(Set, db.session))
+admin.add_view(PromoCodeModel(PromoCode, db.session))
 admin.add_view(LogoutView(name='Logout'))
 
 # #######################
@@ -726,6 +760,10 @@ app.register_blueprint(school_events_v2_module)
 # Types of grape module (v2)
 from app.api.type_of_grape.views_v2 import mod as type_of_grape_v2_module
 app.register_blueprint(type_of_grape_v2_module)
+
+# Promo codes module (v2)
+from app.api.promo_codes.views_v2 import mod as promo_codes_v2_module
+app.register_blueprint(promo_codes_v2_module)
 
 # docsmodule
 from app.api.docs.views import mod as docs_module

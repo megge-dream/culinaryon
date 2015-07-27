@@ -1,6 +1,8 @@
 # import app
 # encoding: utf-8
 import copy
+import string
+import random
 from flask.ext.login import current_user, AnonymousUserMixin
 from app.api import app, Ingredient, Basket, Category, Wine, Set
 from app.api.chefs.model import Chef
@@ -169,3 +171,7 @@ def get_ingredients_by_divisions(recipe_id):
     for d in division:
         ingredients.append(d)
     return ingredients
+
+
+def code_generator(size=4, chars=string.ascii_uppercase):
+    return ''.join(random.choice(chars) for _ in range(size))
