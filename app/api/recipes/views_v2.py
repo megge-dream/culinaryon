@@ -584,7 +584,7 @@ def get_searched_goods_and_wines():
     """
     recipes = []
     wines = []
-    q = request.args.get('q', type=unicode, default='')
+    q = request.args.get('q', type=unicode, default=u'')
     category = request.args.get('category', type=int)
     type_of_grape = request.args.get('type_of_grape', type=int)
     page = request.args.get('page', type=int)
@@ -602,20 +602,22 @@ def get_searched_goods_and_wines():
         wines_band = Wine.query
     if page is not None:
         # for faster loading
-        limit_recipes = 2
+        limit_recipes = 3
         offset_recipes = (page-1)*limit_recipes
-        limit_wines = 2
+        limit_wines = 3
         offset_wines = (page-1)*limit_recipes
-        recipes_band = recipes_band\
+        old_recipes_band = recipes_band
+        old_wines_band = wines_band
+        recipes_band = old_recipes_band\
                                    .filter(Recipe.title.ilike('%' + q + '%'))\
                                    .slice(start=offset_recipes, stop=limit_recipes+offset_recipes).all()
-        wines_band = wines_band\
+        wines_band = old_wines_band\
                                .filter(Wine.title.ilike('%' + q + '%'))\
                                .slice(start=offset_wines, stop=limit_wines+offset_wines).all()
-        next_recipe = recipes_band\
+        next_recipe = old_recipes_band\
                                   .filter(Recipe.title.ilike('%' + q + '%'))\
                                   .slice(start=limit_recipes+offset_recipes, stop=limit_recipes+offset_recipes+1).first()
-        next_wine = wines_band\
+        next_wine = old_wines_band\
                               .filter(Wine.title.ilike('%' + q + '%'))\
                               .slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
         if next_recipe or next_wine:

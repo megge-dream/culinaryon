@@ -4,7 +4,7 @@ import copy
 import string
 import random
 from flask.ext.login import current_user, AnonymousUserMixin
-from app.api import app, Ingredient, Basket, Category, Wine, Set
+from app.api import app, Ingredient, Basket, Category, Wine, Set, TypeOfGrape
 from app.api.chefs.model import Chef
 from app.api.recipes.model import Recipe, InstructionItem
 from app.api.schools.model import School, SchoolItem
@@ -50,6 +50,12 @@ def response_builder(current_object, entity, excluded=[]):
                 school_id = getattr(current_object, columnName)
                 if school_id is not None:
                     result["school"] = response_builder(School.query.get(school_id), School)
+            elif "type_of_grape" in columnName:
+                type_of_grape_id = getattr(current_object, columnName)
+                if type_of_grape_id is not None:
+                    result["type_of_grape"] = response_builder(TypeOfGrape.query.get(type_of_grape_id), TypeOfGrape)
+                else:
+                    result["type_of_grape"] = []
             elif "user" in columnName and columnName != "provider_user_id":
                 user_id = getattr(current_object, columnName)
                 if user_id is not None:
