@@ -4,7 +4,10 @@ from flask.ext.login import login_required
 from app.api import db, auto
 from app.api.constants import BAD_REQUEST, OK
 from app.api.helpers import *
-from app.api.likes.model import LikeWine
+from app.api.likes.model import LikeWine, Like
+from app.api.sets.model import UserSet
+from app.api.cuisine_types.model import CuisineType
+from app.api.users.constants import FOREVER, MONTH
 from app.api.wines.model import Wine
 from app.decorators import admin_required
 
@@ -119,4 +122,71 @@ def delete_wine(id):
 def wine_response_builder(wine, lang=u'en', excluded=[]):
     information = response_builder(wine, Wine, lang, excluded)
     information['likes'] = LikeWine.query.filter_by(wine_id=wine.id).count()
+    information['recipes'] = []
+    for recipe in wine.recipes:
+        information['recipes'].append(recipe_without_wines_response_builder(recipe, lang, excluded))
+    return information
+
+
+def recipe_without_wines_response_builder(recipe, lang=u'en', excluded=[]):
+    categories = []
+    if current_user.is_authenticated() and current_user.role_code == 0:
+        recipe_query = Recipe.query
+    else:
+        recipe_query = Recipe.query.filter_by(type=PUBLISHED)
+    for category in recipe_query.filter_by(id=recipe.id).first().categories:
+        categories.append(category.id)
+    cuisine_types = []
+    for cuisine_type in recipe_query.filter_by(id=recipe.id).first().cuisine_types:
+        cuisine_types.append(cuisine_type.id)
+    tools = []
+    for tool in recipe_query.filter_by(id=recipe.id).first().tools:
+        tools.append(tool.id)
+    information = response_builder(recipe, Recipe, lang, excluded)
+    information['categories'] = []
+    if categories is not None:
+        for category_id in categories:
+            category = Category.query.get(category_id)
+            category_information = response_builder(category, Category, lang)
+            information["categories"].append(category_information)
+    information['cuisine_types'] = []
+    if cuisine_types is not None:
+        for cuisine_type_id in cuisine_types:
+            cuisine_type = CuisineType.query.get(cuisine_type_id)
+            cuisine_type_information = response_builder(cuisine_type, CuisineType, lang)
+            information["cuisine_types"].append(cuisine_type_information)
+    information['tools'] = []
+    if tools is not None:
+        for tool_id in tools:
+            tool = Tool.query.get(tool_id)
+            tool_information = response_builder(tool, Tool, lang)
+            information["tools"].append(tool_information)
+    information['photos'] = []
+    for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
+        photo_information = response_builder(photo, RecipePhoto, lang)
+        information['photos'].append(photo_information)
+    information['ingredients'] = []
+    for ingredient in Ingredient.query.filter_by(recipe_id=recipe.id):
+        ingredient_information = response_builder(ingredient, Ingredient, lang, excluded=["recipe_id"])
+        information['ingredients'].append(ingredient_information)
+    information['instructions'] = []
+    for instruction in InstructionItem.query.filter_by(recipe_id=recipe.id):
+        instruction_information = response_builder(instruction, InstructionItem, lang, excluded=["recipe_id"])
+        information['instructions'].append(instruction_information)
+    information['likes'] = Like.query.filter_by(recipe_id=recipe.id).count()
+    if not recipe.set_id:
+        information['is_open'] = True
+    elif not current_user.is_authenticated():
+        information['is_open'] = False
+    elif UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first():
+        user_set = UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first()
+        if user_set.open_type == FOREVER:
+            information['is_open'] = True
+        if user_set.open_type == MONTH:
+            if (datetime.utcnow() - user_set.open_date).days <= 30:
+                information['is_open'] = True
+            else:
+                information['is_open'] = False
+    else:
+        information['is_open'] = False
     return information
