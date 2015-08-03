@@ -17,7 +17,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from markupsafe import Markup
 from werkzeug.utils import secure_filename, redirect
 from wtforms import SelectField, Form, ValidationError, TextField, IntegerField
-from app.api.users.constants import USER_ROLE_SELECT, USER_STATUS_SELECT, PROVIDER_LIST_SELECT
+from app.api.users.constants import USER_ROLE_SELECT, USER_STATUS_SELECT, PROVIDER_LIST_SELECT, RECIPE_TYPE_SELECT
 from config import SECRET_KEY, UPLOAD_FOLDER
 
 from flask import Flask
@@ -181,6 +181,16 @@ class RecipeModelViewWithRelationships(ModelView):
     column_auto_select_related = True
     can_create = True
     can_edit = True
+    column_choices = {
+        'type': RECIPE_TYPE_SELECT
+    }
+    form_overrides = dict(type=SelectField)
+
+    form_args = dict(
+        type=dict(
+            label='Type', choices=RECIPE_TYPE_SELECT, coerce=int
+        ),
+    )
 
     def time_sec_to_min(view, context, model, name):
         time_sec = int(model.time) % 60

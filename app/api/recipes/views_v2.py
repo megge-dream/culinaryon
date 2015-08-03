@@ -13,7 +13,7 @@ from app.api.photos.model import RecipePhoto
 from app.api.recipes.model import Recipe, InstructionItem
 from app.api.sets.model import Set, UserSet
 from app.api.tools.model import Tool
-from app.api.users.constants import FOREVER, MONTH
+from app.api.users.constants import FOREVER, MONTH, PUBLISHED
 from app.api.wines.model import Wine
 from app.api.wines.views_v2 import wine_response_builder
 from app.decorators import admin_required
@@ -364,14 +364,18 @@ def get_all_recipes_sets_wines():
     limit = request.args.get('limit', type=int)
     count = [Recipe.query.count(), Set.query.count(), Wine.query.count()]
     count = max(count)
+    if current_user.is_authenticated() and current_user.role_code == 0:
+        recipe_query = Recipe.query
+    else:
+        recipe_query = Recipe.query.filter_by(type=PUBLISHED)
     if limit is not None and offset is not None:
         # for faster loading
         limit = 5
-        recipes_band = Recipe.query.slice(start=offset, stop=limit+offset).all()
+        recipes_band = recipe_query.slice(start=offset, stop=limit+offset).all()
         sets_band = Set.query.slice(start=offset, stop=limit+offset).all()
         wines_band = Wine.query.slice(start=offset, stop=limit+offset).all()
     else:
-        recipes_band = Recipe.query.all()
+        recipes_band = recipe_query.all()
         sets_band = Set.query.all()
         wines_band = Wine.query.all()
     for recipe in recipes_band:
@@ -381,7 +385,7 @@ def get_all_recipes_sets_wines():
         information['hash'] = hash_of_information
         recipes.append(information)
     recipes_ids = []
-    recipes_all = Recipe.query.all()
+    recipes_all = recipe_query.all()
     for recipe in recipes_all:
         recipes_ids.append(recipe.id)
     for set in sets_band:
@@ -419,11 +423,15 @@ def get_chef_recipes(id):
     recipes = []
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
-    count = Recipe.query.filter_by(chef_id=id).count()
-    if limit is not None and offset is not None:
-        recipes_band = Recipe.query.filter_by(chef_id=id).slice(start=offset, stop=limit+offset).all()
+    if current_user.is_authenticated() and current_user.role_code == 0:
+        recipe_query = Recipe.query
     else:
-        recipes_band = Recipe.query.filter_by(chef_id=id)
+        recipe_query = Recipe.query.filter_by(type=PUBLISHED)
+    count = recipe_query.filter_by(chef_id=id).count()
+    if limit is not None and offset is not None:
+        recipes_band = recipe_query.filter_by(chef_id=id).slice(start=offset, stop=limit+offset).all()
+    else:
+        recipes_band = recipe_query.filter_by(chef_id=id)
     for recipe in recipes_band:
         information = recipe_response_builder(recipe)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id)
@@ -449,11 +457,15 @@ def get_category_recipes(id):
     recipes = []
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
-    count = Recipe.query.join(Category.recipes).filter(Category.id == id).count()
-    if limit is not None and offset is not None:
-        recipes_band = Recipe.query.join(Category.recipes).filter(Category.id == id).slice(start=offset, stop=limit+offset).all()
+    if current_user.is_authenticated() and current_user.role_code == 0:
+        recipe_query = Recipe.query
     else:
-        recipes_band = Recipe.query.join(Category.recipes).filter(Category.id == id).all()
+        recipe_query = Recipe.query.filter_by(type=PUBLISHED)
+    count = recipe_query.join(Category.recipes).filter(Category.id == id).count()
+    if limit is not None and offset is not None:
+        recipes_band = recipe_query.join(Category.recipes).filter(Category.id == id).slice(start=offset, stop=limit+offset).all()
+    else:
+        recipes_band = recipe_query.join(Category.recipes).filter(Category.id == id).all()
     for recipe in recipes_band:
         information = recipe_response_builder(recipe)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id)
@@ -479,11 +491,15 @@ def get_set_recipes(id):
     recipes = []
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
-    count = Recipe.query.join(Set.recipes).filter(Set.id == id).count()
-    if limit is not None and offset is not None:
-        recipes_band = Recipe.query.join(Set.recipes).filter(Set.id == id).slice(start=offset, stop=limit+offset).all()
+    if current_user.is_authenticated() and current_user.role_code == 0:
+        recipe_query = Recipe.query
     else:
-        recipes_band = Recipe.query.join(Set.recipes).filter(Set.id == id).all()
+        recipe_query = Recipe.query.filter_by(type=PUBLISHED)
+    count = recipe_query.join(Set.recipes).filter(Set.id == id).count()
+    if limit is not None and offset is not None:
+        recipes_band = recipe_query.join(Set.recipes).filter(Set.id == id).slice(start=offset, stop=limit+offset).all()
+    else:
+        recipes_band = recipe_query.join(Set.recipes).filter(Set.id == id).all()
     for recipe in recipes_band:
         information = recipe_response_builder(recipe)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id)
@@ -510,6 +526,10 @@ def get_feed():
     recipes = []
     sets = []
     wines = []
+    if current_user.is_authenticated() and current_user.role_code == 0:
+        recipe_query = Recipe.query
+    else:
+        recipe_query = Recipe.query.filter_by(type=PUBLISHED)
     page = request.args.get('page', type=int)
     if page is not None:
         # for faster loading
@@ -519,10 +539,10 @@ def get_feed():
         offset_sets = (page-1)*limit_recipes
         limit_wines = 2
         offset_wines = (page-1)*limit_recipes
-        recipes_band = Recipe.query.slice(start=offset_recipes, stop=limit_recipes+offset_recipes).all()
+        recipes_band = recipe_query.slice(start=offset_recipes, stop=limit_recipes+offset_recipes).all()
         sets_band = Set.query.slice(start=offset_sets, stop=limit_sets+offset_sets).all()
         wines_band = Wine.query.slice(start=offset_wines, stop=limit_wines+offset_wines).all()
-        next_recipe = Recipe.query.slice(start=limit_recipes+offset_recipes, stop=limit_recipes+offset_recipes+1).first()
+        next_recipe = recipe_query.slice(start=limit_recipes+offset_recipes, stop=limit_recipes+offset_recipes+1).first()
         next_set = Set.query.slice(start=limit_sets+offset_sets, stop=limit_sets+offset_sets+1).first()
         next_wine = Wine.query.slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
         if next_recipe or next_set or next_wine:
@@ -530,7 +550,7 @@ def get_feed():
         else:
             is_last_page = True
     else:
-        recipes_band = Recipe.query.all()
+        recipes_band = recipe_query.all()
         sets_band = Set.query.all()
         wines_band = Wine.query.all()
         is_last_page = True
@@ -542,7 +562,7 @@ def get_feed():
         information['type_of_object'] = 'recipe'
         recipes.append(information)
     recipes_ids = []
-    recipes_all = Recipe.query.all()
+    recipes_all = recipe_query.all()
     for recipe in recipes_all:
         recipes_ids.append(recipe.id)
     for set in sets_band:
@@ -588,14 +608,18 @@ def get_searched_goods_and_wines():
     category = request.args.get('category', type=int)
     type_of_grape = request.args.get('type_of_grape', type=int)
     page = request.args.get('page', type=int)
+    if current_user.is_authenticated() and current_user.role_code == 0:
+        recipe_query = Recipe.query
+    else:
+        recipe_query = Recipe.query.filter_by(type=PUBLISHED)
     if category is not None:
         category = Category.query.filter_by(id=category).first()
         if category:
-            recipes_band = Recipe.query.filter(Recipe.categories.contains(category))
+            recipes_band = recipe_query.filter(Recipe.categories.contains(category))
         else:
-            recipes_band = Recipe.query.filter(db.false())
+            recipes_band = recipe_query.filter(db.false())
     else:
-        recipes_band = Recipe.query
+        recipes_band = recipe_query
     if type_of_grape is not None:
         wines_band = Wine.query.filter_by(type_of_grape_id=type_of_grape)
     else:
@@ -645,16 +669,20 @@ def get_searched_goods_and_wines():
 
 def recipe_response_builder(recipe, excluded=[]):
     categories = []
-    for category in Recipe.query.filter_by(id=recipe.id).first().categories:
+    if current_user.is_authenticated() and current_user.role_code == 0:
+        recipe_query = Recipe.query
+    else:
+        recipe_query = Recipe.query.filter_by(type=PUBLISHED)
+    for category in recipe_query.filter_by(id=recipe.id).first().categories:
         categories.append(category.id)
     cuisine_types = []
-    for cuisine_type in Recipe.query.filter_by(id=recipe.id).first().cuisine_types:
+    for cuisine_type in recipe_query.filter_by(id=recipe.id).first().cuisine_types:
         cuisine_types.append(cuisine_type.id)
     tools = []
-    for tool in Recipe.query.filter_by(id=recipe.id).first().tools:
+    for tool in recipe_query.filter_by(id=recipe.id).first().tools:
         tools.append(tool.id)
     wines = []
-    for wine in Recipe.query.filter_by(id=recipe.id).first().wines:
+    for wine in recipe_query.filter_by(id=recipe.id).first().wines:
         wines.append(wine.id)
     information = response_builder(recipe, Recipe, excluded)
     information['categories'] = []

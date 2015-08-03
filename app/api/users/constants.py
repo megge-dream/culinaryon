@@ -59,3 +59,17 @@ OPEN_LENGTH_SELECT = [
     (MONTH, 'month'),
     (FOREVER, 'forever'),
 ]
+# Recipes type
+PUBLISHED = 0
+PREVIEW = 1
+DRAFT = 2
+RECIPE_TYPE = {
+    PUBLISHED: 'publish',
+    PREVIEW: 'preview',
+    DRAFT: 'draft',
+}
+RECIPE_TYPE_SELECT = [
+    (PUBLISHED, 'publish'),
+    (PREVIEW, 'preview'),
+    (DRAFT, 'draft'),
+]

@@ -467,7 +467,11 @@ def get_top():
     for chef in chefs:
         information['chefs'].append(chef_response_builder(chef))
 
-    recipes = Recipe.query.order_by(Recipe.num_likes.desc()).limit(PLACES_IN_TOP).all()
+    if current_user.is_authenticated() and current_user.role_code == 0:
+        recipe_query = Recipe.query
+    else:
+        recipe_query = Recipe.query.filter_by(type=PUBLISHED)
+    recipes = recipe_query.order_by(Recipe.num_likes.desc()).limit(PLACES_IN_TOP).all()
     information['recipes'] = []
     for recipe in recipes:
         information_of_recipe = recipe_response_builder(recipe)

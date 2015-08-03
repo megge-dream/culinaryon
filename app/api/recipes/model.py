@@ -9,6 +9,7 @@ from app.api.ingredients.model import Ingredient
 from app.api.likes.model import Like
 from app.api.photos.model import RecipePhoto
 from app.api.tools.model import Tool
+from app.api.users.constants import PUBLISHED
 from app.api.wines.model import Wine
 
 
@@ -62,6 +63,7 @@ class Recipe(db.Model):
     set_id = db.Column(db.Integer, db.ForeignKey('sets.id'), nullable=True)
     video = db.Column(db.Text, nullable=True)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
+    type = db.Column(db.SmallInteger, default=PUBLISHED)
 
     # links
     likes = db.relationship(Like, backref='recipes', cascade="all, delete-orphan", lazy='select')

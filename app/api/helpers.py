@@ -8,6 +8,7 @@ from app.api import app, Ingredient, Basket, Category, Wine, Set, TypeOfGrape
 from app.api.chefs.model import Chef
 from app.api.recipes.model import Recipe, InstructionItem
 from app.api.schools.model import School, SchoolItem
+from app.api.users.constants import PUBLISHED
 from app.api.users.model import User
 from app.api.tools.model import Tool
 from app.api.photos.model import *
@@ -40,7 +41,11 @@ def response_builder(current_object, entity, excluded=[]):
             elif "recipe" in columnName:
                 recipe_id = getattr(current_object, columnName)
                 if recipe_id is not None:
-                    result["recipe"] = response_builder(Recipe.query.get(recipe_id), Recipe)
+                    if current_user.is_authenticated() and current_user.role_code == 0:
+                        recipe_query = Recipe.query
+                    else:
+                        recipe_query = Recipe.query.filter_by(type=PUBLISHED)
+                    result["recipe"] = response_builder(recipe_query.get(recipe_id), Recipe)
             elif "chef" in columnName:
                 chef_id = getattr(current_object, columnName)
                 result["chef"] = chef_id

@@ -180,7 +180,11 @@ def chef_response_builder(chef):
         photo_information = response_builder(photo, ChefPhoto)
         information['photos'].append(photo_information)
     information['recipes'] = []
-    for recipe in Recipe.query.filter_by(chef_id=chef.id):
+    if current_user.is_authenticated() and current_user.role_code == 0:
+        recipe_query = Recipe.query
+    else:
+        recipe_query = Recipe.query.filter_by(type=PUBLISHED)
+    for recipe in recipe_query.filter_by(chef_id=chef.id):
         recipe_information = recipe_response_builder(recipe, excluded=['chef_id'])
         information['recipes'].append(recipe_information)
     return information

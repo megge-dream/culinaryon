@@ -9,6 +9,7 @@ from app.api.favorites.model import Favorite, FavoriteWine
 from app.api.photos.model import RecipePhoto
 from app.api.recipes.model import Recipe
 from app.api.recipes.views import recipe_response_builder
+from app.api.users.constants import PUBLISHED
 
 mod = Blueprint('favorites_v2', __name__, url_prefix='/api_v2/favorites')
 
@@ -78,7 +79,11 @@ def get_favorite():
         wines_band = FavoriteWine.query.filter_by(user_id=user_id).all()
         is_last_page = True
     for favorite in recipes_band:
-        recipe = Recipe.query.get(favorite.recipe_id)
+        if current_user.is_authenticated() and current_user.role_code == 0:
+            recipe_query = Recipe.query
+        else:
+            recipe_query = Recipe.query.filter_by(type=PUBLISHED)
+        recipe = recipe_query.get(favorite.recipe_id)
         information = recipe_response_builder(recipe)
         information['type_of_object'] = 'recipe'
         recipes.append(information)
