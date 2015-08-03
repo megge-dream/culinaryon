@@ -29,12 +29,13 @@ def new_dictionary():
     """
     title = request.json.get('title')
     description = request.json.get('description')
+    lang = request.args.get('lang', type=unicode, default=u'en')
     if title is None or description is None:
         return jsonify({'error_code': 400, 'result': 'not ok'}), 200  # missing arguments
     dictionary = Dictionary(title=title, description=description)
     db.session.add(dictionary)
     db.session.commit()
-    information = response_builder(dictionary, Dictionary)
+    information = response_builder(dictionary, Dictionary, lang)
     return jsonify({'error_code': OK, 'result': information}), 201
 
 
@@ -78,9 +79,10 @@ def get_dictionary(id):
             result - information about dictionary
     """
     dictionary = Dictionary.query.get(id)
+    lang = request.args.get('lang', type=unicode, default=u'en')
     if not dictionary:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # dictionary with `id` isn't exist
-    information = response_builder(dictionary, Dictionary)
+    information = response_builder(dictionary, Dictionary, lang)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -95,12 +97,13 @@ def get_all_dictionares():
     """
     dic = db.session.query(func.substr(Dictionary.title, 1, 1)).group_by(func.substr(Dictionary.title, 1, 1)).all()
     result = {}
+    lang = request.args.get('lang', type=unicode, default=u'en')
     for letter_arr in dic:
         letter = letter_arr[0]
         results_for_letter = []
         for dictionary in Dictionary.query.all():
             if dictionary.title[0] == letter:
-                information = response_builder(dictionary, Dictionary)
+                information = response_builder(dictionary, Dictionary, lang)
                 results_for_letter.append(information)
         result.update({letter: results_for_letter})
     return jsonify({'error_code': OK, 'result': result}), 200

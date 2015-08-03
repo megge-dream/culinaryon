@@ -14,18 +14,20 @@ from app.api.tools.model import Tool
 from app.api.photos.model import *
 
 
-def response_builder(current_object, entity, excluded=[]):
+def response_builder(current_object, entity, lang=u'en', excluded=[]):
     """
     Helps to build appropriate response, parsing given object and included/excluded needed fields
     :param current_object: current object, from which we want to build a response
     :param entity: global entity the given object belongs to.
+    :param lang: language for result.
     :param excluded: array of fields we do not want to see in response.
     :return: return a dict with needed fields
     """
     result = {}
+    current_lang = u'lang_' + lang
     excluded.append('is_deleted')
     for columnName in entity.__table__.columns.keys():
-        if columnName not in excluded:
+        if columnName not in excluded and ('lang' not in columnName or current_lang in columnName):
             if entity == Ingredient:
                 if current_user.is_authenticated() and Basket.query.filter_by(user_id=current_user.id,
                                                                               ingredient_id=current_object.id).all():
@@ -45,20 +47,20 @@ def response_builder(current_object, entity, excluded=[]):
                         recipe_query = Recipe.query
                     else:
                         recipe_query = Recipe.query.filter_by(type=PUBLISHED)
-                    result["recipe"] = response_builder(recipe_query.get(recipe_id), Recipe)
+                    result["recipe"] = response_builder(recipe_query.get(recipe_id), Recipe, lang=lang)
             elif "chef" in columnName:
                 chef_id = getattr(current_object, columnName)
                 result["chef"] = chef_id
                 if chef_id is not None and entity != Recipe:
-                    result["chef"] = response_builder(Chef.query.get(chef_id), Chef)
+                    result["chef"] = response_builder(Chef.query.get(chef_id), Chef, lang=lang)
             elif "school" in columnName:
                 school_id = getattr(current_object, columnName)
                 if school_id is not None:
-                    result["school"] = response_builder(School.query.get(school_id), School)
+                    result["school"] = response_builder(School.query.get(school_id), School, lang=lang)
             elif "type_of_grape" in columnName:
                 type_of_grape_id = getattr(current_object, columnName)
                 if type_of_grape_id is not None:
-                    result["type_of_grape"] = response_builder(TypeOfGrape.query.get(type_of_grape_id), TypeOfGrape)
+                    result["type_of_grape"] = response_builder(TypeOfGrape.query.get(type_of_grape_id), TypeOfGrape, lang=lang)
                 else:
                     result["type_of_grape"] = []
             elif "user" in columnName and columnName != "provider_user_id":
@@ -66,7 +68,7 @@ def response_builder(current_object, entity, excluded=[]):
                 if user_id is not None:
                     if columnName == "user_id":
                         columnName = "user"
-                    result[columnName] = response_builder(User.query.get(user_id), User, ["password"])
+                    result[columnName] = response_builder(User.query.get(user_id), User, lang=lang, excluded=["password"])
             else:
                 if 'photo' in columnName and getattr(current_object, columnName) is not None:
                     if entity is Recipe or entity is RecipePhoto:
@@ -158,12 +160,12 @@ def make_hash(o):
     return hash(tuple(frozenset(sorted(new_o.items()))))
 
 
-def get_ingredients_by_divisions(recipe_id):
+def get_ingredients_by_divisions(recipe_id, lang=u'en'):
     ingredients = []
     division = []
     division_names = []
     for ingredient in Ingredient.query.filter_by(recipe_id=recipe_id):
-        information = response_builder(ingredient, Ingredient, excluded=["recipe_id"])
+        information = response_builder(ingredient, Ingredient, lang=lang, excluded=["recipe_id"])
         if ":" in ingredient.title:
             division_info = {}
             division_name = ingredient.title.split(':')[0]

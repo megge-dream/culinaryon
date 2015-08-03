@@ -71,17 +71,18 @@ def get_school(id):
             error_code - server response_code
             result - information about school
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     school = School.query.get(id)
     if not school:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # school with `id` isn't exist
-    information = response_builder(school, School)
+    information = response_builder(school, School, lang)
     information['photos'] = []
     for photo in SchoolPhoto.query.filter_by(item_id=school.id):
-        photo_information = response_builder(photo, SchoolPhoto)
+        photo_information = response_builder(photo, SchoolPhoto,lang)
         information['photos'].append(photo_information)
     information['school_items'] = []
     for school_item in SchoolItem.query.filter_by(school_id=id):
-        school_item_information = response_builder(school_item, SchoolItem, excluded=['school_id'])
+        school_item_information = response_builder(school_item, SchoolItem, lang, excluded=['school_id'])
         information['school_items'].append(school_item_information)
     return jsonify({'error_code': OK, 'result': information}), 200
 
@@ -95,16 +96,17 @@ def get_all_schools():
             error_code - server response_code
             result - information about schools
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     schools = []
     for school in School.query.all():
-        information = response_builder(school, School)
+        information = response_builder(school, School, lang)
         information['photos'] = []
         for photo in SchoolPhoto.query.filter_by(item_id=school.id):
             photo_information = response_builder(photo, SchoolPhoto)
             information['photos'].append(photo_information)
         information['school_items'] = []
         for school_item in SchoolItem.query.filter_by(school_id=school.id):
-            school_item_information = response_builder(school_item, SchoolItem, excluded=['school_id'])
+            school_item_information = response_builder(school_item, SchoolItem, lang, excluded=['school_id'])
             information['school_items'].append(school_item_information)
         schools.append(information)
     return jsonify({'error_code': OK, 'result': schools}), 200
@@ -202,10 +204,11 @@ def get_school_item(id):
             error_code - server response_code
             result - information about school item
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     school_item = SchoolItem.query.get(id)
     if not school_item:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # school_item with `id` isn't exist
-    information = response_builder(school_item, SchoolItem)
+    information = response_builder(school_item, SchoolItem, lang)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -218,9 +221,10 @@ def get_all_school_items():
             error_code - server response_code
             result - information about school items
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     school_items = []
     for school_item in SchoolItem.query.all():
-        information = response_builder(school_item, SchoolItem)
+        information = response_builder(school_item, SchoolItem, lang)
         school_items.append(information)
     return jsonify({'error_code': OK, 'result': school_items}), 200
 
@@ -254,8 +258,9 @@ def get_one_school_items(id):
             error_code - server response_code
             result - information about school items
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     school_items = []
     for school_item in SchoolItem.query.filter_by(school_id=id):
-        information = response_builder(school_item, SchoolItem)
+        information = response_builder(school_item, SchoolItem, lang)
         school_items.append(information)
     return jsonify({'error_code': OK, 'result': school_items}), 200

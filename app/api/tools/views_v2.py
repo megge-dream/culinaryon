@@ -76,10 +76,11 @@ def get_tool(id):
             error_code - server response_code
             result - information about tool
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     tool = Tool.query.get(id)
     if not tool:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # tool with `id` isn't exist
-    information = response_builder(tool, Tool)
+    information = response_builder(tool, Tool, lang)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -92,9 +93,10 @@ def get_all_tools():
             error_code - server response_code
             result - information about tools
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     tools = []
     for tool in Tool.query.all():
-        information = response_builder(tool, Tool)
+        information = response_builder(tool, Tool, lang)
         tools.append(information)
     return jsonify({'error_code': OK, 'result': tools}), 200
 

@@ -239,9 +239,10 @@ def get_instruction(id):
             result - information about instruction
     """
     instruction = InstructionItem.query.get(id)
+    lang = request.args.get('lang', type=unicode, default=u'en')
     if not instruction:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # instruction with `id` isn't exist
-    information = response_builder(instruction, InstructionItem)
+    information = response_builder(instruction, InstructionItem, lang)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -255,8 +256,9 @@ def get_all_instructions():
             result - information about instructions
     """
     instructions = []
+    lang = request.args.get('lang', type=unicode, default=u'en')
     for instruction in InstructionItem.query.all():
-        information = response_builder(instruction, InstructionItem)
+        information = response_builder(instruction, InstructionItem, lang)
         instructions.append(information)
     return jsonify({'error_code': OK, 'result': instructions}), 200
 
@@ -290,9 +292,10 @@ def get_recipe_instructions(id):
             error_code - server response_code
             result - information about instructions
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     instructions = []
     for instruction in InstructionItem.query.filter_by(recipe_id=id):
-        information = response_builder(instruction, InstructionItem, excluded=["recipe_id"])
+        information = response_builder(instruction, InstructionItem, lang, excluded=["recipe_id"])
         instructions.append(information)
     return jsonify({'error_code': OK, 'result': instructions}), 200
 
@@ -330,10 +333,11 @@ def get_recipe(id):
             error_code - server response_code
             result - information about recipe
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     recipe = Recipe.query.get(id)
     if not recipe:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # recipe with `id` isn't exist
-    information = recipe_response_builder(recipe)
+    information = recipe_response_builder(recipe, lang)
     information['ingredients'] = get_ingredients_by_divisions(id)
     hash_of_information = make_hash(information)
     information['hash'] = hash_of_information
@@ -360,6 +364,7 @@ def get_all_recipes_sets_wines():
     recipes = []
     sets = []
     wines = []
+    lang = request.args.get('lang', type=unicode, default=u'en')
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
     count = [Recipe.query.count(), Set.query.count(), Wine.query.count()]
@@ -379,7 +384,7 @@ def get_all_recipes_sets_wines():
         sets_band = Set.query.all()
         wines_band = Wine.query.all()
     for recipe in recipes_band:
-        information = recipe_response_builder(recipe)
+        information = recipe_response_builder(recipe, lang)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
@@ -389,14 +394,14 @@ def get_all_recipes_sets_wines():
     for recipe in recipes_all:
         recipes_ids.append(recipe.id)
     for set in sets_band:
-        information = set_response_builder(set)
+        information = set_response_builder(set, lang)
         sets.append(information)
     sets_ids = []
     sets_all = Set.query.all()
     for set in sets_all:
         sets_ids.append(set.id)
     for wine in wines_band:
-        information = response_builder(wine, Wine)
+        information = response_builder(wine, Wine, lang)
         wines.append(information)
     wines_ids = []
     wines_all = Wine.query.all()
@@ -421,6 +426,7 @@ def get_chef_recipes(id):
             entities_count - numbers of all chefs recipes
     """
     recipes = []
+    lang = request.args.get('lang', type=unicode, default=u'en')
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
     if current_user.is_authenticated() and current_user.role_code == 0:
@@ -433,7 +439,7 @@ def get_chef_recipes(id):
     else:
         recipes_band = recipe_query.filter_by(chef_id=id)
     for recipe in recipes_band:
-        information = recipe_response_builder(recipe)
+        information = recipe_response_builder(recipe, lang)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
@@ -457,6 +463,7 @@ def get_category_recipes(id):
     recipes = []
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
+    lang = request.args.get('lang', type=unicode, default=u'en')
     if current_user.is_authenticated() and current_user.role_code == 0:
         recipe_query = Recipe.query
     else:
@@ -467,7 +474,7 @@ def get_category_recipes(id):
     else:
         recipes_band = recipe_query.join(Category.recipes).filter(Category.id == id).all()
     for recipe in recipes_band:
-        information = recipe_response_builder(recipe)
+        information = recipe_response_builder(recipe, lang)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
@@ -491,6 +498,7 @@ def get_set_recipes(id):
     recipes = []
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
+    lang = request.args.get('lang', type=unicode, default=u'en')
     if current_user.is_authenticated() and current_user.role_code == 0:
         recipe_query = Recipe.query
     else:
@@ -501,7 +509,7 @@ def get_set_recipes(id):
     else:
         recipes_band = recipe_query.join(Set.recipes).filter(Set.id == id).all()
     for recipe in recipes_band:
-        information = recipe_response_builder(recipe)
+        information = recipe_response_builder(recipe, lang)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
@@ -526,6 +534,7 @@ def get_feed():
     recipes = []
     sets = []
     wines = []
+    lang = request.args.get('lang', type=unicode, default=u'en')
     if current_user.is_authenticated() and current_user.role_code == 0:
         recipe_query = Recipe.query
     else:
@@ -555,7 +564,7 @@ def get_feed():
         wines_band = Wine.query.all()
         is_last_page = True
     for recipe in recipes_band:
-        information = recipe_response_builder(recipe)
+        information = recipe_response_builder(recipe, lang)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
@@ -566,7 +575,7 @@ def get_feed():
     for recipe in recipes_all:
         recipes_ids.append(recipe.id)
     for set in sets_band:
-        information = set_response_builder(set)
+        information = set_response_builder(set, lang)
         information['type_of_object'] = 'set'
         sets.append(information)
     sets_ids = []
@@ -574,7 +583,7 @@ def get_feed():
     for set in sets_all:
         sets_ids.append(set.id)
     for wine in wines_band:
-        information = wine_response_builder(wine)
+        information = wine_response_builder(wine, lang)
         information['type_of_object'] = 'wine'
         wines.append(information)
     wines_ids = []
@@ -608,6 +617,7 @@ def get_searched_goods_and_wines():
     category = request.args.get('category', type=int)
     type_of_grape = request.args.get('type_of_grape', type=int)
     page = request.args.get('page', type=int)
+    lang = request.args.get('lang', type=unicode, default=u'en')
     if current_user.is_authenticated() and current_user.role_code == 0:
         recipe_query = Recipe.query
     else:
@@ -653,21 +663,21 @@ def get_searched_goods_and_wines():
         wines_band = wines_band.filter(Wine.title.ilike('%' + q + '%')).all()
         is_last_page = True
     for recipe in recipes_band:
-        information = recipe_response_builder(recipe)
+        information = recipe_response_builder(recipe, lang)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         information['type_of_object'] = 'recipe'
         recipes.append(information)
     for wine in wines_band:
-        information = wine_response_builder(wine)
+        information = wine_response_builder(wine, lang)
         information['type_of_object'] = 'wine'
         wines.append(information)
     feed = recipes + wines
     return jsonify({'error_code': OK, 'result': feed, 'is_last_page': is_last_page}), 200
 
 
-def recipe_response_builder(recipe, excluded=[]):
+def recipe_response_builder(recipe, lang=u'en', excluded=[]):
     categories = []
     if current_user.is_authenticated() and current_user.role_code == 0:
         recipe_query = Recipe.query
@@ -684,42 +694,42 @@ def recipe_response_builder(recipe, excluded=[]):
     wines = []
     for wine in recipe_query.filter_by(id=recipe.id).first().wines:
         wines.append(wine.id)
-    information = response_builder(recipe, Recipe, excluded)
+    information = response_builder(recipe, Recipe, lang, excluded)
     information['categories'] = []
     if categories is not None:
         for category_id in categories:
             category = Category.query.get(category_id)
-            category_information = response_builder(category, Category)
+            category_information = response_builder(category, Category, lang)
             information["categories"].append(category_information)
     information['cuisine_types'] = []
     if cuisine_types is not None:
         for cuisine_type_id in cuisine_types:
             cuisine_type = CuisineType.query.get(cuisine_type_id)
-            cuisine_type_information = response_builder(cuisine_type, CuisineType)
+            cuisine_type_information = response_builder(cuisine_type, CuisineType, lang)
             information["cuisine_types"].append(cuisine_type_information)
     information['tools'] = []
     if tools is not None:
         for tool_id in tools:
             tool = Tool.query.get(tool_id)
-            tool_information = response_builder(tool, Tool)
+            tool_information = response_builder(tool, Tool, lang)
             information["tools"].append(tool_information)
     information['wines'] = []
     if wines is not None:
         for wine_id in wines:
             wine = Wine.query.get(wine_id)
-            wine_information = wine_response_builder(wine)
+            wine_information = wine_response_builder(wine, lang)
             information["wines"].append(wine_information)
     information['photos'] = []
     for photo in RecipePhoto.query.filter_by(item_id=recipe.id):
-        photo_information = response_builder(photo, RecipePhoto)
+        photo_information = response_builder(photo, RecipePhoto, lang)
         information['photos'].append(photo_information)
     information['ingredients'] = []
     for ingredient in Ingredient.query.filter_by(recipe_id=recipe.id):
-        ingredient_information = response_builder(ingredient, Ingredient, excluded=["recipe_id"])
+        ingredient_information = response_builder(ingredient, Ingredient, lang, excluded=["recipe_id"])
         information['ingredients'].append(ingredient_information)
     information['instructions'] = []
     for instruction in InstructionItem.query.filter_by(recipe_id=recipe.id):
-        instruction_information = response_builder(instruction, InstructionItem, excluded=["recipe_id"])
+        instruction_information = response_builder(instruction, InstructionItem, lang, excluded=["recipe_id"])
         information['instructions'].append(instruction_information)
     information['likes'] = Like.query.filter_by(recipe_id=recipe.id).count()
     if not recipe.set_id:
@@ -740,8 +750,8 @@ def recipe_response_builder(recipe, excluded=[]):
     return information
 
 
-def set_response_builder(set, excluded=[]):
-    information = response_builder(set, Set, excluded)
+def set_response_builder(set, lang=u'en', excluded=[]):
+    information = response_builder(set, Set, lang, excluded)
     information['number_of_recipes'] = len(set.recipes)
     if not current_user.is_authenticated():
         information['is_open'] = False

@@ -38,8 +38,10 @@ class InstructionItem(db.Model):
     step_number = db.Column(db.Integer)
     time = db.Column(db.Integer)
     video = db.Column(db.Text, nullable=True)
+    video_lang_en = db.Column(db.Text, nullable=True)
     photo = db.Column(db.Text, nullable=True)
     description = db.Column(db.Text, nullable=True)
+    description_lang_en = db.Column(db.Text, nullable=True)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
 
     def __unicode__(self):
@@ -54,7 +56,9 @@ class Recipe(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(length=255), nullable=False)
+    title_lang_en = db.Column(db.String(length=255), nullable=True)
     description = db.Column(db.Text, nullable=True)
+    description_lang_en = db.Column(db.Text, nullable=True)
     spicy = db.Column(db.Boolean, nullable=True)
     complexity = db.Column(db.Integer, nullable=True)
     time = db.Column(db.String, nullable=True)
@@ -62,6 +66,7 @@ class Recipe(db.Model):
     chef_id = db.Column(db.Integer, db.ForeignKey('chefs.id'))
     set_id = db.Column(db.Integer, db.ForeignKey('sets.id'), nullable=True)
     video = db.Column(db.Text, nullable=True)
+    video_lang_en = db.Column(db.Text, nullable=True)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
     type = db.Column(db.SmallInteger, default=PUBLISHED)
 

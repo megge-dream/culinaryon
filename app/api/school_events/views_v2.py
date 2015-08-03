@@ -98,10 +98,11 @@ def get_school_event(id):
             error_code - server response_code
             result - information about school event
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     school_event = SchoolEvent.query.get(id)
     if not school_event:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # school_item with `id` isn't exist
-    information = response_builder(school_event, SchoolEvent)
+    information = response_builder(school_event, SchoolEvent, lang)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -114,9 +115,10 @@ def get_all_school_events():
             error_code - server response_code
             result - information about school events
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     school_events = []
     for school_event in SchoolEvent.query.all():
-        information = response_builder(school_event, SchoolEvent)
+        information = response_builder(school_event, SchoolEvent, lang)
         school_events.append(information)
     return jsonify({'error_code': OK, 'result': school_events}), 200
 
@@ -186,6 +188,7 @@ def get_school_events_for_user():
             error_code - server response_code
             result - information about school events
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     school_events = []
     for school_event in current_user.school_events:
         school_events.append(school_event.id)
@@ -193,6 +196,6 @@ def get_school_events_for_user():
     if school_events is not None:
         for school_event_id in school_events:
             school_event = SchoolEvent.query.get(school_event_id)
-            school_event_information = response_builder(school_event, SchoolEvent)
+            school_event_information = response_builder(school_event, SchoolEvent, lang)
             information.append(school_event_information)
     return jsonify({'error_code': OK, 'result': information}), 200

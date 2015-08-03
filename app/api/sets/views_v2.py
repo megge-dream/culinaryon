@@ -18,13 +18,14 @@ def get_set(id):
             error_code - server response_code
             result - information about category
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     set = Set.query.get(id)
     if not set:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # set with `id` isn't exist
-    information = set_response_builder(set)
+    information = set_response_builder(set, lang)
     information['recipes'] = []
     for recipe in set.recipes:
-        information['recipes'].append(recipe_response_builder(recipe))
+        information['recipes'].append(recipe_response_builder(recipe, lang))
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -41,6 +42,7 @@ def get_all_sets():
             entities_count - number of sets
             ids - ids of all sets
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     sets = []
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
@@ -50,7 +52,7 @@ def get_all_sets():
     else:
         sets_band = Set.query.all()
     for set in sets_band:
-        information = set_response_builder(set)
+        information = set_response_builder(set, lang)
         sets.append(information)
     ids = []
     sets_ids = Set.query.all()

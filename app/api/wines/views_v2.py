@@ -72,10 +72,11 @@ def get_wine(id):
             error_code - server response_code
             result - information about wine
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     wine = Wine.query.get(id)
     if not wine:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # wine with `id` isn't exist
-    information = wine_response_builder(wine)
+    information = wine_response_builder(wine, lang)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -88,9 +89,10 @@ def get_all_wines():
             error_code - server response_code
             result - information about wines
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     wines = []
     for wine in Wine.query.all():
-        information = wine_response_builder(wine)
+        information = wine_response_builder(wine, lang)
         wines.append(information)
     return jsonify({'error_code': OK, 'result': wines}), 200
 
@@ -114,7 +116,7 @@ def delete_wine(id):
     return jsonify({'error_code': OK}), 200
 
 
-def wine_response_builder(wine, excluded=[]):
-    information = response_builder(wine, Wine, excluded)
+def wine_response_builder(wine, lang=u'en', excluded=[]):
+    information = response_builder(wine, Wine, lang, excluded)
     information['likes'] = LikeWine.query.filter_by(wine_id=wine.id).count()
     return information

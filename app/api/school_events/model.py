@@ -14,6 +14,7 @@ class SchoolEvent(db.Model):
     price = db.Column(db.Integer, nullable=False)
     school_id = db.Column(db.Integer, db.ForeignKey('schools.id'))
     description = db.Column(db.Text, nullable=True)
+    description_lang_en = db.Column(db.Text, nullable=True)
     url = db.Column(db.Text, nullable=True)
     places_all = db.Column(db.Integer, nullable=False)
     places_left = db.Column(db.Integer, nullable=False)

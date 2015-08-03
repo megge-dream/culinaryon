@@ -76,10 +76,11 @@ def get_type_of_grape(id):
             error_code - server response_code
             result - information about type_of_grape
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     type_of_grape = TypeOfGrape.query.get(id)
     if not type_of_grape:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # type_of_grape with `id` isn't exist
-    information = response_builder(type_of_grape, TypeOfGrape)
+    information = response_builder(type_of_grape, TypeOfGrape, lang)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -92,9 +93,10 @@ def get_all_type_of_grapes():
             error_code - server response_code
             result - information about type_of_grapes
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     type_of_grapes = []
     for type_of_grape in TypeOfGrape.query.all():
-        information = response_builder(type_of_grape, TypeOfGrape)
+        information = response_builder(type_of_grape, TypeOfGrape, lang)
         type_of_grapes.append(information)
     ids = []
     type_of_grapes_ids = TypeOfGrape.query.all()

@@ -86,10 +86,11 @@ def get_ingredient(id):
             error_code - server response_code
             result - information about ingredient
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     ingredient = Ingredient.query.get(id)
     if not ingredient:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # ingredient with `id` isn't exist
-    information = response_builder(ingredient, Ingredient)
+    information = response_builder(ingredient, Ingredient, lang)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -103,8 +104,9 @@ def get_all_ingredients():
             result - information about ingredients
     """
     ingredients = []
+    lang = request.args.get('lang', type=unicode, default=u'en')
     for ingredient in Ingredient.query.all():
-        information = response_builder(ingredient, Ingredient)
+        information = response_builder(ingredient, Ingredient, lang)
         ingredients.append(information)
     return jsonify({'error_code': OK, 'result': ingredients}), 200
 

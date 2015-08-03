@@ -110,9 +110,10 @@ def get_chef(id):
             result - information about chef
     """
     chef = Chef.query.get(id)
+    lang = request.args.get('lang', type=unicode, default=u'en')
     if not chef:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # chef with `id` isn't exist
-    information = chef_response_builder(chef)
+    information = chef_response_builder(chef, lang)
     hash_of_information = make_hash(information)
     information['hash'] = hash_of_information
     return jsonify({'error_code': OK, 'result': information}), 200
@@ -133,16 +134,17 @@ def get_all_chefs():
     chefs = []
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
+    lang = request.args.get('lang', type=unicode, default=u'en')
     count = Chef.query.count()
     if limit is not None and offset is not None:
         chefs_band = Chef.query.slice(start=offset, stop=limit+offset).all()
     else:
         chefs_band = Chef.query.all()
     for chef in chefs_band:
-        information = response_builder(chef, Chef)
+        information = response_builder(chef, Chef, lang)
         information['photos'] = []
         for photo in ChefPhoto.query.filter_by(item_id=chef.id):
-            photo_information = response_builder(photo, ChefPhoto)
+            photo_information = response_builder(photo, ChefPhoto, lang)
             information['photos'].append(photo_information)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
@@ -173,11 +175,11 @@ def delete_chef(id):
     return jsonify({'error_code': OK}), 200
 
 
-def chef_response_builder(chef):
-    information = response_builder(chef, Chef)
+def chef_response_builder(chef, lang=u'en'):
+    information = response_builder(chef, Chef, lang)
     information['photos'] = []
     for photo in ChefPhoto.query.filter_by(item_id=chef.id):
-        photo_information = response_builder(photo, ChefPhoto)
+        photo_information = response_builder(photo, ChefPhoto, lang)
         information['photos'].append(photo_information)
     information['recipes'] = []
     if current_user.is_authenticated() and current_user.role_code == 0:
@@ -185,7 +187,7 @@ def chef_response_builder(chef):
     else:
         recipe_query = Recipe.query.filter_by(type=PUBLISHED)
     for recipe in recipe_query.filter_by(chef_id=chef.id):
-        recipe_information = recipe_response_builder(recipe, excluded=['chef_id'])
+        recipe_information = recipe_response_builder(recipe, lang, excluded=['chef_id'])
         information['recipes'].append(recipe_information)
     return information
     # information['recipes'] = []

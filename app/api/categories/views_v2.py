@@ -77,9 +77,10 @@ def get_category(id):
             result - information about category
     """
     category = Category.query.get(id)
+    lang = request.args.get('lang', type=unicode, default=u'en')
     if not category:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # category with `id` isn't exist
-    information = response_builder(category, Category)
+    information = response_builder(category, Category, lang)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -93,8 +94,9 @@ def get_all_categories():
             result - information about categories
     """
     categories = []
+    lang = request.args.get('lang', type=unicode, default=u'en')
     for category in Category.query.all():
-        information = response_builder(category, Category)
+        information = response_builder(category, Category, lang)
         categories.append(information)
     ids = []
     categories_ids = Category.query.all()

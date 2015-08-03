@@ -26,12 +26,13 @@ def new_cuisine_type():
             result - information about created cuisine type
     """
     title = request.json.get('title')
+    lang = request.args.get('lang', type=unicode, default=u'en')
     if title is None:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
     cuisine_type = CuisineType(title=title)
     db.session.add(cuisine_type)
     db.session.commit()
-    information = response_builder(cuisine_type, CuisineType)
+    information = response_builder(cuisine_type, CuisineType, lang)
     return jsonify({'error_code': OK, 'result': information}), 201
 
 
@@ -51,13 +52,14 @@ def update_cuisine_type(id):
             result - information about updated cuisine type
     """
     cuisine_type = CuisineType.query.get(id)
+    lang = request.args.get('lang', type=unicode, default=u'en')
     if not cuisine_type:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200
     if request.json.get('title'):
         cuisine_type.title = request.json.get('title')
     db.session.commit()
     cuisine_type = CuisineType.query.get(id)
-    information = response_builder(cuisine_type, CuisineType)
+    information = response_builder(cuisine_type, CuisineType, lang)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -72,9 +74,10 @@ def get_cuisine_type(id):
             result - information about cuisine type
     """
     cuisine_type = CuisineType.query.get(id)
+    lang = request.args.get('lang', type=unicode, default=u'en')
     if not cuisine_type:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # cuisine_type with `id` isn't exist
-    information = response_builder(cuisine_type, CuisineType)
+    information = response_builder(cuisine_type, CuisineType, lang)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -88,8 +91,9 @@ def get_all_cuisine_types():
             result - information about cuisine types
     """
     cuisine_types = []
+    lang = request.args.get('lang', type=unicode, default=u'en')
     for cuisine_type in CuisineType.query.all():
-        information = response_builder(cuisine_type, CuisineType)
+        information = response_builder(cuisine_type, CuisineType, lang)
         cuisine_types.append(information)
     return jsonify({'error_code': OK, 'result': cuisine_types}), 200
 
