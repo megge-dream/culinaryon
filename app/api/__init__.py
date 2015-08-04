@@ -176,6 +176,7 @@ class InstructionItemInlineModelForm(InlineFormAdmin):
 
 
 class RecipeModelViewWithRelationships(ModelView):
+    create_template = 'create.html'
     inline_models = (RecipePhotoInlineModelForm(RecipePhoto), Ingredient, InstructionItemInlineModelForm(InstructionItem))
     column_display_all_relations = True
     column_auto_select_related = True
