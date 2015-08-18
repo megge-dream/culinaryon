@@ -32,4 +32,8 @@ class Chef(db.Model):
     recipes = db.relationship(Recipe, backref='chefs', lazy='select')
 
     def __unicode__(self):
-        return self.first_name + ' ' + self.last_name
+        if self.first_name:
+            result = self.first_name + ' '
+        if self.last_name:
+            result += self.last_name
+        return result

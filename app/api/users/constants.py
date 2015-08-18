@@ -73,3 +73,16 @@ RECIPE_TYPE_SELECT = [
     (PREVIEW, 'preview'),
     (DRAFT, 'draft'),
 ]
+# Langs
+NOT_COPY = '--'
+RU = ''
+EN = '_lang_en'
+LANG = {
+    RU: 'ru',
+    EN: 'en',
+}
+LANG_SELECT = [
+    (NOT_COPY, "--don't copy--"),
+    (RU, 'ru'),
+    (EN, 'en'),
+]
