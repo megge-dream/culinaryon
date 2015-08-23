@@ -75,7 +75,7 @@ RECIPE_TYPE_SELECT = [
 ]
 # Langs
 NOT_COPY = '--'
-RU = ''
+RU = '_lang_ru'
 EN = '_lang_en'
 LANG = {
     RU: 'ru',

@@ -13,7 +13,7 @@ class SchoolItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     school_id = db.Column(db.Integer, db.ForeignKey('schools.id'))
     step_number = db.Column(db.Integer)
-    description = db.Column(db.Text, nullable=True)
+    description_lang_ru = db.Column(db.Text, nullable=True)
     description_lang_en = db.Column(db.Text, nullable=True)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
     photo = db.Column(db.Text)

@@ -29,7 +29,7 @@ class Set(db.Model):
     __tablename__ = "sets"
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(250), nullable=False)
+    title_lang_ru = db.Column(db.String(250), nullable=False)
     title_lang_en = db.Column(db.String(250), nullable=True)
     photo = db.Column(db.Text, nullable=True)
     price = db.Column(db.Float, nullable=True)
@@ -39,4 +39,4 @@ class Set(db.Model):
     recipes = db.relationship(Recipe, backref='sets', lazy='select')
 
     def __unicode__(self):
-        return self.title
+        return self.title_lang_ru

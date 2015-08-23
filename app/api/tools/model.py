@@ -10,12 +10,12 @@ class Tool(db.Model):
     __tablename__ = "tools"
 
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(250), nullable=False)
+    title_lang_ru = db.Column(db.String(250), nullable=False)
     title_lang_en = db.Column(db.String(250), nullable=True)
-    description = db.Column(db.Text, nullable=True)
+    description_lang_ru = db.Column(db.Text, nullable=True)
     description_lang_en = db.Column(db.Text, nullable=True)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
     photo = db.Column(db.Text, nullable=True)
 
     def __unicode__(self):
-        return self.title
+        return self.title_lang_ru

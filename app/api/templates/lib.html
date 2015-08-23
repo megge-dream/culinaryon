@@ -127,7 +127,7 @@
         {% endfor %}
     {% else %}
         {% for f in form if f.type != 'HiddenField' and f.type != 'CSRFTokenField' %}
-          {% if 'en' not in f.name %}
+          {% if 'lang' not in f.name %}
               {% if form_opts %}
                 {% set kwargs = form_opts.widget_args.get(f.name, {}) %}
               {% else %}
@@ -137,7 +137,7 @@
           {% endif %}
         {% endfor %}
         {% for f in form if f.type != 'HiddenField' and f.type != 'CSRFTokenField' %}
-          {% if 'en' in f.name %}
+          {% if 'lang_en' in f.name %}
               {% if form_opts %}
                 {% set kwargs = form_opts.widget_args.get(f.name, {}) %}
               {% else %}

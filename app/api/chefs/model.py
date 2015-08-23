@@ -12,15 +12,15 @@ class Chef(db.Model):
     __tablename__ = "chefs"
 
     id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(length=128), nullable=True)
+    first_name_lang_ru = db.Column(db.String(length=128), nullable=True)
     first_name_lang_en = db.Column(db.String(length=128), nullable=True)
-    last_name = db.Column(db.String(length=128), nullable=True)
+    last_name_lang_ru = db.Column(db.String(length=128), nullable=True)
     last_name_lang_en = db.Column(db.String(length=128), nullable=True)
-    work = db.Column(db.String(255), nullable=True)
+    work_lang_ru = db.Column(db.String(255), nullable=True)
     work_lang_en = db.Column(db.String(255), nullable=True)
-    biography = db.Column(db.Text, nullable=True)
+    biography_lang_ru = db.Column(db.Text, nullable=True)
     biography_lang_en = db.Column(db.Text, nullable=True)
-    quote = db.Column(db.Text, nullable=True)
+    quote_lang_ru = db.Column(db.Text, nullable=True)
     quote_lang_en = db.Column(db.Text, nullable=True)
     email = db.Column(db.String(250), nullable=False)
     main_photo = db.Column(db.Text, nullable=True)
@@ -32,8 +32,8 @@ class Chef(db.Model):
     recipes = db.relationship(Recipe, backref='chefs', lazy='select')
 
     def __unicode__(self):
-        if self.first_name:
-            result = self.first_name + ' '
-        if self.last_name:
-            result += self.last_name
+        if self.first_name_lang_ru:
+            result = self.first_name_lang_ru + ' '
+        if self.last_name_lang_ru:
+            result += self.last_name_lang_ru
         return result
