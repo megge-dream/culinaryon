@@ -126,16 +126,9 @@
             {{ r(form, form_opts=form_opts) }}
         {% endfor %}
     {% else %}
-        {% for f in form if f.type != 'HiddenField' and f.type != 'CSRFTokenField' %}
-          {% if 'lang' not in f.name %}
-              {% if form_opts %}
-                {% set kwargs = form_opts.widget_args.get(f.name, {}) %}
-              {% else %}
-                {% set kwargs = {} %}
-              {% endif %}
-              {{ render_field(form, f, kwargs) }}
-          {% endif %}
-        {% endfor %}
+<div class="row">
+        <div class="span5">
+        <h5>English</h5>
         {% for f in form if f.type != 'HiddenField' and f.type != 'CSRFTokenField' %}
           {% if 'lang_en' in f.name %}
               {% if form_opts %}
@@ -146,6 +139,33 @@
               {{ render_field(form, f, kwargs) }}
           {% endif %}
         {% endfor %}
+        </div>
+        <div class="span5 offset2">
+        <h5>Russian</h5>
+        {% for f in form if f.type != 'HiddenField' and f.type != 'CSRFTokenField' %}
+          {% if 'lang_ru' in f.name %}
+              {% if form_opts %}
+                {% set kwargs = form_opts.widget_args.get(f.name, {}) %}
+              {% else %}
+                {% set kwargs = {} %}
+              {% endif %}
+              {{ render_field(form, f, kwargs) }}
+          {% endif %}
+        {% endfor %}
+        </div>
+</div>
+        <h5>General</h5>
+        {% for f in form if f.type != 'HiddenField' and f.type != 'CSRFTokenField' %}
+          {% if 'lang' not in f.name %}
+              {% if form_opts %}
+                {% set kwargs = form_opts.widget_args.get(f.name, {}) %}
+              {% else %}
+                {% set kwargs = {} %}
+              {% endif %}
+              {{ render_field(form, f, kwargs) }}
+          {% endif %}
+        {% endfor %}
+
     {% endif %}
 {% endmacro %}
 
