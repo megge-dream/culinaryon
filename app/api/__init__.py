@@ -152,6 +152,7 @@ class RecipePhotoInlineModelForm(InlineFormAdmin):
 
 class ChefPhotoInlineModelForm(InlineFormAdmin):
     form_excluded_columns = ('photo', 'creation_date')
+    create_template = 'create.html'
 
     def postprocess_form(self, form):
         form.photo = MyImageUploadField('Image', base_path=app.config['CHEFS_UPLOAD'],
@@ -161,6 +162,7 @@ class ChefPhotoInlineModelForm(InlineFormAdmin):
 
 class SchoolPhotoInlineModelForm(InlineFormAdmin):
     form_excluded_columns = ('photo', 'creation_date')
+    create_template = 'create.html'
 
     def postprocess_form(self, form):
         form.photo = MyImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'],
@@ -169,37 +171,41 @@ class SchoolPhotoInlineModelForm(InlineFormAdmin):
 
 
 class InstructionItemInlineModelForm(InlineFormAdmin):
+    create_template = 'create.html'
 
     def postprocess_form(self, form):
         form.photo = MyImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'],
                                         url_relative_path='schools/')
-        form.en_copy_from = SelectField('English - copy from', choices=LANG_SELECT)
+        form.lang_en_copy_from = SelectField('English - copy from', choices=LANG_SELECT)
         return form
 
     def on_model_change(self, form, model):
-        en_copy_from = model.en_copy_from
-        if en_copy_from != NOT_COPY:
-            model.description_lang_en = getattr(model, 'description' + en_copy_from)
-            model.video_lang_en = getattr(model, 'video' + en_copy_from)
+        lang_en_copy_from = model.lang_en_copy_from
+        if lang_en_copy_from != NOT_COPY:
+            model.description_lang_en = getattr(model, 'description' + lang_en_copy_from)
+            model.video_lang_en = getattr(model, 'video' + lang_en_copy_from)
         return
 
 
 class IngredientInlineModelForm(InlineFormAdmin):
+    create_template = 'create.html'
 
     def postprocess_form(self, form):
-        form.en_copy_from = SelectField('English - copy from', choices=LANG_SELECT)
+        form.lang_en_copy_from = SelectField('English - copy from', choices=LANG_SELECT)
         return form
 
     def on_model_change(self, form, model):
-        en_copy_from = model.en_copy_from
-        if en_copy_from != NOT_COPY:
-            model.title_lang_en = getattr(model, 'title' + en_copy_from)
-            model.unit_lang_en = getattr(model, 'unit' + en_copy_from)
+        lang_en_copy_from = model.lang_en_copy_from
+        if lang_en_copy_from != NOT_COPY:
+            model.title_lang_en = getattr(model, 'title' + lang_en_copy_from)
+            model.unit_lang_en = getattr(model, 'unit' + lang_en_copy_from)
         return
 
 
 class RecipeModelViewWithRelationships(ModelView):
-    # create_template = 'create.html'
+    create_template = 'create.html'
+    edit_template = 'edit.html'
+
     inline_models = (RecipePhotoInlineModelForm(RecipePhoto), IngredientInlineModelForm(Ingredient), InstructionItemInlineModelForm(InstructionItem))
     column_display_all_relations = True
     column_auto_select_related = True
@@ -244,7 +250,7 @@ class RecipeModelViewWithRelationships(ModelView):
 
     form_extra_fields = {
         'time': TextField('Time (format: XX:XX:XX (hour:min:sec) )'),
-        'en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
+        'lang_lang_en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
     }
 
     def on_model_change(self, form, model, is_created):
@@ -254,17 +260,19 @@ class RecipeModelViewWithRelationships(ModelView):
         except Exception:
             new_time = 0
         model.time = new_time
-        en_copy_from = model.en_copy_from
-        if en_copy_from != NOT_COPY:
-            model.title_lang_en = getattr(model, 'title' + en_copy_from)
-            model.description_lang_en = getattr(model, 'description' + en_copy_from)
-            model.video_lang_en = getattr(model, 'video' + en_copy_from)
+        lang_en_copy_from = model.lang_en_copy_from
+        if lang_en_copy_from != NOT_COPY:
+            model.title_lang_en = getattr(model, 'title' + lang_en_copy_from)
+            model.description_lang_en = getattr(model, 'description' + lang_en_copy_from)
+            model.video_lang_en = getattr(model, 'video' + lang_en_copy_from)
         return
 
 
 class SchoolModelViewWithRelationships(ModelView):
     column_display_all_relations = True
     column_auto_select_related = True
+    create_template = 'create.html'
+    edit_template = 'edit.html'
 
     def _list_thumbnail_many(view, context, model, name):
         if not model.photos:
@@ -312,6 +320,7 @@ class ChefImageForm(Form):
 
 
 class ChefImageModelViewWithUpload(ModelView):
+    create_template = 'create.html'
 
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
@@ -336,6 +345,7 @@ class SchoolImageForm(Form):
 
 
 class SchoolModelViewWithUpload(ModelView):
+    create_template = 'create.html'
 
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
@@ -355,6 +365,8 @@ class SchoolModelViewWithUpload(ModelView):
 
 
 class ToolModelViewWithUpload(ModelView):
+    create_template = 'create.html'
+    edit_template = 'edit.html'
 
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
@@ -369,20 +381,22 @@ class ToolModelViewWithUpload(ModelView):
     form_extra_fields = {
         'photo': ImageUploadField('Image', base_path=app.config['TOOLS_UPLOAD'],
                                   url_relative_path='tools/'),
-        'en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
+        'lang_en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
     }
 
     def on_model_change(self, form, model, is_created):
-        en_copy_from = model.en_copy_from
-        if en_copy_from != NOT_COPY:
-            model.title_lang_en = getattr(model, 'title' + en_copy_from)
-            model.description_lang_en = getattr(model, 'description' + en_copy_from)
+        lang_en_copy_from = model.lang_en_copy_from
+        if lang_en_copy_from != NOT_COPY:
+            model.title_lang_en = getattr(model, 'title' + lang_en_copy_from)
+            model.description_lang_en = getattr(model, 'description' + lang_en_copy_from)
         return
 
 
 class ChefModelViewWithUpload(ModelView):
     column_display_all_relations = True
     column_auto_select_related = True
+    create_template = 'create.html'
+    edit_template = 'edit.html'
 
     def _list_thumbnail_medium(view, context, model, name):
         if not model.medium_photo:
@@ -416,23 +430,25 @@ class ChefModelViewWithUpload(ModelView):
                                          url_relative_path='chefs/'),
         'main_photo': ImageUploadField('Main photo', base_path=app.config['CHEFS_UPLOAD'],
                                        url_relative_path='chefs/'),
-        'en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
+        'lang_en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
     }
 
     def on_model_change(self, form, model, is_created):
-        en_copy_from = model.en_copy_from
-        if en_copy_from != NOT_COPY:
-            model.first_name_lang_en = getattr(model, 'first_name' + en_copy_from)
-            model.last_name_lang_en = getattr(model, 'last_name' + en_copy_from)
-            model.work_lang_en = getattr(model, 'work' + en_copy_from)
-            model.biography_lang_en = getattr(model, 'biography' + en_copy_from)
-            model.quote_lang_en = getattr(model, 'quote' + en_copy_from)
+        lang_en_copy_from = model.lang_en_copy_from
+        if lang_en_copy_from != NOT_COPY:
+            model.first_name_lang_en = getattr(model, 'first_name' + lang_en_copy_from)
+            model.last_name_lang_en = getattr(model, 'last_name' + lang_en_copy_from)
+            model.work_lang_en = getattr(model, 'work' + lang_en_copy_from)
+            model.biography_lang_en = getattr(model, 'biography' + lang_en_copy_from)
+            model.quote_lang_en = getattr(model, 'quote' + lang_en_copy_from)
         return
 
     inline_models = (ChefPhotoInlineModelForm(ChefPhoto),)
 
 
 class SchoolItemModelViewWithUpload(ModelView):
+    create_template = 'create.html'
+    edit_template = 'edit.html'
 
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
@@ -447,17 +463,19 @@ class SchoolItemModelViewWithUpload(ModelView):
     form_extra_fields = {
         'photo': ImageUploadField('Image', base_path=app.config['SCHOOL_ITEMS_UPLOAD'],
                                   url_relative_path='school_items/'),
-        'en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
+        'lang_en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
     }
 
     def on_model_change(self, form, model, is_created):
-        en_copy_from = model.en_copy_from
-        if en_copy_from != NOT_COPY:
-            model.description_lang_en = getattr(model, 'description' + en_copy_from)
+        lang_en_copy_from = model.lang_en_copy_from
+        if lang_en_copy_from != NOT_COPY:
+            model.description_lang_en = getattr(model, 'description' + lang_en_copy_from)
         return
 
 
 class CategoryModelViewWithUpload(ModelView):
+    create_template = 'create.html'
+    edit_template = 'edit.html'
 
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
@@ -472,17 +490,19 @@ class CategoryModelViewWithUpload(ModelView):
     form_extra_fields = {
         'photo': ImageUploadField('Image', base_path=app.config['CATEGORY_UPLOAD'],
                                   url_relative_path='categories/'),
-        'en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
+        'lang_en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
     }
 
     def on_model_change(self, form, model, is_created):
-        en_copy_from = model.en_copy_from
-        if en_copy_from != NOT_COPY:
-            model.title_lang_en = getattr(model, 'title' + en_copy_from)
+        lang_en_copy_from = model.lang_en_copy_from
+        if lang_en_copy_from != NOT_COPY:
+            model.title_lang_en = getattr(model, 'title' + lang_en_copy_from)
         return
 
 
 class TypeOfGrapeModelViewWithUpload(ModelView):
+    create_template = 'create.html'
+    edit_template = 'edit.html'
 
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
@@ -497,46 +517,53 @@ class TypeOfGrapeModelViewWithUpload(ModelView):
     form_extra_fields = {
         'photo': ImageUploadField('Image', base_path=app.config['TYPE_OF_GRAPE_UPLOAD'],
                                   url_relative_path='type_of_grapes/'),
-        'en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
+        'lang_en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
     }
 
     def on_model_change(self, form, model, is_created):
-        en_copy_from = model.en_copy_from
-        if en_copy_from != NOT_COPY:
-            model.title_lang_en = getattr(model, 'title' + en_copy_from)
+        lang_en_copy_from = model.lang_en_copy_from
+        if lang_en_copy_from != NOT_COPY:
+            model.title_lang_en = getattr(model, 'title' + lang_en_copy_from)
         return
 
 
 class CuisineTypeModelView(ModelView):
+    create_template = 'create.html'
     can_create = True
+    edit_template = 'edit.html'
 
     form_extra_fields = {
-        'en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
+        'lang_en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
     }
 
     def on_model_change(self, form, model, is_created):
-        en_copy_from = model.en_copy_from
-        if en_copy_from != NOT_COPY:
-            model.title_lang_en = getattr(model, 'title' + en_copy_from)
+        lang_en_copy_from = model.lang_en_copy_from
+        if lang_en_copy_from != NOT_COPY:
+            model.title_lang_en = getattr(model, 'title' + lang_en_copy_from)
         return
 
 
 class DictionaryModelView(ModelView):
+    create_template = 'create.html'
+    edit_template = 'edit.html'
     can_create = True
 
     form_extra_fields = {
-        'en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
+        'lang_en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
     }
 
     def on_model_change(self, form, model, is_created):
-        en_copy_from = model.en_copy_from
-        if en_copy_from != NOT_COPY:
-            model.title_lang_en = getattr(model, 'title' + en_copy_from)
-            model.description_lang_en = getattr(model, 'description' + en_copy_from)
+        lang_en_copy_from = model.lang_en_copy_from
+        if lang_en_copy_from != NOT_COPY:
+            model.title_lang_en = getattr(model, 'title' + lang_en_copy_from)
+            model.description_lang_en = getattr(model, 'description' + lang_en_copy_from)
         return
 
 
 class WineModelViewWithUpload(ModelView):
+    create_template = 'create.html'
+    edit_template = 'edit.html'
+
     def _list_thumbnail_photo(view, context, model, name):
         if not model.photo:
             return ''
@@ -558,16 +585,16 @@ class WineModelViewWithUpload(ModelView):
                                   url_relative_path='wines/'),
         'flag_photo': ImageUploadField('Flag image', base_path=app.config['WINE_UPLOAD'],
                                        url_relative_path='wines/'),
-        'en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
+        'lang_en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
     }
 
     def on_model_change(self, form, model, is_created):
-        en_copy_from = model.en_copy_from
-        if en_copy_from != NOT_COPY:
-            model.title_lang_en = getattr(model, 'title' + en_copy_from)
-            model.country_lang_en = getattr(model, 'country' + en_copy_from)
-            model.region_lang_en = getattr(model, 'region' + en_copy_from)
-            model.info_lang_en = getattr(model, 'info' + en_copy_from)
+        lang_en_copy_from = model.lang_en_copy_from
+        if lang_en_copy_from != NOT_COPY:
+            model.title_lang_en = getattr(model, 'title' + lang_en_copy_from)
+            model.country_lang_en = getattr(model, 'country' + lang_en_copy_from)
+            model.region_lang_en = getattr(model, 'region' + lang_en_copy_from)
+            model.info_lang_en = getattr(model, 'info' + lang_en_copy_from)
         return
 
 
@@ -576,6 +603,8 @@ class SetModelViewWithUpload(ModelView):
     column_auto_select_related = True
     form_excluded_columns = ('user_sets',)
     column_exclude_list = ('user_sets',)
+    create_template = 'create.html'
+    edit_template = 'edit.html'
 
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
@@ -590,18 +619,19 @@ class SetModelViewWithUpload(ModelView):
     form_extra_fields = {
         'photo': ImageUploadField('Image', base_path=app.config['SET_UPLOAD'],
                                   url_relative_path='sets/'),
-        'en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
+        'lang_en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
     }
 
     def on_model_change(self, form, model, is_created):
-        en_copy_from = model.en_copy_from
-        if en_copy_from != NOT_COPY:
-            copy_from_title = str('title' + en_copy_from)
+        lang_en_copy_from = model.lang_en_copy_from
+        if lang_en_copy_from != NOT_COPY:
+            copy_from_title = str('title' + lang_en_copy_from)
             model.title_lang_en = getattr(model, copy_from_title)
         return
 
 
 class InstructionItemModelViewWithUpload(ModelView):
+    create_template = 'create.html'
 
     def _list_thumbnail(view, context, model, name):
         if not model.photo:
@@ -676,15 +706,17 @@ class PromoCodeModel(ModelView):
 
 class SchoolEventModelView(ModelView):
     column_display_all_relations = True
+    create_template = 'create.html'
+    edit_template = 'edit.html'
 
     form_extra_fields = {
-        'en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
+        'lang_en_copy_from': SelectField('English - copy from', choices=LANG_SELECT)
     }
 
     def on_model_change(self, form, model, is_created):
-        en_copy_from = model.en_copy_from
-        if en_copy_from != NOT_COPY:
-            model.description_lang_en = getattr(model, 'description' + en_copy_from)
+        lang_en_copy_from = model.lang_en_copy_from
+        if lang_en_copy_from != NOT_COPY:
+            model.description_lang_en = getattr(model, 'description' + lang_en_copy_from)
         return
 
 
