@@ -127,7 +127,7 @@
         {% endfor %}
     {% else %}
 <div class="row">
-        <div class="span5">
+        <div class="span5 en">
         <h5>English</h5>
         {% for f in form if f.type != 'HiddenField' and f.type != 'CSRFTokenField' %}
           {% if 'lang_en' in f.name %}
@@ -140,7 +140,21 @@
           {% endif %}
         {% endfor %}
         </div>
-        <div class="span5 offset2">
+        <div class="span2">
+            <h5>Copy</h5>
+            <div class="row">
+                <button class="btn btn-primary" id="fromEn" type="button">
+                    from EN to RU
+                </button>
+            </div>
+            <br>
+            <div class="row">
+                <button class="btn btn-primary" id="fromRu" type="button">
+                    from RU to EN
+                </button>
+            </div>
+        </div>
+        <div class="span5 ru">
         <h5>Russian</h5>
         {% for f in form if f.type != 'HiddenField' and f.type != 'CSRFTokenField' %}
           {% if 'lang_ru' in f.name %}

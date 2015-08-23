@@ -31,5 +31,30 @@
 {% block tail %}
   {{ super() }}
   <script src="{{ admin_static.url(filename='datetimepicker/bootstrap-datetimepicker.js') }}"></script>
+  <script>
+    $(document).ready(function () {
+
+        var fromRu = $('#fromRu'),
+            fromEn = $('#fromEn'),
+            allRuInputs, allEnInputs;
+
+        $(fromEn).on('click', function() {
+            allEnInputs = $('.en :input');
+            allRuInputs = $('.ru :input');
+            for(var i=0; i<allEnInputs.length; ++i) {
+                $(allRuInputs[i]).val($(allEnInputs[i]).val());
+            }
+        });
+
+        $(fromRu).on('click', function() {
+            allEnInputs = $('.en :input');
+            allRuInputs = $('.ru :input');
+            for(var i=0; i<allEnInputs.length; ++i) {
+                $(allEnInputs[i]).val($(allRuInputs[i]).val());
+            }
+        });
+
+    });
+  </script>
   <script src="{{ admin_static.url(filename='admin/js/form.js') }}"></script>
 {% endblock %}
