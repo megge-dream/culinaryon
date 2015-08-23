@@ -127,12 +127,24 @@
         {% endfor %}
     {% else %}
         {% for f in form if f.type != 'HiddenField' and f.type != 'CSRFTokenField' %}
-          {% if form_opts %}
-            {% set kwargs = form_opts.widget_args.get(f.name, {}) %}
-          {% else %}
-            {% set kwargs = {} %}
+          {% if 'en' not in f.name %}
+              {% if form_opts %}
+                {% set kwargs = form_opts.widget_args.get(f.name, {}) %}
+              {% else %}
+                {% set kwargs = {} %}
+              {% endif %}
+              {{ render_field(form, f, kwargs) }}
           {% endif %}
-          {{ render_field(form, f, kwargs) }}
+        {% endfor %}
+        {% for f in form if f.type != 'HiddenField' and f.type != 'CSRFTokenField' %}
+          {% if 'en' in f.name %}
+              {% if form_opts %}
+                {% set kwargs = form_opts.widget_args.get(f.name, {}) %}
+              {% else %}
+                {% set kwargs = {} %}
+              {% endif %}
+              {{ render_field(form, f, kwargs) }}
+          {% endif %}
         {% endfor %}
     {% endif %}
 {% endmacro %}
