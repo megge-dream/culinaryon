@@ -22,7 +22,7 @@ from markupsafe import Markup
 from werkzeug.utils import secure_filename, redirect
 from wtforms import SelectField, Form, ValidationError, TextField, IntegerField
 from app.api.users.constants import USER_ROLE_SELECT, USER_STATUS_SELECT, PROVIDER_LIST_SELECT, RECIPE_TYPE_SELECT, \
-    LANG_SELECT, NOT_COPY
+    LANG_SELECT, NOT_COPY, DRAFT
 from config import SECRET_KEY, UPLOAD_FOLDER
 
 from flask import Flask
@@ -202,10 +202,18 @@ class RecipeModelViewWithRelationships(ModelView):
     }
     form_overrides = dict(type=SelectField)
 
+    def no_blank_spaces_allowed(form, field):
+        allowed_empty_fields = ['type', 'likes', 'favorites']
+        for argv in form.data:
+            if not form.data[argv] and form.data['type'] != DRAFT and argv not in allowed_empty_fields:
+                flash('Not all fields filled up', category='error')
+                raise ValidationError()
+
     form_args = dict(
         type=dict(
             label='Type', choices=RECIPE_TYPE_SELECT, coerce=int
         ),
+        title_lang_ru=dict(validators=[no_blank_spaces_allowed]),
     )
 
     def time_sec_to_min(view, context, model, name):
