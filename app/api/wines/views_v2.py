@@ -130,10 +130,11 @@ def wine_response_builder(wine, lang=u'en', excluded=[]):
 
 def recipe_without_wines_response_builder(recipe, lang=u'en', excluded=[]):
     categories = []
-    if current_user.is_authenticated() and current_user.role_code == 0:
-        recipe_query = Recipe.query
-    else:
-        recipe_query = Recipe.query.filter_by(type=PUBLISHED)
+    recipe_query = Recipe.query
+    # if current_user.is_authenticated() and current_user.role_code == 0:
+    #     recipe_query = Recipe.query
+    # else:
+    #     recipe_query = Recipe.query.filter_by(type=PUBLISHED)
     for category in recipe_query.filter_by(id=recipe.id).first().categories:
         categories.append(category.id)
     cuisine_types = []
