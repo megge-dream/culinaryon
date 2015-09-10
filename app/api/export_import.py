@@ -1,5 +1,7 @@
+from django.shortcuts import redirect
 from flask import request, jsonify, Blueprint
 from flask.ext import excel
+from flask.ext.login import login_required, current_user
 from app.api import Recipe, InstructionItem, Ingredient, db, Chef, Set, Category, CuisineType, Tool, Wine
 from app.api.users.constants import RECIPE_TYPE
 import pyexcel.ext.xls
@@ -8,7 +10,10 @@ mod = Blueprint('export_import', __name__, url_prefix='/export_import')
 
 
 @mod.route("/", methods=['GET', 'POST'])
+@login_required
 def upload_file():
+    if not current_user.is_admin:
+        return redirect('/admin/')
     if request.method == 'POST':
         def time_sec_to_min(time):
             time = str(time).split(':')
@@ -87,4 +92,5 @@ def upload_file():
     <form action="" method=post enctype=multipart/form-data><p>
     <input type=file name=file><input type=submit value=Upload>
     </form>
+    <a href="/admin/">Back to Admin panel</a>
     '''

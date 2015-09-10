@@ -112,6 +112,12 @@ class LogoutView(BaseView):
         return redirect('/admin/')
 
 
+class Export(BaseView):
+    @expose('/')
+    def export_view(self):
+        return redirect('/export_import/')
+
+
 admin = Admin(app, index_view=MyAdminIndexView())
 
 from app.api.chefs.model import Chef
@@ -676,6 +682,7 @@ admin.add_view(ModelView(Report, db.session))
 admin.add_view(ModelView(FavoriteWine, db.session))
 admin.add_view(SetModelViewWithUpload(Set, db.session))
 admin.add_view(PromoCodeModel(PromoCode, db.session))
+admin.add_view(Export(name='Export recipes'))
 admin.add_view(LogoutView(name='Logout'))
 
 # #######################
