@@ -8,7 +8,7 @@ from flask.ext.admin.model.widgets import InlineFormWidget
 from flask.ext.oauthlib.client import OAuth
 
 import sys
-from flask import Flask, render_template, url_for, flash, session
+from flask import Flask, render_template, url_for, flash, session, request, jsonify
 from flask.ext.admin.contrib.sqla import ModelView
 from flask.ext.admin.form import ImageUploadField, thumbgen_filename, ImageUploadInput, RenderTemplateWidget
 from flask.ext.admin.model.form import InlineFormAdmin
@@ -75,6 +75,7 @@ vkontakte = oauth.remote_app(
     access_token_url='https://oauth.vk.com/access_token',
     authorize_url='https://oauth.vk.com/authorize'
 )
+
 
 from app.api.forms import LoginForm
 
@@ -833,6 +834,10 @@ app.register_blueprint(type_of_grape_v2_module)
 # Promo codes module (v2)
 from app.api.promo_codes.views_v2 import mod as promo_codes_v2_module
 app.register_blueprint(promo_codes_v2_module)
+
+# Export/import module (v2)
+from app.api.export_import import mod as export_import_module
+app.register_blueprint(export_import_module)
 
 # docsmodule
 from app.api.docs.views import mod as docs_module
