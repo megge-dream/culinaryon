@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from flask import Blueprint, jsonify, request
-from app.api import auto
+from flask.ext.login import login_required, current_user
+from app.api import auto, db
 from app.api.constants import BAD_REQUEST, OK
 from app.api.recipes.views_v2 import recipe_response_builder, set_response_builder
-from app.api.sets.model import Set
+from app.api.sets.model import Set, UserSet
+from app.api.users.constants import FOREVER
 
 
 mod = Blueprint('sets', __name__, url_prefix='/api_v2/sets')
@@ -59,3 +61,33 @@ def get_all_sets():
     for set_id in sets_ids:
         ids.append(set_id.id)
     return jsonify({'error_code': OK, 'result': sets, 'ids': ids, 'entities_count': count}), 200
+
+
+@auto.doc()
+@mod.route('/buy_set', methods=['POST'])
+@login_required
+def buy_set():
+    """
+    Buy set with store id in json. List of parameters in json request:
+            store_id (required)
+    Example of request:
+            {"store_id": "1"}
+    :return: json with parameters:
+            error_code - server response_code
+            result - information about category
+    """
+    lang = request.args.get('lang', type=unicode, default=u'en')
+    store_id = request.json.get('store_id')
+    if store_id is None:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'missing arguments'}), 200  # missing arguments
+    set = Set.query.filter_by(store_id=store_id).first()
+    if not set:
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'set not exist'}), 200
+    user_set = UserSet(user_id=current_user.id, set_id=set.id, open_type=FOREVER)
+    db.session.add(user_set)
+    db.session.commit()
+    information = set_response_builder(set, lang)
+    information['recipes'] = []
+    for recipe in set.recipes:
+        information['recipes'].append(recipe_response_builder(recipe, lang))
+    return jsonify({'error_code': OK, 'result': information}), 200
