@@ -13,7 +13,7 @@ class Ingredient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title_lang_ru = db.Column(db.String(250), nullable=False)
     title_lang_en = db.Column(db.String(250), nullable=True)
-    amount = db.Column(db.Integer, nullable=True, default=0)
+    amount = db.Column(db.Float, nullable=True, default=0)
     unit_lang_ru = db.Column(db.String(250), nullable=True)
     unit_lang_en = db.Column(db.String(250), nullable=True)
     recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.id"))

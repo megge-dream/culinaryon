@@ -338,7 +338,7 @@ def get_recipe(id):
     if not recipe:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # recipe with `id` isn't exist
     information = recipe_response_builder(recipe, lang)
-    information['ingredients'] = get_ingredients_by_divisions(id)
+    information['ingredients'] = get_ingredients_by_divisions(id, lang=lang)
     hash_of_information = make_hash(information)
     information['hash'] = hash_of_information
     return jsonify({'error_code': OK, 'result': information}), 200
@@ -385,7 +385,7 @@ def get_all_recipes_sets_wines():
         wines_band = Wine.query.all()
     for recipe in recipes_band:
         information = recipe_response_builder(recipe, lang)
-        information['ingredients'] = get_ingredients_by_divisions(recipe.id)
+        information['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         recipes.append(information)
@@ -440,7 +440,7 @@ def get_chef_recipes(id):
         recipes_band = recipe_query.filter_by(chef_id=id)
     for recipe in recipes_band:
         information = recipe_response_builder(recipe, lang)
-        information['ingredients'] = get_ingredients_by_divisions(recipe.id)
+        information['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         recipes.append(information)
@@ -475,7 +475,7 @@ def get_category_recipes(id):
         recipes_band = recipe_query.join(Category.recipes).filter(Category.id == id).all()
     for recipe in recipes_band:
         information = recipe_response_builder(recipe, lang)
-        information['ingredients'] = get_ingredients_by_divisions(recipe.id)
+        information['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         recipes.append(information)
@@ -510,7 +510,7 @@ def get_set_recipes(id):
         recipes_band = recipe_query.join(Set.recipes).filter(Set.id == id).all()
     for recipe in recipes_band:
         information = recipe_response_builder(recipe, lang)
-        information['ingredients'] = get_ingredients_by_divisions(recipe.id)
+        information['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         recipes.append(information)
@@ -565,7 +565,7 @@ def get_feed():
         is_last_page = True
     for recipe in recipes_band:
         information = recipe_response_builder(recipe, lang)
-        information['ingredients'] = get_ingredients_by_divisions(recipe.id)
+        information['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         information['type_of_object'] = 'recipe'
@@ -642,29 +642,47 @@ def get_searched_goods_and_wines():
         offset_wines = (page-1)*limit_recipes
         old_recipes_band = recipes_band
         old_wines_band = wines_band
-        recipes_band = old_recipes_band\
-                                   .filter(Recipe.title.ilike('%' + q + '%'))\
-                                   .slice(start=offset_recipes, stop=limit_recipes+offset_recipes).all()
-        wines_band = old_wines_band\
-                               .filter(Wine.title.ilike('%' + q + '%'))\
-                               .slice(start=offset_wines, stop=limit_wines+offset_wines).all()
-        next_recipe = old_recipes_band\
-                                  .filter(Recipe.title.ilike('%' + q + '%'))\
-                                  .slice(start=limit_recipes+offset_recipes, stop=limit_recipes+offset_recipes+1).first()
-        next_wine = old_wines_band\
-                              .filter(Wine.title.ilike('%' + q + '%'))\
-                              .slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
+        if lang == 'ru':
+            recipes_band = old_recipes_band\
+                                       .filter(Recipe.title_lang_ru.ilike('%' + q + '%'))\
+                                       .slice(start=offset_recipes, stop=limit_recipes+offset_recipes).all()
+            wines_band = old_wines_band\
+                                   .filter(Wine.title_lang_ru.ilike('%' + q + '%'))\
+                                   .slice(start=offset_wines, stop=limit_wines+offset_wines).all()
+            next_recipe = old_recipes_band\
+                                      .filter(Recipe.title_lang_ru.ilike('%' + q + '%'))\
+                                      .slice(start=limit_recipes+offset_recipes, stop=limit_recipes+offset_recipes+1).first()
+            next_wine = old_wines_band\
+                                  .filter(Wine.title_lang_ru.ilike('%' + q + '%'))\
+                                  .slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
+        elif lang == 'en':
+            recipes_band = old_recipes_band\
+                                       .filter(Recipe.title_lang_en.ilike('%' + q + '%'))\
+                                       .slice(start=offset_recipes, stop=limit_recipes+offset_recipes).all()
+            wines_band = old_wines_band\
+                                   .filter(Wine.title_lang_en.ilike('%' + q + '%'))\
+                                   .slice(start=offset_wines, stop=limit_wines+offset_wines).all()
+            next_recipe = old_recipes_band\
+                                      .filter(Recipe.title_lang_en.ilike('%' + q + '%'))\
+                                      .slice(start=limit_recipes+offset_recipes, stop=limit_recipes+offset_recipes+1).first()
+            next_wine = old_wines_band\
+                                  .filter(Wine.title_lang_en.ilike('%' + q + '%'))\
+                                  .slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
         if next_recipe or next_wine:
             is_last_page = False
         else:
             is_last_page = True
     else:
-        recipes_band = recipes_band.filter(Recipe.title.ilike('%' + q + '%')).all()
-        wines_band = wines_band.filter(Wine.title.ilike('%' + q + '%')).all()
+        if lang == 'ru':
+            recipes_band = recipes_band.filter(Recipe.title_lang_ru.ilike('%' + q + '%')).all()
+            wines_band = wines_band.filter(Wine.title_lang_ru.ilike('%' + q + '%')).all()
+        elif lang == 'en':
+            recipes_band = recipes_band.filter(Recipe.title_lang_en.ilike('%' + q + '%')).all()
+            wines_band = wines_band.filter(Wine.title_lang_en.ilike('%' + q + '%')).all()
         is_last_page = True
     for recipe in recipes_band:
         information = recipe_response_builder(recipe, lang)
-        information['ingredients'] = get_ingredients_by_divisions(recipe.id)
+        information['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         information['type_of_object'] = 'recipe'

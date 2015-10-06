@@ -170,21 +170,38 @@ def get_ingredients_by_divisions(recipe_id, lang=u'en'):
     division_names = []
     for ingredient in Ingredient.query.filter_by(recipe_id=recipe_id):
         information = response_builder(ingredient, Ingredient, lang=lang, excluded=["recipe_id"])
-        if ":" in ingredient.title:
-            division_info = {}
-            division_name = ingredient.title.split(':')[0]
-            if division_name in division_names:
-                for d in division:
-                    if d['name'] == division_name:
-                        d['ingredients'].append(information)
+        if lang == 'en':
+            if ingredient.title_lang_en and ":" in ingredient.title_lang_en:
+                division_info = {}
+                division_name = ingredient.title_lang_en.split(':')[0]
+                if division_name in division_names:
+                    for d in division:
+                        if d['name'] == division_name:
+                            d['ingredients'].append(information)
+                else:
+                    division_names.append(division_name)
+                    division_info['ingredients'] = []
+                    division_info['ingredients'].append(information)
+                    division_info['name'] = division_name
+                    division.append(division_info)
             else:
-                division_names.append(division_name)
-                division_info['ingredients'] = []
-                division_info['ingredients'].append(information)
-                division_info['name'] = division_name
-                division.append(division_info)
-        else:
-            ingredients.append(information)
+                ingredients.append(information)
+        elif ingredient.title_lang_ru and lang == 'ru':
+            if ":" in ingredient.title_lang_ru:
+                division_info = {}
+                division_name = ingredient.title_lang_ru.split(':')[0]
+                if division_name in division_names:
+                    for d in division:
+                        if d['name'] == division_name:
+                            d['ingredients'].append(information)
+                else:
+                    division_names.append(division_name)
+                    division_info['ingredients'] = []
+                    division_info['ingredients'].append(information)
+                    division_info['name'] = division_name
+                    division.append(division_info)
+            else:
+                ingredients.append(information)
     for d in division:
         ingredients.append(d)
     return ingredients

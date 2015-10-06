@@ -49,13 +49,17 @@ def get_all_sets():
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
     count = Set.query.count()
-    if limit is not None and offset is not None:
-        sets_band = Set.query.slice(start=offset, stop=limit+offset).all()
-    else:
-        sets_band = Set.query.all()
+    # if limit is not None and offset is not None:
+    #     sets_band = Set.query.slice(start=offset, stop=limit+offset).all()
+    # else:
+    #     sets_band = Set.query.all()
+    sets_band = Set.query.all()
     for set in sets_band:
         information = set_response_builder(set, lang)
         sets.append(information)
+    sets = sorted(sets, key=lambda k: k['is_open'], reverse=True)
+    if limit is not None and offset is not None:
+        sets = sets[offset:limit+offset]
     ids = []
     sets_ids = Set.query.all()
     for set_id in sets_ids:
@@ -68,19 +72,24 @@ def get_all_sets():
 @login_required
 def buy_set():
     """
-    Buy set with store id in json. List of parameters in json request:
-            store_id (required)
+    Buy set with store id in json. List of parameters in json request (one of them is required):
+            store_id
+            sale_store_id
     Example of request:
             {"store_id": "1"}
     :return: json with parameters:
             error_code - server response_code
-            result - information about category
+            result - information about set
     """
     lang = request.args.get('lang', type=unicode, default=u'en')
     store_id = request.json.get('store_id')
-    if store_id is None:
+    sale_store_id = request.json.get('sale_store_id')
+    if store_id is None and sale_store_id is None:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'missing arguments'}), 200  # missing arguments
-    set = Set.query.filter_by(store_id=store_id).first()
+    if store_id:
+        set = Set.query.filter_by(store_id=store_id).first()
+    elif sale_store_id:
+        set = Set.query.filter_by(sale_store_id=sale_store_id).first()
     if not set:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'set not exist'}), 200
     user_set = UserSet(user_id=current_user.id, set_id=set.id, open_type=FOREVER)

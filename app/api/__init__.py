@@ -209,18 +209,24 @@ class RecipeModelViewWithRelationships(ModelView):
     }
     form_overrides = dict(type=SelectField)
 
-    def no_blank_spaces_allowed(form, field):
-        allowed_empty_fields = ['type', 'likes', 'favorites']
+    def no_blank_spaces_allowed(self, form):
+        # old version
+        allowed_empty_fields = ['type', 'likes', 'favorites', 'sets', 'video_lang_en', 'video_lang_ru', 'spicy']
         for argv in form.data:
             if not form.data[argv] and form.data['type'] != DRAFT and argv not in allowed_empty_fields:
-                flash('Not all fields filled up', category='error')
-                raise ValidationError()
+        #         flash('Not all fields filled up', category='error')
+        #         raise ValidationError("This field is required if you want recipe of publish/preview type")
+        # if not field.data and form.data['type'] != DRAFT:
+                flash('Not all fields filled up - {} is empty'.format(argv), category='error')
+                return False
+            # raise ValidationError("This field is required if you want recipe of publish/preview type")
+        return True
 
     form_args = dict(
         type=dict(
             label='Type', choices=RECIPE_TYPE_SELECT, coerce=int
         ),
-        title_lang_ru=dict(validators=[no_blank_spaces_allowed]),
+        # title_lang_ru=dict(validators=[no_blank_spaces_allowed]),
     )
 
     def time_sec_to_min(view, context, model, name):
@@ -260,6 +266,9 @@ class RecipeModelViewWithRelationships(ModelView):
         except Exception:
             new_time = 0
         model.time = new_time
+        # return
+        if not self.no_blank_spaces_allowed(form):
+            raise ValidationError('Not all fields filled up')
         return
 
 
@@ -886,3 +895,12 @@ def page_not_found(error):
 @app.errorhandler(500)
 def server_error_page(error):
     return render_template("errors/server_error.html"), 500
+
+
+@auto.doc()
+@app.route('/appstore/')
+def to_appstore():
+    """
+    Redirect to AppStore.
+    """
+    return redirect('https://itunes.apple.com/ru/app/culinaryon-lucsie-recepty/id971017562?mt=8', 302)

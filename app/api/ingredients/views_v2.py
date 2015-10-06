@@ -140,5 +140,6 @@ def get_recipe_ingredients(id):
             error_code - server response_code
             result - information about ingredients
     """
-    ingredients = get_ingredients_by_divisions(id)
+    lang = request.args.get('lang', type=unicode, default=u'en')
+    ingredients = get_ingredients_by_divisions(id, lang=lang)
     return jsonify({'error_code': OK, 'result': ingredients}), 200

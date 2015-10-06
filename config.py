@@ -9,7 +9,7 @@ ADMINS = frozenset(['ff.warprobot@gmail.com'])
 SECRET_KEY = 'This string will be replaced with a proper key in production.'
 #SERVER_NAME = '127.0.0.1:5000'
 
-SQLALCHEMY_DATABASE_URI = 'sqlite:////Users/megge/Documents/culinaryon/instance/app.sqlite'
+SQLALCHEMY_DATABASE_URI = 'sqlite:////Users/megge/Documents/culinaryon/instance/sample.db'
 SQLALCHEMY_ECHO = True
 DATABASE_CONNECT_OPTIONS = {}
 

@@ -20,26 +20,20 @@ def get_promo_code_info():
             {"promo_code":"0000-1111-OHYH"}
     :return: json with parameters:
             error_code - server response_code
-            result - information about promo code (is_correct and value params)
+            result - is promo code correct
     """
     promo_code = request.json.get('promo_code')
     if promo_code is None:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
     promo_code = promo_code.split('-')
     promo_code_entity = PromoCode.query.filter(PromoCode.code.ilike(promo_code[2]),
-                                               PromoCode.id==promo_code[0].split('0')[-1],
-                                               PromoCode.value==promo_code[1]).first()
+                                               PromoCode.id == promo_code[0].split('0')[-1],
+                                               PromoCode.value == promo_code[1]).first()
     if promo_code_entity:
         is_correct = True
-        try:
-            value = int(promo_code_entity.value)
-        except Exception:
-            value = 0
     else:
         is_correct = False
-        value = 0
-    information = {'is_correct': is_correct, 'value': value}
-    return jsonify({'error_code': OK, 'result': information}), 201
+    return jsonify({'error_code': OK, 'result': is_correct}), 200
 
 
 @auto.doc()
