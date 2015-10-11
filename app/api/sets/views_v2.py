@@ -74,7 +74,6 @@ def buy_set():
     """
     Buy set with store id in json. List of parameters in json request (one of them is required):
             store_id
-            sale_store_id
     Example of request:
             {"store_id": "1"}
     :return: json with parameters:
@@ -83,13 +82,11 @@ def buy_set():
     """
     lang = request.args.get('lang', type=unicode, default=u'en')
     store_id = request.json.get('store_id')
-    sale_store_id = request.json.get('sale_store_id')
-    if store_id is None and sale_store_id is None:
+    if store_id is None:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'missing arguments'}), 200  # missing arguments
-    if store_id:
-        set = Set.query.filter_by(store_id=store_id).first()
-    elif sale_store_id:
-        set = Set.query.filter_by(sale_store_id=sale_store_id).first()
+    set = Set.query.filter_by(store_id=store_id).first()
+    if not set:
+        set = Set.query.filter_by(sale_store_id=store_id).first()
     if not set:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'set not exist'}), 200
     user_set = UserSet(user_id=current_user.id, set_id=set.id, open_type=FOREVER)

@@ -5,6 +5,7 @@ from app.api import auto
 from app.api.constants import BAD_REQUEST, OK
 from app.api.promo_codes.model import PromoCode
 from app.decorators import admin_required
+import re
 
 
 mod = Blueprint('promo_codes', __name__, url_prefix='/api_v2/promo_codes')
@@ -25,9 +26,12 @@ def get_promo_code_info():
     promo_code = request.json.get('promo_code')
     if promo_code is None:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
+    pattern = re.compile("^[0-9]{4}-[0-9]{4}-[A-Z]{4}$")
+    if not pattern.match(promo_code):
+        return jsonify({'error_code': BAD_REQUEST, 'result': 'wrong format'}), 200  # missing arguments
     promo_code = promo_code.split('-')
     promo_code_entity = PromoCode.query.filter(PromoCode.code.ilike(promo_code[2]),
-                                               PromoCode.id == promo_code[0].split('0')[-1],
+                                               PromoCode.id == int(promo_code[0]),
                                                PromoCode.value == promo_code[1]).first()
     if promo_code_entity:
         is_correct = True
