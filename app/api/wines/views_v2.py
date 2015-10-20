@@ -177,6 +177,8 @@ def recipe_without_wines_response_builder(recipe, lang=u'en', excluded=[]):
     information['likes'] = Like.query.filter_by(recipe_id=recipe.id).count()
     if not recipe.set_id:
         information['is_open'] = True
+    elif Set.query.get(recipe.set_id).is_free:
+        information['is_open'] = True
     elif not current_user.is_authenticated():
         information['is_open'] = False
     elif UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first():

@@ -36,6 +36,7 @@ class Set(db.Model):
     store_id = db.Column(db.String(250), nullable=True)
     sale_store_id = db.Column(db.String(250), nullable=True)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow())
+    is_free = db.Column(db.Boolean(), default=0)
 
     user_sets = db.relationship(UserSet, backref='sets', lazy='dynamic')
     recipes = db.relationship(Recipe, backref='sets', lazy='select')

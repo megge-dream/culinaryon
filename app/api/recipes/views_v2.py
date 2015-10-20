@@ -724,6 +724,8 @@ def recipe_response_builder_ver_2(recipe, lang=u'en', excluded=[]):
     is_open = False
     if not recipe.set_id:
         is_open = True
+    elif Set.query.get(recipe.set_id).is_free:
+        is_open = True
     elif not current_user.is_authenticated():
         is_open = False
     elif UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first():
@@ -836,6 +838,8 @@ def recipe_response_builder(recipe, lang=u'en', excluded=[]):
     information['likes'] = Like.query.filter_by(recipe_id=recipe.id).count()
     if not recipe.set_id:
         information['is_open'] = True
+    elif Set.query.get(recipe.set_id).is_free:
+        information['is_open'] = True
     elif not current_user.is_authenticated():
         information['is_open'] = False
     elif UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first():
@@ -855,7 +859,9 @@ def recipe_response_builder(recipe, lang=u'en', excluded=[]):
 def set_response_builder(set, lang=u'en', excluded=[]):
     information = response_builder(set, Set, lang, excluded)
     information['number_of_recipes'] = len(set.recipes)
-    if not current_user.is_authenticated():
+    if set.is_free:
+        information['is_open'] = True
+    elif not current_user.is_authenticated():
         information['is_open'] = False
     else:
         user_set = UserSet.query.filter_by(set_id=set.id, user_id=current_user.id).first()
