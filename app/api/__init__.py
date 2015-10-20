@@ -256,10 +256,12 @@ class RecipeModelViewWithRelationships(ModelView):
     }
 
     form_extra_fields = {
-        'time': TextField('Time (format: XX:XX:XX (hour:min:sec) )'),
+        'time': TextField('Ti me (format: XX:XX:XX (hour:min:sec) )'),
     }
 
     def on_model_change(self, form, model, is_created):
+        if not ':' in str(model.time):
+            return
         time = str(model.time).split(':')
         try:
             new_time = int(time[0]) * 3600 + int(time[1]) * 60 + int(time[2])

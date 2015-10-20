@@ -9,6 +9,7 @@ from app.api.cuisine_types.model import CuisineType
 from app.api.helpers import *
 from app.api.ingredients.model import Ingredient
 from app.api.likes.model import Like
+from app.api.wines.model import LikeWine
 from app.api.photos.model import RecipePhoto
 from app.api.recipes.model import Recipe, InstructionItem
 from app.api.sets.model import Set, UserSet
@@ -545,9 +546,9 @@ def get_feed():
         limit_recipes = 2
         offset_recipes = (page-1)*limit_recipes
         limit_sets = 1
-        offset_sets = (page-1)*limit_recipes
+        offset_sets = (page-1)*limit_sets
         limit_wines = 2
-        offset_wines = (page-1)*limit_recipes
+        offset_wines = (page-1)*limit_wines
         recipes_band = recipe_query.slice(start=offset_recipes, stop=limit_recipes+offset_recipes).all()
         sets_band = Set.query.slice(start=offset_sets, stop=limit_sets+offset_sets).all()
         wines_band = Wine.query.slice(start=offset_wines, stop=limit_wines+offset_wines).all()
@@ -564,32 +565,23 @@ def get_feed():
         wines_band = Wine.query.all()
         is_last_page = True
     for recipe in recipes_band:
-        information = recipe_response_builder(recipe, lang)
+        information = recipe_response_builder_ver_2(recipe, lang)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
         information['type_of_object'] = 'recipe'
         recipes.append(information)
-    recipes_ids = []
-    recipes_all = recipe_query.all()
-    for recipe in recipes_all:
-        recipes_ids.append(recipe.id)
+    recipes_ids = [x.id for x in recipe_query.all()]
     for set in sets_band:
         information = set_response_builder(set, lang)
         information['type_of_object'] = 'set'
         sets.append(information)
-    sets_ids = []
-    sets_all = Set.query.all()
-    for set in sets_all:
-        sets_ids.append(set.id)
+    sets_ids = [x.id for x in Set.query.all()]
     for wine in wines_band:
         information = wine_response_builder(wine, lang)
         information['type_of_object'] = 'wine'
         wines.append(information)
-    wines_ids = []
-    wines_all = Wine.query.all()
-    for wine in wines_all:
-        wines_ids.append(wine.id)
+    wines_ids = [x.id for x in Wine.query.all()]
     feed = recipes + sets + wines
     return jsonify({'error_code': OK, 'result': feed, 'is_last_page': is_last_page, 'recipes_ids': recipes_ids,
                     'sets_ids': sets_ids, 'wines_ids': wines_ids}), 200
@@ -695,6 +687,97 @@ def get_searched_goods_and_wines():
     return jsonify({'error_code': OK, 'result': feed, 'is_last_page': is_last_page}), 200
 
 
+def recipe_response_builder_ver_2(recipe, lang=u'en', excluded=[]):
+    if lang == 'en':
+        title = recipe.title_lang_en
+        description = recipe.description_lang_en
+        video = recipe.video_lang_en
+    elif lang == 'ru':
+        title = recipe.title_lang_ru
+        description = recipe.description_lang_ru
+        video = recipe.video_lang_ru
+    information_categories = []
+    for category in recipe.categories:
+        category_information = category_response_builder_ver_2(category, lang)
+        information_categories.append(category_information)
+    information_cuisine_types = []
+    for cuisine_type in recipe.cuisine_types:
+        cuisine_type_information = response_builder(cuisine_type, CuisineType, lang)
+        information_cuisine_types.append(cuisine_type_information)
+    information_tools = []
+    for tool in recipe.tools:
+        tool_information = response_builder(tool, Tool, lang)
+        information_tools.append(tool_information)
+    information_wines = []
+    for wine in recipe.wines:
+        wine_information = wine_response_builder_ver_2(wine, lang)
+        information_wines.append(wine_information)
+    information_photos = []
+    for photo in recipe.photos:
+        photo_information = response_builder(photo, RecipePhoto, lang)
+        information_photos.append(photo_information)
+    information_instructions = []
+    for instruction in recipe.instructions:
+        instruction_information = response_builder(instruction, InstructionItem, lang, excluded=["recipe_id"])
+        information_instructions.append(instruction_information)
+    likes = Like.query.filter_by(recipe_id=recipe.id).count()
+    is_open = False
+    if not recipe.set_id:
+        is_open = True
+    elif not current_user.is_authenticated():
+        is_open = False
+    elif UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first():
+        user_set = UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first()
+        if user_set.open_type == FOREVER:
+            is_open = True
+        if user_set.open_type == MONTH:
+            if (datetime.utcnow() - user_set.open_date).days <= 30:
+                is_open = True
+            else:
+                is_open = False
+    return {
+        "id": recipe.id,
+        "title": title,
+        "description": description,
+        "spicy": recipe.spicy,
+        "complexity": recipe.complexity,
+        "time": recipe.time,
+        "amount_of_persons": recipe.amount_of_persons,
+        "video": video,
+        "creation_date": recipe.creation_date,
+        "type": recipe.type,
+        "set_id": recipe.set_id,
+        "chef": recipe.chef_id,
+        "likes": likes,
+        "is_open": is_open,
+        "categories": information_categories,
+        "cuisine_types": information_cuisine_types,
+        "tools": information_tools,
+        "wines": information_wines,
+        "photos": information_photos,
+        "instructions": information_instructions,
+    }
+
+
+def category_response_builder_ver_2(category, lang=u'en', excluded=[]):
+    if lang == 'en':
+        title = category.title_lang_en
+    elif lang == 'ru':
+        title = category.title_lang_ru
+    return {
+        "id": category.id,
+        "title": title,
+        "photo": category.photo,
+        "creation_date": category.creation_date,
+    }
+
+
+def wine_response_builder_ver_2(wine, lang=u'en', excluded=[]):
+    information = response_builder(wine, Wine, lang, excluded)
+    information['likes'] = LikeWine.query.filter_by(wine_id=wine.id).count()
+    return information
+
+
 def recipe_response_builder(recipe, lang=u'en', excluded=[]):
     categories = []
     recipe_query = Recipe.query
@@ -702,16 +785,16 @@ def recipe_response_builder(recipe, lang=u'en', excluded=[]):
     #     recipe_query = Recipe.query
     # else:
     #     recipe_query = Recipe.query.filter_by(type=PUBLISHED)
-    for category in recipe_query.filter_by(id=recipe.id).first().categories:
+    for category in recipe.categories:
         categories.append(category.id)
     cuisine_types = []
-    for cuisine_type in recipe_query.filter_by(id=recipe.id).first().cuisine_types:
+    for cuisine_type in recipe.cuisine_types:
         cuisine_types.append(cuisine_type.id)
     tools = []
-    for tool in recipe_query.filter_by(id=recipe.id).first().tools:
+    for tool in recipe.tools:
         tools.append(tool.id)
     wines = []
-    for wine in recipe_query.filter_by(id=recipe.id).first().wines:
+    for wine in recipe.wines:
         wines.append(wine.id)
     information = response_builder(recipe, Recipe, lang, excluded)
     information['categories'] = []
