@@ -1,6 +1,7 @@
 from flask import request, jsonify, g, url_for, Blueprint
 from flask.ext.login import login_required
-from sqlalchemy import distinct
+import itertools
+from sqlalchemy import distinct, or_
 
 from app.api import db, auto
 from app.api.categories.model import Category
@@ -541,24 +542,50 @@ def get_feed():
     else:
         recipe_query = Recipe.query.filter_by(type=PUBLISHED)
     page = request.args.get('page', type=int)
+
+    bought_sets = []
+    if current_user:
+        for user_set in UserSet.query.filter_by(user_id=current_user.id).all():
+            bought_sets.append(user_set.set_id)
+
+    free_sets = Set.query.filter(or_(Set.is_free, Set.id. in_(bought_sets))).all()
+    free_sets_id = []
+    for free_set in free_sets:
+        free_sets_id.append(free_set.id)
+    free_recipes = recipe_query.filter(or_(~Recipe.set_id, Recipe.set_id. in_(free_sets_id))).all()
+    free_recipes_id = []
+    for free_recipe in free_recipes:
+        free_recipes_id.append(free_recipe.id)
+    not_free_sets = Set.query.filter(~Set.id. in_(free_sets_id)).all()
+    not_free_recipes = recipe_query.filter(~Recipe.id. in_(free_recipes_id)).all()
+    not_free_sets_id = []
+    not_free_recipes_id = []
+    for not_free_set in not_free_sets:
+        not_free_sets_id.append(not_free_set.id)
+    for not_free_recipe in not_free_recipes:
+        not_free_recipes_id.append(not_free_recipe.id)
+    sets_band_ids = [i for i in itertools.chain(*itertools.izip_longest(free_sets_id[::2],
+                                                                        free_sets_id[1::2],
+                                                                        not_free_sets_id)) if i is not None]
+    recipes_band_ids = [i for i in itertools.chain(*itertools.izip_longest(free_recipes_id[::2],
+                                                                           free_recipes_id[1::2],
+                                                                           not_free_recipes_id)) if i is not None]
     if page is not None:
         # for faster loading
-        limit_recipes = 2
+        limit_recipes = 3
         offset_recipes = (page-1)*limit_recipes
-        limit_sets = 1
+        limit_sets = 3
         offset_sets = (page-1)*limit_sets
         limit_wines = 2
         offset_wines = (page-1)*limit_wines
-        recipes_band = recipe_query.slice(start=offset_recipes, stop=limit_recipes+offset_recipes).all()
-        sets_band = Set.query.slice(start=offset_sets, stop=limit_sets+offset_sets).all()
+        recipes_band = [recipe_query.filter_by(id=id).first() for id in recipes_band_ids[offset_recipes:limit_recipes+offset_recipes]]
+        sets_band = [Set.query.filter_by(id=id).first() for id in sets_band_ids[offset_sets:limit_sets+offset_sets]]
         wines_band = Wine.query.slice(start=offset_wines, stop=limit_wines+offset_wines).all()
-        next_recipe = recipe_query.slice(start=limit_recipes+offset_recipes, stop=limit_recipes+offset_recipes+1).first()
-        next_set = Set.query.slice(start=limit_sets+offset_sets, stop=limit_sets+offset_sets+1).first()
         next_wine = Wine.query.slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
-        if next_recipe or next_set or next_wine:
-            is_last_page = False
-        else:
+        if limit_recipes+offset_recipes > len(recipes_band_ids) and limit_sets+offset_sets > len(sets_band_ids) and not next_wine:
             is_last_page = True
+        else:
+            is_last_page = False
     else:
         recipes_band = recipe_query.all()
         sets_band = Set.query.all()

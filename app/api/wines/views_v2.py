@@ -123,8 +123,9 @@ def wine_response_builder(wine, lang=u'en', excluded=[]):
     information = response_builder(wine, Wine, lang, excluded)
     information['likes'] = LikeWine.query.filter_by(wine_id=wine.id).count()
     information['recipes'] = []
-    for recipe in wine.recipes:
-        information['recipes'].append(recipe_without_wines_response_builder(recipe, lang, excluded))
+    if 'recipes' in excluded:
+        for recipe in wine.recipes:
+            information['recipes'].append(recipe_without_wines_response_builder(recipe, lang, excluded))
     return information
 
 
