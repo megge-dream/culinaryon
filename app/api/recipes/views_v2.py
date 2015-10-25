@@ -552,7 +552,7 @@ def get_feed():
     free_sets_id = []
     for free_set in free_sets:
         free_sets_id.append(free_set.id)
-    free_recipes = recipe_query.filter(or_(~Recipe.set_id, Recipe.set_id. in_(free_sets_id))).all()
+    free_recipes = recipe_query.filter(or_(Recipe.set_id == None, Recipe.set_id. in_(free_sets_id))).all()
     free_recipes_id = []
     for free_recipe in free_recipes:
         free_recipes_id.append(free_recipe.id)
