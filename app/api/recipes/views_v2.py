@@ -544,7 +544,7 @@ def get_feed():
     page = request.args.get('page', type=int)
 
     bought_sets = []
-    if current_user:
+    if current_user.is_authenticated():
         for user_set in UserSet.query.filter_by(user_id=current_user.id).all():
             bought_sets.append(user_set.set_id)
 
@@ -580,12 +580,13 @@ def get_feed():
         offset_wines = (page-1)*limit_wines
         recipes_band = [recipe_query.filter_by(id=id).first() for id in recipes_band_ids[offset_recipes:limit_recipes+offset_recipes]]
         sets_band = [Set.query.filter_by(id=id).first() for id in sets_band_ids[offset_sets:limit_sets+offset_sets]]
-        wines_band = Wine.query.slice(start=offset_wines, stop=limit_wines+offset_wines).all()
-        next_wine = Wine.query.slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
-        if limit_recipes+offset_recipes > len(recipes_band_ids) and limit_sets+offset_sets > len(sets_band_ids) and not next_wine:
-            is_last_page = True
-        else:
-            is_last_page = False
+        is_last_page = False
+        wines_band = []
+        if limit_recipes+offset_recipes > len(recipes_band_ids) and limit_sets+offset_sets > len(sets_band_ids):
+            wines_band = Wine.query.slice(start=offset_wines, stop=limit_wines+offset_wines).all()
+            next_wine = Wine.query.slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
+            if not next_wine:
+                is_last_page = True
     else:
         recipes_band = recipe_query.all()
         sets_band = Set.query.all()
