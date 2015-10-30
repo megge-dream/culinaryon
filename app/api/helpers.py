@@ -112,7 +112,10 @@ def response_builder(current_object, entity, lang=u'en', excluded=[]):
                                                                                         columnName) is not None else ''
                     elif entity == Ingredient and "title" in columnName and \
                             getattr(current_object, columnName) and ":" in getattr(current_object, columnName):
-                        result[columnName] = getattr(current_object, columnName).split(':')[1][1:]
+                        if "lang" in columnName:
+                            result[columnName.rsplit('_', 2)[0]] = getattr(current_object, columnName).split(':')[1][1:]
+                        else:
+                            result[columnName] = getattr(current_object, columnName).split(':')[1][1:]
                     elif "lang" in columnName:
                         result[columnName.rsplit('_', 2)[0]] = getattr(current_object, columnName) if getattr(current_object,
                                                                                                 columnName) is not None else ''
