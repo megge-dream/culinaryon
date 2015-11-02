@@ -638,6 +638,8 @@ def get_searched_goods_and_wines():
     type_of_grape = request.args.get('type_of_grape', type=int)
     page = request.args.get('page', type=int)
     lang = request.args.get('lang', type=unicode, default=u'en')
+    wines_band_is_empty = False
+    recipes_band_is_empty = False
     if current_user.is_authenticated() and current_user.role_code == 0:
         recipe_query = Recipe.query
     else:
@@ -648,11 +650,14 @@ def get_searched_goods_and_wines():
             recipes_band = recipe_query.filter(Recipe.categories.contains(category))
         else:
             recipes_band = recipe_query.filter(db.false())
+        wines_band_is_empty = True
+        wines_band = Wine.query
+    elif type_of_grape is not None:
+        wines_band = Wine.query.filter_by(type_of_grape_id=type_of_grape)
+        recipes_band_is_empty = True
+        recipes_band = recipe_query
     else:
         recipes_band = recipe_query
-    if type_of_grape is not None:
-        wines_band = Wine.query.filter_by(type_of_grape_id=type_of_grape)
-    else:
         wines_band = Wine.query
     if page is not None:
         # for faster loading
@@ -688,6 +693,12 @@ def get_searched_goods_and_wines():
             next_wine = old_wines_band\
                                   .filter(Wine.title_lang_en.ilike('%' + q + '%'))\
                                   .slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
+        if recipes_band_is_empty:
+            recipes_band = []
+            next_recipe = False
+        if wines_band_is_empty:
+            wines_band = []
+            next_wine = False
         if next_recipe or next_wine:
             is_last_page = False
         else:
