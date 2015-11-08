@@ -47,7 +47,7 @@ def response_builder(current_object, entity, lang=u'en', excluded=[]):
                         recipe_query = Recipe.query
                     else:
                         recipe_query = Recipe.query.filter_by(type=PUBLISHED)
-                    result["recipe"] = response_builder(recipe_query.get(recipe_id), Recipe, lang=lang)
+                    result["recipe"] = response_builder(recipe_query.filter_by(id=recipe_id).first(), Recipe, lang=lang)
             elif "chef" in columnName:
                 chef_id = getattr(current_object, columnName)
                 result["chef"] = chef_id
