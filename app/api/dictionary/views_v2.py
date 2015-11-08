@@ -95,16 +95,24 @@ def get_all_dictionares():
             error_code - server response_code
             result - information about dictionaries
     """
-    dic = db.session.query(func.substr(Dictionary.title, 1, 1)).group_by(func.substr(Dictionary.title, 1, 1)).all()
-    result = {}
     lang = request.args.get('lang', type=unicode, default=u'en')
+    if lang == u'en':
+        dic = db.session.query(func.substr(Dictionary.title_lang_en, 1, 1)).group_by(func.substr(Dictionary.title_lang_en, 1, 1)).all()
+    else:
+        dic = db.session.query(func.substr(Dictionary.title_lang_ru, 1, 1)).group_by(func.substr(Dictionary.title_lang_ru, 1, 1)).all()
+    result = {}
     for letter_arr in dic:
         letter = letter_arr[0]
         results_for_letter = []
         for dictionary in Dictionary.query.all():
-            if dictionary.title[0] == letter:
-                information = response_builder(dictionary, Dictionary, lang)
-                results_for_letter.append(information)
+            if lang == u'en':
+                if dictionary.title_lang_en and dictionary.title_lang_en[0] == letter:
+                    information = response_builder(dictionary, Dictionary, lang)
+                    results_for_letter.append(information)
+            else:
+                if dictionary.title_lang_ru and dictionary.title_lang_ru[0] == letter:
+                    information = response_builder(dictionary, Dictionary, lang)
+                    results_for_letter.append(information)
         result.update({letter: results_for_letter})
     return jsonify({'error_code': OK, 'result': result}), 200
 
