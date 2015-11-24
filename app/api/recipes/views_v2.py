@@ -808,7 +808,8 @@ def category_response_builder_ver_2(category, lang=u'en', excluded=[]):
     return {
         "id": category.id,
         "title": title,
-        "photo": category.photo,
+        "photo": url_for('static', _scheme='http', _external=True,
+                         filename='categories/' + str(category.photo)),
         "creation_date": category.creation_date,
     }
 
