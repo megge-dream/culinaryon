@@ -782,7 +782,7 @@ def recipe_response_builder_ver_2(recipe, lang=u'en', excluded=[]):
         "description": description,
         "spicy": recipe.spicy,
         "complexity": recipe.complexity,
-        "time": recipe.time,
+        "time": int(recipe.time),
         "amount_of_persons": recipe.amount_of_persons,
         "video": video,
         "creation_date": recipe.creation_date,
