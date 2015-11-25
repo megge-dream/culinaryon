@@ -12,7 +12,7 @@ from app.api.chefs.views import chef_response_builder
 from app.api.constants import BAD_REQUEST, OK
 from app.api import auto, twitter
 from app.api.helpers import *
-from app.api.recipes.views import recipe_response_builder
+from app.api.recipes.views_v2 import recipe_response_builder
 from app.api.users.constants import TW, FB, VK, APP_MAIL
 from app.api.users.model import *
 from app.decorators import admin_required

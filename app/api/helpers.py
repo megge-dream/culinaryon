@@ -47,7 +47,7 @@ def response_builder(current_object, entity, lang=u'en', excluded=[]):
                         recipe_query = Recipe.query
                     else:
                         recipe_query = Recipe.query.filter_by(type=PUBLISHED)
-                    result["recipe"] = response_builder(recipe_query.get(recipe_id), Recipe, lang=lang)
+                    result["recipe"] = response_builder(recipe_query.filter_by(id=recipe_id).first(), Recipe, lang=lang)
             elif "chef" in columnName:
                 chef_id = getattr(current_object, columnName)
                 result["chef"] = chef_id
@@ -112,9 +112,12 @@ def response_builder(current_object, entity, lang=u'en', excluded=[]):
                                                                                         columnName) is not None else ''
                     elif entity == Ingredient and "title" in columnName and \
                             getattr(current_object, columnName) and ":" in getattr(current_object, columnName):
-                        result[columnName] = getattr(current_object, columnName).split(':')[1][1:]
+                        if "lang" in columnName:
+                            result[columnName.rsplit('_', 2)[0]] = getattr(current_object, columnName).split(':')[1][1:]
+                        else:
+                            result[columnName] = getattr(current_object, columnName).split(':')[1][1:]
                     elif "lang" in columnName:
-                        result[columnName.split('_')[0]] = getattr(current_object, columnName) if getattr(current_object,
+                        result[columnName.rsplit('_', 2)[0]] = getattr(current_object, columnName) if getattr(current_object,
                                                                                                 columnName) is not None else ''
                     else:
                         result[columnName] = getattr(current_object, columnName) if getattr(current_object,

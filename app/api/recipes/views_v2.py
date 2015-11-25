@@ -544,7 +544,7 @@ def get_feed():
     page = request.args.get('page', type=int)
 
     bought_sets = []
-    if current_user:
+    if current_user.is_authenticated():
         for user_set in UserSet.query.filter_by(user_id=current_user.id).all():
             bought_sets.append(user_set.set_id)
 
@@ -580,12 +580,13 @@ def get_feed():
         offset_wines = (page-1)*limit_wines
         recipes_band = [recipe_query.filter_by(id=id).first() for id in recipes_band_ids[offset_recipes:limit_recipes+offset_recipes]]
         sets_band = [Set.query.filter_by(id=id).first() for id in sets_band_ids[offset_sets:limit_sets+offset_sets]]
-        wines_band = Wine.query.slice(start=offset_wines, stop=limit_wines+offset_wines).all()
-        next_wine = Wine.query.slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
-        if limit_recipes+offset_recipes > len(recipes_band_ids) and limit_sets+offset_sets > len(sets_band_ids) and not next_wine:
-            is_last_page = True
-        else:
-            is_last_page = False
+        is_last_page = False
+        wines_band = []
+        if limit_recipes+offset_recipes > len(recipes_band_ids) and limit_sets+offset_sets > len(sets_band_ids):
+            wines_band = Wine.query.slice(start=offset_wines, stop=limit_wines+offset_wines).all()
+            next_wine = Wine.query.slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
+            if not next_wine:
+                is_last_page = True
     else:
         recipes_band = recipe_query.all()
         sets_band = Set.query.all()
@@ -637,6 +638,8 @@ def get_searched_goods_and_wines():
     type_of_grape = request.args.get('type_of_grape', type=int)
     page = request.args.get('page', type=int)
     lang = request.args.get('lang', type=unicode, default=u'en')
+    wines_band_is_empty = False
+    recipes_band_is_empty = False
     if current_user.is_authenticated() and current_user.role_code == 0:
         recipe_query = Recipe.query
     else:
@@ -647,11 +650,14 @@ def get_searched_goods_and_wines():
             recipes_band = recipe_query.filter(Recipe.categories.contains(category))
         else:
             recipes_band = recipe_query.filter(db.false())
+        wines_band_is_empty = True
+        wines_band = Wine.query
+    elif type_of_grape is not None:
+        wines_band = Wine.query.filter_by(type_of_grape_id=type_of_grape)
+        recipes_band_is_empty = True
+        recipes_band = recipe_query
     else:
         recipes_band = recipe_query
-    if type_of_grape is not None:
-        wines_band = Wine.query.filter_by(type_of_grape_id=type_of_grape)
-    else:
         wines_band = Wine.query
     if page is not None:
         # for faster loading
@@ -687,6 +693,12 @@ def get_searched_goods_and_wines():
             next_wine = old_wines_band\
                                   .filter(Wine.title_lang_en.ilike('%' + q + '%'))\
                                   .slice(start=limit_wines+offset_wines, stop=limit_wines+offset_wines+1).first()
+        if recipes_band_is_empty:
+            recipes_band = []
+            next_recipe = False
+        if wines_band_is_empty:
+            wines_band = []
+            next_wine = False
         if next_recipe or next_wine:
             is_last_page = False
         else:
@@ -770,7 +782,7 @@ def recipe_response_builder_ver_2(recipe, lang=u'en', excluded=[]):
         "description": description,
         "spicy": recipe.spicy,
         "complexity": recipe.complexity,
-        "time": recipe.time,
+        "time": int(recipe.time),
         "amount_of_persons": recipe.amount_of_persons,
         "video": video,
         "creation_date": recipe.creation_date,
@@ -796,7 +808,8 @@ def category_response_builder_ver_2(category, lang=u'en', excluded=[]):
     return {
         "id": category.id,
         "title": title,
-        "photo": category.photo,
+        "photo": url_for('static', _scheme='http', _external=True,
+                         filename='categories/' + str(category.photo)),
         "creation_date": category.creation_date,
     }
 
