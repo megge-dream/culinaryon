@@ -186,7 +186,7 @@ class InstructionItemInlineModelForm(InlineFormAdmin):
 
     def postprocess_form(self, form):
         form.photo = MyImageUploadField('Image', base_path=app.config['SCHOOLS_UPLOAD'],
-                                        url_relative_path='schools/')
+                                        url_relative_path='instruction_items/')
         return form
 
 
