@@ -181,14 +181,14 @@ def chef_response_builder(chef, lang=u'en'):
     for photo in ChefPhoto.query.filter_by(item_id=chef.id):
         photo_information = response_builder(photo, ChefPhoto, lang)
         information['photos'].append(photo_information)
-    information['recipes'] = []
-    if current_user.is_authenticated() and current_user.role_code == 0:
-        recipe_query = Recipe.query
-    else:
-        recipe_query = Recipe.query.filter_by(type=PUBLISHED)
-    for recipe in recipe_query.filter_by(chef_id=chef.id):
-        recipe_information = recipe_response_builder(recipe, lang, excluded=['chef_id'])
-        information['recipes'].append(recipe_information)
+    # information['recipes'] = []
+    # if current_user.is_authenticated() and current_user.role_code == 0:
+    #     recipe_query = Recipe.query
+    # else:
+    #     recipe_query = Recipe.query.filter_by(type=PUBLISHED)
+    # for recipe in recipe_query.filter_by(chef_id=chef.id):
+    #     recipe_information = recipe_response_builder(recipe, lang, excluded=['chef_id'])
+    #     information['recipes'].append(recipe_information)
     return information
     # information['recipes'] = []
     # for recipe in Recipe.query.filter_by(chef_id=id):
