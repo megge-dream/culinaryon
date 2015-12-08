@@ -63,6 +63,11 @@ def response_builder(current_object, entity, lang=u'en', excluded=[]):
                     result["type_of_grape"] = response_builder(TypeOfGrape.query.get(type_of_grape_id), TypeOfGrape, lang=lang)
                 else:
                     result["type_of_grape"] = []
+            elif "year" in columnName:
+                try:
+                    result["year"] = int(getattr(current_object, columnName))
+                except Exception:
+                    result["year"] = 0
             elif "user" in columnName and columnName != "provider_user_id":
                 user_id = getattr(current_object, columnName)
                 if user_id is not None:
