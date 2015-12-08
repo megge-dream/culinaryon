@@ -634,6 +634,8 @@ def get_searched_goods_and_wines():
     recipes = []
     wines = []
     q = request.args.get('q', type=unicode, default=u'')
+    if q and len(q) > 1:
+        q = q[1:]
     category = request.args.get('category', type=int)
     type_of_grape = request.args.get('type_of_grape', type=int)
     page = request.args.get('page', type=int)
