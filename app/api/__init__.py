@@ -230,6 +230,8 @@ class RecipeModelViewWithRelationships(ModelView):
     )
 
     def time_sec_to_min(view, context, model, name):
+        if not model.time:
+            model.time = 0
         time_sec = int(model.time) % 60
         time_min = int(model.time) / 60 % 60
         if time_sec < 10:
