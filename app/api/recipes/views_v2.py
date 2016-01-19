@@ -1,3 +1,4 @@
+import datetime
 from flask import request, jsonify, g, url_for, Blueprint
 from flask.ext.login import login_required
 import itertools
@@ -884,6 +885,8 @@ def recipe_response_builder(recipe, lang=u'en', excluded=[]):
         information['is_open'] = True
     elif not current_user.is_authenticated():
         information['is_open'] = False
+    elif current_user.is_admin():
+        information['is_open'] = True
     elif UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first():
         user_set = UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first()
         if user_set.open_type == FOREVER:
@@ -905,6 +908,8 @@ def set_response_builder(set, lang=u'en', excluded=[]):
         information['is_open'] = True
     elif not current_user.is_authenticated():
         information['is_open'] = False
+    elif current_user.is_admin():
+        information['is_open'] = True
     else:
         user_set = UserSet.query.filter_by(set_id=set.id, user_id=current_user.id).first()
         if user_set:
