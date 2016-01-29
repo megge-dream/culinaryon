@@ -567,15 +567,17 @@ def get_feed():
         not_free_recipes_id.append(not_free_recipe.id)
     sets_band_ids = [i for i in itertools.chain(*itertools.izip_longest(free_sets_id[::2],
                                                                         free_sets_id[1::2],
-                                                                        not_free_sets_id)) if i is not None]
+                                                                        not_free_sets_id[::2],
+                                                                        not_free_sets_id[1::2])) if i is not None]
     recipes_band_ids = [i for i in itertools.chain(*itertools.izip_longest(free_recipes_id[::2],
                                                                            free_recipes_id[1::2],
-                                                                           not_free_recipes_id)) if i is not None]
+                                                                           not_free_recipes_id[::2],
+                                                                           not_free_recipes_id[1::2])) if i is not None]
     if page is not None:
         # for faster loading
-        limit_recipes = 3
+        limit_recipes = 4
         offset_recipes = (page-1)*limit_recipes
-        limit_sets = 3
+        limit_sets = 4
         offset_sets = (page-1)*limit_sets
         limit_wines = 2
         offset_wines = (page-1)*limit_wines
