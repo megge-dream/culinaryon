@@ -1,3 +1,4 @@
+import datetime
 from flask import request, jsonify, g, url_for, Blueprint
 from flask.ext.login import login_required
 
@@ -5,7 +6,7 @@ from app.api import db, auto
 from app.api.constants import BAD_REQUEST, OK
 from app.api.helpers import *
 from app.api.likes.model import LikeWine, Like
-from app.api.sets.model import UserSet
+from app.api.sets.model import UserSet, VendorSet
 from app.api.cuisine_types.model import CuisineType
 from app.api.users.constants import FOREVER, MONTH
 from app.api.wines.model import Wine
@@ -76,10 +77,11 @@ def get_wine(id):
             result - information about wine
     """
     lang = request.args.get('lang', type=unicode, default=u'en')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     wine = Wine.query.get(id)
     if not wine:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # wine with `id` isn't exist
-    information = wine_response_builder(wine, lang)
+    information = wine_response_builder(wine, lang, vendor_id)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -93,9 +95,10 @@ def get_all_wines():
             result - information about wines
     """
     lang = request.args.get('lang', type=unicode, default=u'en')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     wines = []
     for wine in Wine.query.all():
-        information = wine_response_builder(wine, lang)
+        information = wine_response_builder(wine, lang, vendor_id)
         wines.append(information)
     return jsonify({'error_code': OK, 'result': wines}), 200
 
@@ -119,17 +122,17 @@ def delete_wine(id):
     return jsonify({'error_code': OK}), 200
 
 
-def wine_response_builder(wine, lang=u'en', excluded=[]):
-    information = response_builder(wine, Wine, lang, excluded)
+def wine_response_builder(wine, lang=u'en', vendor_id=u'', excluded=[]):
+    information = response_builder(wine, Wine, lang, excluded=excluded)
     information['likes'] = LikeWine.query.filter_by(wine_id=wine.id).count()
     information['recipes'] = []
     if 'recipes' in excluded:
         for recipe in wine.recipes:
-            information['recipes'].append(recipe_without_wines_response_builder(recipe, lang, excluded))
+            information['recipes'].append(recipe_without_wines_response_builder(recipe, lang, vendor_id, excluded=excluded))
     return information
 
 
-def recipe_without_wines_response_builder(recipe, lang=u'en', excluded=[]):
+def recipe_without_wines_response_builder(recipe, lang=u'en', vendor_id=u'', excluded=[]):
     categories = []
     recipe_query = Recipe.query
     # if current_user.is_authenticated() and current_user.role_code == 0:
@@ -144,7 +147,7 @@ def recipe_without_wines_response_builder(recipe, lang=u'en', excluded=[]):
     tools = []
     for tool in recipe_query.filter_by(id=recipe.id).first().tools:
         tools.append(tool.id)
-    information = response_builder(recipe, Recipe, lang, excluded)
+    information = response_builder(recipe, Recipe, lang, excluded=excluded)
     information['categories'] = []
     if categories is not None:
         for category_id in categories:
@@ -182,15 +185,10 @@ def recipe_without_wines_response_builder(recipe, lang=u'en', excluded=[]):
         information['is_open'] = True
     elif not current_user.is_authenticated():
         information['is_open'] = False
-    elif UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first():
-        user_set = UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first()
-        if user_set.open_type == FOREVER:
-            information['is_open'] = True
-        if user_set.open_type == MONTH:
-            if (datetime.utcnow() - user_set.open_date).days <= 30:
-                information['is_open'] = True
-            else:
-                information['is_open'] = False
+    # elif UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first():
+        # user_set = UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first()
+    elif VendorSet.query.filter_by(set_id=recipe.set_id, vendor_id=vendor_id).first():
+        information['is_open'] = True
     else:
         information['is_open'] = False
     return information

@@ -14,7 +14,7 @@ from app.api.likes.model import Like
 from app.api.wines.model import LikeWine
 from app.api.photos.model import RecipePhoto
 from app.api.recipes.model import Recipe, InstructionItem
-from app.api.sets.model import Set, UserSet
+from app.api.sets.model import Set, UserSet, VendorSet
 from app.api.tools.model import Tool
 from app.api.users.constants import FOREVER, MONTH, PUBLISHED
 from app.api.wines.model import Wine
@@ -64,6 +64,7 @@ def new_recipe():
     tools = request.json.get('tools')
     wines = request.json.get('wines')
     set_id = request.json.get('set_id')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     if title is None:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # missing arguments
     recipe = Recipe(title=title, description=description, spicy=spicy, complexity=complexity, time=time,
@@ -71,7 +72,7 @@ def new_recipe():
     db.session.add(recipe)
     db.session.commit()
     insert_recipes_many_to_many(recipe, categories, cuisine_types, tools, wines)
-    information = recipe_response_builder(recipe)
+    information = recipe_response_builder(recipe, vendor_id)
     return jsonify({'error_code': OK, 'result': information}), 201
 
 
@@ -127,10 +128,11 @@ def update_recipe(id):
     cuisine_types = request.json.get('cuisine_types')
     tools = request.json.get('tools')
     wines = request.json.get('wines')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     db.session.commit()
     insert_recipes_many_to_many(recipe, categories, cuisine_types, tools, wines)
     recipe = Recipe.query.get(id)
-    information = recipe_response_builder(recipe)
+    information = recipe_response_builder(recipe, vendor_id)
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -337,10 +339,11 @@ def get_recipe(id):
             result - information about recipe
     """
     lang = request.args.get('lang', type=unicode, default=u'en')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     recipe = Recipe.query.get(id)
     if not recipe:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # recipe with `id` isn't exist
-    information = recipe_response_builder(recipe, lang)
+    information = recipe_response_builder(recipe, lang, vendor_id)
     information['ingredients'] = get_ingredients_by_divisions(id, lang=lang)
     hash_of_information = make_hash(information)
     information['hash'] = hash_of_information
@@ -368,6 +371,7 @@ def get_all_recipes_sets_wines():
     sets = []
     wines = []
     lang = request.args.get('lang', type=unicode, default=u'en')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
     count = [Recipe.query.count(), Set.query.count(), Wine.query.count()]
@@ -387,7 +391,7 @@ def get_all_recipes_sets_wines():
         sets_band = Set.query.all()
         wines_band = Wine.query.all()
     for recipe in recipes_band:
-        information = recipe_response_builder(recipe, lang)
+        information = recipe_response_builder(recipe, lang, vendor_id)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
@@ -397,7 +401,7 @@ def get_all_recipes_sets_wines():
     for recipe in recipes_all:
         recipes_ids.append(recipe.id)
     for set in sets_band:
-        information = set_response_builder(set, lang)
+        information = set_response_builder(set, lang, vendor_id)
         sets.append(information)
     sets_ids = []
     sets_all = Set.query.all()
@@ -430,6 +434,7 @@ def get_chef_recipes(id):
     """
     recipes = []
     lang = request.args.get('lang', type=unicode, default=u'en')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
     if current_user.is_authenticated() and current_user.role_code == 0:
@@ -442,7 +447,7 @@ def get_chef_recipes(id):
     else:
         recipes_band = recipe_query.filter_by(chef_id=id)
     for recipe in recipes_band:
-        information = recipe_response_builder(recipe, lang)
+        information = recipe_response_builder(recipe, lang, vendor_id)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
@@ -467,6 +472,7 @@ def get_category_recipes(id):
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
     lang = request.args.get('lang', type=unicode, default=u'en')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     if current_user.is_authenticated() and current_user.role_code == 0:
         recipe_query = Recipe.query
     else:
@@ -477,7 +483,7 @@ def get_category_recipes(id):
     else:
         recipes_band = recipe_query.join(Category.recipes).filter(Category.id == id).all()
     for recipe in recipes_band:
-        information = recipe_response_builder(recipe, lang)
+        information = recipe_response_builder(recipe, lang, vendor_id)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
@@ -502,6 +508,7 @@ def get_set_recipes(id):
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
     lang = request.args.get('lang', type=unicode, default=u'en')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     if current_user.is_authenticated() and current_user.role_code == 0:
         recipe_query = Recipe.query
     else:
@@ -512,7 +519,7 @@ def get_set_recipes(id):
     else:
         recipes_band = recipe_query.join(Set.recipes).filter(Set.id == id).all()
     for recipe in recipes_band:
-        information = recipe_response_builder(recipe, lang)
+        information = recipe_response_builder(recipe, lang, vendor_id)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
@@ -538,6 +545,7 @@ def get_feed():
     sets = []
     wines = []
     lang = request.args.get('lang', type=unicode, default=u'en')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     if current_user.is_authenticated() and current_user.role_code == 0:
         recipe_query = Recipe.query
     else:
@@ -545,10 +553,8 @@ def get_feed():
     page = request.args.get('page', type=int)
 
     bought_sets = []
-    if current_user.is_authenticated():
-        for user_set in UserSet.query.filter_by(user_id=current_user.id).all():
-            bought_sets.append(user_set.set_id)
-
+    for vendor_set in VendorSet.query.filter_by(vendor_id=vendor_id).all():
+        bought_sets.append(vendor_set.set_id)
     free_sets = Set.query.filter(or_(Set.is_free, Set.id. in_(bought_sets))).all()
     free_sets_id = []
     for free_set in free_sets:
@@ -596,7 +602,7 @@ def get_feed():
         wines_band = Wine.query.all()
         is_last_page = True
     for recipe in recipes_band:
-        information = recipe_response_builder_ver_2(recipe, lang)
+        information = recipe_response_builder_ver_2(recipe, lang, vendor_id)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
@@ -604,7 +610,7 @@ def get_feed():
         recipes.append(information)
     recipes_ids = [x.id for x in recipe_query.all()]
     for set in sets_band:
-        information = set_response_builder(set, lang)
+        information = set_response_builder(set, lang, vendor_id)
         information['type_of_object'] = 'set'
         sets.append(information)
     sets_ids = [x.id for x in Set.query.all()]
@@ -643,6 +649,7 @@ def get_searched_goods_and_wines():
     type_of_grape = request.args.get('type_of_grape', type=int)
     page = request.args.get('page', type=int)
     lang = request.args.get('lang', type=unicode, default=u'en')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     wines_band_is_empty = False
     recipes_band_is_empty = False
     if current_user.is_authenticated() and current_user.role_code == 0:
@@ -717,7 +724,7 @@ def get_searched_goods_and_wines():
             wines_band = wines_band.filter(Wine.title_lang_en.ilike('%' + q + '%')).all()
         is_last_page = True
     for recipe in recipes_band:
-        information = recipe_response_builder(recipe, lang)
+        information = recipe_response_builder(recipe, lang, vendor_id)
         information['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         hash_of_information = make_hash(information)
         information['hash'] = hash_of_information
@@ -731,7 +738,7 @@ def get_searched_goods_and_wines():
     return jsonify({'error_code': OK, 'result': feed, 'is_last_page': is_last_page}), 200
 
 
-def recipe_response_builder_ver_2(recipe, lang=u'en', excluded=[]):
+def recipe_response_builder_ver_2(recipe, lang=u'en', vendor_id=u'', excluded=[]):
     if lang == 'en':
         title = recipe.title_lang_en
         description = recipe.description_lang_en
@@ -772,15 +779,8 @@ def recipe_response_builder_ver_2(recipe, lang=u'en', excluded=[]):
         is_open = True
     elif not current_user.is_authenticated():
         is_open = False
-    elif UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first():
-        user_set = UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first()
-        if user_set.open_type == FOREVER:
-            is_open = True
-        if user_set.open_type == MONTH:
-            if (datetime.utcnow() - user_set.open_date).days <= 30:
-                is_open = True
-            else:
-                is_open = False
+    elif VendorSet.query.filter_by(set_id=recipe.set_id, vendor_id=vendor_id).first():
+        is_open = True
     return {
         "id": recipe.id,
         "title": title,
@@ -820,12 +820,12 @@ def category_response_builder_ver_2(category, lang=u'en', excluded=[]):
 
 
 def wine_response_builder_ver_2(wine, lang=u'en', excluded=[]):
-    information = response_builder(wine, Wine, lang, excluded)
+    information = response_builder(wine, Wine, lang, excluded=excluded)
     information['likes'] = LikeWine.query.filter_by(wine_id=wine.id).count()
     return information
 
 
-def recipe_response_builder(recipe, lang=u'en', excluded=[]):
+def recipe_response_builder(recipe, lang=u'en', vendor_id=u'', excluded=[]):
     categories = []
     recipe_query = Recipe.query
     # if current_user.is_authenticated() and current_user.role_code == 0:
@@ -843,7 +843,7 @@ def recipe_response_builder(recipe, lang=u'en', excluded=[]):
     wines = []
     for wine in recipe.wines:
         wines.append(wine.id)
-    information = response_builder(recipe, Recipe, lang, excluded)
+    information = response_builder(recipe, Recipe, lang, excluded=excluded)
     information['categories'] = []
     if categories is not None:
         for category_id in categories:
@@ -889,22 +889,15 @@ def recipe_response_builder(recipe, lang=u'en', excluded=[]):
         information['is_open'] = False
     elif current_user.is_admin():
         information['is_open'] = True
-    elif UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first():
-        user_set = UserSet.query.filter_by(set_id=recipe.set_id, user_id=current_user.id).first()
-        if user_set.open_type == FOREVER:
-            information['is_open'] = True
-        if user_set.open_type == MONTH:
-            if (datetime.utcnow() - user_set.open_date).days <= 30:
-                information['is_open'] = True
-            else:
-                information['is_open'] = False
+    elif VendorSet.query.filter_by(set_id=recipe.set_id, vendor_id=vendor_id).first():
+        information['is_open'] = True
     else:
         information['is_open'] = False
     return information
 
 
-def set_response_builder(set, lang=u'en', excluded=[]):
-    information = response_builder(set, Set, lang, excluded)
+def set_response_builder(set, lang=u'en', vendor_id=u'', excluded=[]):
+    information = response_builder(set, Set, lang, excluded=excluded)
     information['number_of_recipes'] = len(set.recipes)
     if set.is_free:
         information['is_open'] = True
@@ -912,16 +905,8 @@ def set_response_builder(set, lang=u'en', excluded=[]):
         information['is_open'] = False
     elif current_user.is_admin():
         information['is_open'] = True
+    elif VendorSet.query.filter_by(set_id=set.id, vendor_id=vendor_id).first():
+        information['is_open'] = True
     else:
-        user_set = UserSet.query.filter_by(set_id=set.id, user_id=current_user.id).first()
-        if user_set:
-            if user_set.open_type == FOREVER:
-                information['is_open'] = True
-            if user_set.open_type == MONTH:
-                if (datetime.utcnow() - user_set.open_date).days <= 30:
-                    information['is_open'] = True
-                else:
-                    information['is_open'] = False
-        else:
-            information['is_open'] = False
+        information['is_open'] = False
     return information

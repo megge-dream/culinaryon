@@ -22,6 +22,22 @@ class UserSet(db.Model):
         return self.id
 
 
+class VendorSet(db.Model):
+    """
+    Need to add Table Structure
+    """
+    __tablename__ = "vendor_sets"
+
+    id = db.Column(db.Integer, primary_key=True)
+    vendor_id = db.Column(db.String(250), nullable=False)
+    set_id = db.Column(db.Integer(), db.ForeignKey('sets.id'))
+    open_date = db.Column(db.DateTime, default=datetime.utcnow())
+    creation_date = db.Column(db.DateTime, default=datetime.utcnow())
+
+    def __unicode__(self):
+        return self.id
+
+
 class Set(db.Model):
     """
     Need to add Table Structure

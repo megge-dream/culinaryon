@@ -4,7 +4,7 @@ from flask.ext.login import login_required, current_user
 from app.api import auto, db
 from app.api.constants import BAD_REQUEST, OK
 from app.api.recipes.views_v2 import recipe_response_builder, set_response_builder
-from app.api.sets.model import Set, UserSet
+from app.api.sets.model import Set, UserSet, VendorSet
 from app.api.users.constants import FOREVER
 
 
@@ -21,13 +21,14 @@ def get_set(id):
             result - information about category
     """
     lang = request.args.get('lang', type=unicode, default=u'en')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     set = Set.query.get(id)
     if not set:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'not ok'}), 200  # set with `id` isn't exist
-    information = set_response_builder(set, lang)
+    information = set_response_builder(set, lang, vendor_id)
     information['recipes'] = []
     for recipe in set.recipes:
-        information['recipes'].append(recipe_response_builder(recipe, lang))
+        information['recipes'].append(recipe_response_builder(recipe, lang, vendor_id))
     return jsonify({'error_code': OK, 'result': information}), 200
 
 
@@ -45,6 +46,7 @@ def get_all_sets():
             ids - ids of all sets
     """
     lang = request.args.get('lang', type=unicode, default=u'en')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     sets = []
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', type=int)
@@ -55,7 +57,7 @@ def get_all_sets():
     #     sets_band = Set.query.all()
     sets_band = Set.query.all()
     for set in sets_band:
-        information = set_response_builder(set, lang)
+        information = set_response_builder(set, lang, vendor_id)
         sets.append(information)
     sets = sorted(sets, key=lambda k: k['is_open'], reverse=True)
     if limit is not None and offset is not None:
@@ -69,7 +71,7 @@ def get_all_sets():
 
 @auto.doc()
 @mod.route('/buy_set', methods=['POST'])
-@login_required
+# @login_required
 def buy_set():
     """
     Buy set with store id in json. List of parameters in json request (one of them is required):
@@ -81,6 +83,7 @@ def buy_set():
             result - information about set
     """
     lang = request.args.get('lang', type=unicode, default=u'en')
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     store_id = request.json.get('store_id')
     if store_id is None:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'missing arguments'}), 200  # missing arguments
@@ -89,11 +92,12 @@ def buy_set():
         set = Set.query.filter_by(sale_store_id=store_id).first()
     if not set:
         return jsonify({'error_code': BAD_REQUEST, 'result': 'set not exist'}), 200
-    user_set = UserSet(user_id=current_user.id, set_id=set.id, open_type=FOREVER)
-    db.session.add(user_set)
+    # user_set = UserSet(user_id=current_user.id, set_id=set.id, open_type=FOREVER)
+    vendor_set = VendorSet(vendor_id=vendor_id, set_id=set.id)
+    db.session.add(vendor_set)
     db.session.commit()
-    information = set_response_builder(set, lang)
+    information = set_response_builder(set, lang, vendor_id)
     information['recipes'] = []
     for recipe in set.recipes:
-        information['recipes'].append(recipe_response_builder(recipe, lang))
+        information['recipes'].append(recipe_response_builder(recipe, lang, vendor_id))
     return jsonify({'error_code': OK, 'result': information}), 200

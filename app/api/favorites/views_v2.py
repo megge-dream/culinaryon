@@ -60,6 +60,7 @@ def get_favorite():
     recipes = []
     wines = []
     page = request.args.get('page', type=int)
+    vendor_id = request.args.get('vendor_id', type=unicode, default=u'')
     if page is not None:
         # for faster loading
         limit_recipes = 2
@@ -84,7 +85,7 @@ def get_favorite():
         else:
             recipe_query = Recipe.query.filter_by(type=PUBLISHED)
         recipe = recipe_query.filter_by(id=favorite.recipe_id).first()
-        information = recipe_response_builder(recipe)
+        information = recipe_response_builder(recipe, vendor_id)
         information['type_of_object'] = 'recipe'
         recipes.append(information)
     for favorite in wines_band:
