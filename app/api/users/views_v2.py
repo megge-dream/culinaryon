@@ -8,7 +8,7 @@ from flask.ext.login import login_user
 from sqlalchemy import and_
 
 from app.api import vkontakte, mail
-from app.api.chefs.views import chef_response_builder
+from app.api.chefs.views_v2 import chef_response_builder
 from app.api.constants import BAD_REQUEST, OK
 from app.api import auto, twitter
 from app.api.helpers import *
@@ -460,12 +460,13 @@ def get_top():
     - seminars,
     - recipes.
     """
+    lang = request.args.get('lang', type=unicode, default=u'en')
     PLACES_IN_TOP = 5
     information = {}
     chefs = Chef.query.limit(PLACES_IN_TOP).all()
     information['chefs'] = []
     for chef in chefs:
-        information['chefs'].append(chef_response_builder(chef))
+        information['chefs'].append(chef_response_builder(chef, lang=lang))
 
     if current_user.is_authenticated() and current_user.role_code == 0:
         recipe_query = Recipe.query
@@ -474,14 +475,14 @@ def get_top():
     recipes = recipe_query.order_by(Recipe.num_likes.desc()).limit(PLACES_IN_TOP).all()
     information['recipes'] = []
     for recipe in recipes:
-        information_of_recipe = recipe_response_builder(recipe)
+        information_of_recipe = recipe_response_builder(recipe, lang=lang)
         information_of_recipe['ingredients'] = get_ingredients_by_divisions(recipe.id, lang=lang)
         information['recipes'].append(information_of_recipe)
 
     seminars = SchoolEvent.query.order_by(SchoolEvent.date.desc()).limit(5).all()
     information['seminars'] = []
     for seminar in seminars:
-        information['seminars'].append(response_builder(seminar, SchoolEvent))
+        information['seminars'].append(response_builder(seminar, SchoolEvent, lang=lang))
 
     return jsonify({'error_code': OK, 'result': information})
 
@@ -493,7 +494,7 @@ def to_appstore():
     """
     Redirect to AppStore.
     """
-    return redirect('https://itunes.apple.com/ru/app/culinaryon-lucsie-recepty/id971017562?mt=8', 302)
+    return redirect('https://itunes.apple.com/us/app/culinaryon-lucsie-recepty/id971017562?l=ru&ls=1&mt=8', 302)
 
 
 ################
